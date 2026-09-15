@@ -1,0 +1,24 @@
+{
+  "id": "lysholm-sc-v3",
+  "type": "supercharger",
+  "name": "Lysholm Screw Supercharger (V3 profile)",
+  "displacement_liters": 1.74,
+  "drive_type": "belt",
+  "pulley_ratio": 1.8,
+  "limits": {
+    "maxBoostBar": 1.5,
+    "maxRPM": 8800,
+    "peakEfficiencyRPM": 5500
+  },
+  "dynamics": {
+    "timeConstantS": 0.02,
+    "volumetricEfficiency": 0.88,
+    "heatRatioK": 1.18,
+    "beltSlipCoeff": 0.015
+  },
+  "cooler": {
+    "effectivenessPercent": 55,
+    "targetInletTempC": 32
+  },
+  "description": "Lysholm screw-type supercharger. More efficient than roots, excellent for high-RPM engines. Slightly more heat output but superior boost consistency."
+}

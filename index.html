@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenEngineLab — Motor-Physik-Simulator</title>
+<link rel="stylesheet" href="https://unpkg.com/[email protected]/dist/uPlot.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">Open<span>Engine</span>Lab</div>
+  <div class="topbar-controls">
+    <select id="discipline-select" class="topbar-select" aria-label="Disziplin"></select>
+    <select id="lang-select" class="topbar-select" aria-label="Sprache">
+      <option value="de">DE</option><option value="en">EN</option>
+      <option value="fr">FR</option><option value="es">ES</option>
+    </select>
+    <button id="undo-btn" class="icon-btn" title="Rückgängig">↶</button>
+    <button id="redo-btn" class="icon-btn" title="Wiederholen">↷</button>
+    <button id="report-btn" class="icon-btn-text" title="Bericht">📄</button>
+    <div class="tabs" role="tablist">
+      <button id="tab-schematic" class="tab-btn active" role="tab" aria-selected="true">Schema</button>
+      <button id="tab-kennfield" class="tab-btn" role="tab" aria-selected="false">Kennfeld</button>
+    </div>
+  </div>
+</header>
+
+<main class="app-grid">
+  <aside id="left-panel" class="sidebar sidebar-left" aria-label="Eingabeleiste"></aside>
+
+  <section class="viewport">
+    <div id="schematic-container" class="schematic-container" aria-label="Motorschema"></div>
+    <div id="kennfield-view" class="kennfield-view" style="display:none">
+      <div class="kennfield-toolbar">
+        <label for="kennfield-select">Kennfeld</label>
+        <select id="kennfield-select">
+          <option value="ignition">Zündwinkel (° v. OT)</option>
+          <option value="fuel">Kraftstoffmenge (mg/Zyklus)</option>
+        </select>
+      </div>
+      <canvas id="kennfield-canvas" width="640" height="360"></canvas>
+    </div>
+    <div id="tooltip" class="tooltip" role="tooltip"></div>
+    <div id="hydrolock-banner" class="hydrolock-banner" style="display:none">
+      <div class="hydrolock-text"></div>
+      <button id="rebuild-engine-btn" class="rebuild-btn"></button>
+    </div>
+  </section>
+
+  <aside class="sidebar sidebar-right" aria-label="Live-Daten">
+    <h2>Telemetrie</h2>
+    <div id="chart-a" class="chart"></div>
+    <div id="chart-b" class="chart"></div>
+    <h3>Statistik (min / ø / max)</h3>
+    <div id="stats-panel" class="stats-panel"></div>
+  </aside>
+
+  <footer class="status-bar">
+    <span id="status-state" class="ok">LÄUFT</span>
+    <span id="status-time">t=0.0s</span>
+    <span id="status-weakest" class="ok">Weakest Link: —</span>
+    <span id="status-drivetrain" class="drivetrain-status"></span>
+    <span id="status-advisory" class="advisory"></span>
+    <button id="estop" class="estop-btn" title="Not-Stopp: sofortiger Reset auf sicheren Zustand">NOT-STOPP</button>
+  </footer>
+</main>
+
+<script src="https://unpkg.com/[email protected]/dist/uPlot.iife.min.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/ecm.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/track.js"></script>
+<script src="js/disciplines.js"></script>
+<script src="js/report.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

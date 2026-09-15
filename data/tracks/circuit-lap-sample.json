@@ -1,0 +1,11 @@
+{
+  "id": "circuit-lap-sample",
+  "name": "Rundstrecke — Beispielrunde",
+  "segments": [
+    { "durationS": 5, "throttle01": 1.0, "gear": 5, "note": "Start-Ziel-Gerade" },
+    { "durationS": 2, "throttle01": 0.1, "brake01": 0.8, "gear": 3, "note": "Bremszone T1" },
+    { "durationS": 3, "throttle01": 0.6, "gear": 3, "note": "Kurvenausgang" },
+    { "durationS": 4, "throttle01": 1.0, "gear": 5, "note": "Gegengerade" },
+    { "durationS": 2, "throttle01": 0.0, "brake01": 0.9, "gear": 2, "note": "Bremszone T2" }
+  ]
+}

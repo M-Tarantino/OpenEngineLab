@@ -1,0 +1,63 @@
+{
+  "id": "vr38dett",
+  "name": "Nissan VR38DETT 3.8L V6 Twin-Turbo",
+  "configuration": "V",
+  "vAngleDeg": 60,
+  "cylinders": 6,
+  "firingOrder": [1, 4, 2, 5, 3, 6],
+  "geometry": {
+    "boreMM": 95.5,
+    "strokeMM": 88.4,
+    "rodLengthMM": 150.9,
+    "displacementCC": 3799,
+    "compressionRatio": 9.0
+  },
+  "materials": {
+    "connectingRod": {
+      "material": "Forged C-70 Steel",
+      "yieldStrengthMPa": 950,
+      "crossSectionAreaMM2": 420,
+      "snCurveExponentB": 6.1,
+      "snCurveRefCyclesN0": 1.0e6
+    },
+    "headBolt": {
+      "material": "10.9 Alloy Steel",
+      "yieldStrengthMPa": 1040,
+      "crossSectionAreaMM2": 78.5,
+      "boltsPerCylinder": 4,
+      "snCurveExponentB": 7.5,
+      "snCurveRefCyclesN0": 2.0e6
+    },
+    "pistonPin": {
+      "material": "Case-Hardened Chromoly",
+      "yieldStrengthMPa": 850,
+      "crossSectionAreaMM2": 330,
+      "snCurveExponentB": 6.8,
+      "snCurveRefCyclesN0": 1.5e6
+    }
+  },
+  "thermal": {
+    "oilMassKG": 6.5,
+    "oilSpecificHeatJPerKgK": 2000,
+    "oilRefTempC": 90,
+    "oilViscosityEta0": 12.5,
+    "oilViscosityAlpha": -0.028,
+    "oilViscosityMinSafe": 3.0,
+    "frictionCoeff": 4.2e-5,
+    "combustionHeatFraction": 0.028,
+    "coolingCoeff": 180,
+    "ambientLossCoeff": 8,
+    "thermalDerationBaselineC": 150,
+    "thermalDerationRate": 0.0025
+  },
+  "dynamics": {
+    "rotatingInertiaKgM2": 0.22,
+    "frictionTorqueBaseNm": 18,
+    "frictionTorquePerRPM": 0.0035,
+    "dynoLoadCoeffNmPerRPM2": 0.00021
+  },
+  "idleRPM": 800,
+  "redlineRPM": 7000,
+  "revLimiterRPM": 7100,
+  "intercoolerEfficiency": 0.72
+}

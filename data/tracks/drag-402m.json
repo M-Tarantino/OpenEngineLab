@@ -1,0 +1,12 @@
+{
+  "id": "drag-402m",
+  "name": "Viertelmeile (402 m) — Beschleunigungslauf",
+  "segments": [
+    { "durationS": 0.6, "throttle01": 1.0, "gear": 1, "note": "Start" },
+    { "durationS": 1.2, "throttle01": 1.0, "gear": 2 },
+    { "durationS": 1.4, "throttle01": 1.0, "gear": 3 },
+    { "durationS": 1.6, "throttle01": 1.0, "gear": 4 },
+    { "durationS": 1.8, "throttle01": 1.0, "gear": 5 },
+    { "durationS": 2.4, "throttle01": 1.0, "gear": 6 }
+  ]
+}

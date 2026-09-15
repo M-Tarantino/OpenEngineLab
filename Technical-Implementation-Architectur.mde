@@ -1,0 +1,212 @@
+# OpenEngineLab — Technical Implementation Architecture
+
+## 1. Display & User Interface (UI Architecture)
+
+### 1.1 Application Framework
+* **Single-Page Application (SPA):** Complete browser-based execution as a client-side application without server infrastructure or database overhead.
+* **Framework-Agnostic Core:** Pure JavaScript/HTML5 implementation to minimize dependencies and maximize portability across static hosting platforms (GitHub Pages, Netlify).
+* **Progressive Enhancement:** Fallback graceful degradation for older browsers while supporting modern APIs for advanced users.
+
+### 1.2 Real-Time Data Visualization
+* **High-Frequency Time-Series Plotting:** Deployment of uPlot for performant, hardware-accelerated rendering of time-series data (engine RPM, boost pressure, oil and coolant temperatures, oil viscosity degradation over simulation distance/time).
+* **Configurable Update Intervals:** Adaptive refresh rates based on computation load and display refresh synchronization (VSync) for smooth, flicker-free rendering.
+* **Multi-Axis Display:** Simultaneous visualization of up to 6–8 independent physical quantities with auto-scaling and legend management.
+
+### 1.3 Map Visualization (Fuel & Ignition Kennfields)
+* **2D/3D Lookup Table Rendering:** Interactive canvas-based visualization of ignition timing and fuel delivery maps across engine speed (RPM) and load (throttle position or torque).
+* **Bilinear Interpolation Preview:** Real-time highlight of active operating point within the lookup table, showing interpolated cell values and neighboring map cells.
+* **Manual Map Editing Interface:** Click-and-drag node manipulation for advanced users to fine-tune ignition advance or fuel mass at specific operating points, with live recalculation cascading through dependent calculations.
+* **Contour & Gradient Display:** Color-coded isobar/isotherm overlays to visualize pressure, temperature, or detonation risk gradients across the map.
+
+### 1.4 Component Schematic & Health Monitoring
+* **Procedural Vector Engine Schematic:** Real-time, dynamically generated SVG skeleton of the engine layout directly from `engine_profile.json` coordinate data—no pre-rendered images or external graphics libraries required.
+* **Topology-Driven Rendering:** 
+  * Inline-4, V6, V8, Boxer, opposed configurations rendered with correct deck geometry and valve-train orientation.
+  * Connecting rods, journals, crankshaft, and flywheel inertia relationships displayed to scale and mechanically accurate.
+  * Turbocharger, intercooler, oil gallery, and coolant circuit paths traced procedurally from JSON component connectivity data.
+* **Live Color-State Indication (Weakest-Link Heatmap):**
+  * SVG element IDs tied directly to calculated stress, temperature, and pressure results from `engine.js`.
+  * **Green:** Mechanical stress and thermal parameters within safe operating margins ($\sigma < 0.7 \cdot \sigma_{\text{yield}}$).
+  * **Yellow/Orange:** Approaching yield threshold, thermal stress peaks, or oil viscosity degradation below minimum safe film strength.
+  * **Pulsing Red:** Material yield-strength exceeded ($\sigma \ge \sigma_{\text{yield}}$), hydrolock entry, oil-film rupture, bearing seizure risk, or detonation event at the flagged component.
+  * **Frequency & Pulse Rate:** Pulse intensity correlates with margin-to-failure (slow pulse = marginal, rapid pulse = imminent).
+* **Tooltip & Detail Panel:** Hover over any component to display real-time computed values: stress state, temperature, pressure, safety factor, and failure prediction ETA (if applicable).
+
+## 2. Input Controls & Data Handling
+
+### 2.1 Precision Numerical Input
+* **Stepper Input Fields:** Multi-digit numeric entry with ±0.1 increment/decrement buttons for fine parameter tuning (bore, stroke, rod length, supercharger drive ratio, track altitude, ambient temperature).
+* **Unit Display & Conversion:** Simultaneous display of metric (mm, kW, °C) and imperial (in., hp, °F) units with real-time conversion upon parameter change.
+* **Input Validation & Range Enforcement:** Hard limits preventing physically impossible configurations (e.g., bore < 30 mm, boost > 5.0 bar for naturally aspirated engines, compression ratio > 15:1 for pump fuel).
+* **Undo/Redo Stack:** Full parameter-change history for rapid iteration and A/B comparison of setup modifications.
+
+### 2.2 Interactive Live Sliders
+* **Continuous Parameter Sweeps:** Strapless sliders for transient simulation control:
+  * Throttle opening (0–100%)
+  * Gear selection (1st–6th with CVT option)
+  * Ambient temperature (−40°C to +60°C)
+  * Barometric pressure (0.6–1.1 bar, for altitude/weather variation)
+  * Fuel octane override (emergency derating)
+* **Real-Time Recalculation Loop:** Every slider adjustment triggers instantaneous re-execution of the calculation pipeline with results flowing directly into time-series plot and schematic color states.
+* **Slider Snapshots:** Ability to save and recall slider configurations as named presets (e.g., "Alpine 2400 m, Cold Start", "Desert 45°C, Full Boost").
+
+### 2.3 File Import & Export
+* **Drag-and-Drop JSON Import:** Local file upload of engine profiles, fuel databases, gearbox definitions, track profiles, and environmental presets with client-side schema validation.
+* **Auto-Detection & Field Mapping:** Automatic detection of imported file type (engine vs. parts vs. track) and population of corresponding input sections.
+* **Validation Report:** Detailed error messages for malformed JSON, missing mandatory fields, or out-of-range values, with suggestion prompts for correction.
+* **Export Configuration Bundle:** Single-click download of the entire simulation state as a timestamped `.json` file (setup, all slider positions, selected presets) for archival or sharing with team members.
+
+### 2.4 Quick-Select Presets & Database
+* **Dropdown Profile Selector:** Curated quick-access dropdowns for:
+  * **Fuels:** Super E10 (95 RON), Super Plus 98, Aral Ultimate 102, US 87/91/93 AKI, 116-octane race gas, E85, methanol, nitromethane.
+  * **Turbochargers:** KO3, Garrett GT28RS, BorgWarner EFR7163, Turbonetics T66, Whipple (for supercharged presets).
+  * **Exhausts:** Stock OEM, sports cat downpipe, full race exhaust, headers + catless.
+  * **Disciplines:** Predefined constraint profiles (F1 fuel-flow limit, WRC stage autonomy, drag-launch clutch profile, hillclimb cooling limitation).
+* **Nested Presets:** Discipline selection auto-populates regulatory constraints and applicable safety interlocks.
+
+## 3. Vector-Based Rendering & Procedural Engine Schematic
+
+### 3.1 Pure SVG Generation Architecture
+* **No External Graphics Libraries:** All component geometry generated mathematically from `engine_profile.json` coordinate tables; no PNG/JPG textures, pre-rendered sprite sheets, or dependency on Canvas libraries beyond uPlot.
+* **Parametric Drawing:** Component outlines (cylinders, pistons, rods, journals) defined as SVG `<path>` elements, scaled and rotated in real-time based on simulation state and geometry inputs.
+* **Viewport Auto-Scaling:** SVG viewBox automatically computed to fit all engine components with consistent margins, responsive to browser window resizing.
+
+### 3.2 Topology-Driven Schematic Layout
+* **Inline Configurations (I4, I6, I8):**
+  * Cylinders arranged linearly, offset vertically for clarity.
+  * Crankshaft centerline and main journal positions rendered to scale.
+  * Connecting rod angles and piston positions updated in real-time based on current crank angle (computed from simulation timestep).
+* **V-Bank Configurations (V6, V8, V10, V12):**
+  * Dual cylinder banks with correct V-angle (V6 @ 60°, V8 @ 90°) and deck-offset geometry.
+  * Cross-plane crankshaft configurations with phase-shifted journal lobes.
+  * Intake and exhaust manifold routing traced procedurally to show flow paths.
+* **Boxer Configurations (H4, H6):**
+  * Horizontally opposed banks with shared centerline and 180° piston phasing.
+  * Symmetrical cooling airflow and oil-gallery routing.
+* **Turbocharger Integration:**
+  * Compressor and turbine housings positioned relative to intake/exhaust ports.
+  * Intercooler core placed between compressor outlet and throttle body with flow-path annotation.
+  * Boost pressure and outlet temperature displayed on intake manifold annotation.
+
+### 3.3 Dynamic State & Stress Visualization
+
+#### Component Layering
+* **Static Geometry Layer (SVG):** Engine schematic outline, cylinder block, crankcase, mounting points.
+* **Dynamic Position Layer:** Piston displacement, connecting rod angle, flywheel rotation (updated every 10–20 ms during simulation).
+* **Stress State Layer:** Real-time color overlay reflecting local stress, temperature, and pressure at each component.
+* **Annotation Layer:** Numerical readouts for critical parameters (peak pressure, rod stress, oil temperature) placed dynamically to avoid overlap.
+
+#### Color-State Mapping
+* **Green ($\sigma < 0.7 \cdot \sigma_{\text{yield}}$):** Safe operating margin with >30% capacity headroom. Component is not a failure risk.
+* **Light Yellow ($0.7 \le \frac{\sigma}{\sigma_{\text{yield}}} < 0.85$):** Approaching yield threshold. Operator should monitor or reduce load.
+* **Orange ($0.85 \le \frac{\sigma}{\sigma_{\text{yield}}} < 1.0$):** Within 15% of yield. Critical zone—further load increase will cause failure.
+* **Pulsing Red ($\sigma \ge \sigma_{\text{yield}}$):** Yield-strength exceeded. Component is actively failing. Pulse frequency indicates margin-to-fracture rate:
+  * Slow pulse (0.5 Hz): Hours-to-days until component fracture (fatigue/creep).
+  * Fast pulse (3–5 Hz): Minutes-to-seconds until catastrophic failure (immediate overload).
+* **Flashing Red (Hydrolock/Oil Starvation):** Incompressible fluid in cylinder or zero oil film detected—imminent mechanical seizure or blast damage.
+
+#### Tooltip & Inspector
+* **Hover Inspection:** Mousing over any SVG component opens a floating detail panel with:
+  * Component name and material designation.
+  * Real-time stress: $\sigma_{\text{current}}$, $\sigma_{\text{yield}}$, safety factor $SF = \frac{\sigma_{\text{yield}}}{\sigma_{\text{current}}}$.
+  * Temperature: $T_{\text{current}}$, material degradation factor.
+  * Pressure (if applicable): $p_{\text{local}}$ and pressure spike history (last 100 ms).
+  * Time-to-failure estimate (if in red zone).
+  * Contributing load sources (combustion pressure, thermal stress, resonant vibration, etc.).
+
+### 3.4 Interactive Component Selection & Deep Dive
+* **Click-to-Isolate:** Clicking any engine component isolates and enlarges that component's view, showing cross-sectional stress distribution via contour map.
+* **Historical Trace:** Toggling a "trace" mode overlays the last 5–10 simulation cycles on the schematic to visualize cyclic stress amplitude and peak variations.
+* **Failure Prediction Timeline:** If a component is flagged red, a graphical failure timeline shows:
+  * Current cycle count vs. S-N curve fatigue limit.
+  * Predicted failure event timestamp.
+  * Sensitivity bars indicating which parameter (boost, RPM, temperature, fuel octane) has the highest influence on failure risk.
+
+## 4. Control Panel Layout & Workflow
+
+### 4.1 Primary Control Regions
+* **Left Sidebar (Input Panel):**
+  * Engine selection dropdown + preset tabs (fuel, turbo, exhaust, discipline).
+  * Numerical input fields for engine geometry and calibration.
+  * Slider controls for transient parameters (throttle, gear, altitude, temperature).
+* **Center Viewport (Visualization):**
+  * Large SVG engine schematic (primary focus).
+  * Weakest-link color state in real-time.
+  * Clickable tooltips for component inspection.
+* **Right Sidebar (Real-Time Data Log):**
+  * Time-series plots (uPlot) with 4–6 adjustable traces: RPM, boost, oil temp, coolant temp, peak cylinder pressure, AFR.
+  * Statistics panel: min/max/mean values over current simulation window.
+  * Export button for logged data as CSV.
+* **Bottom Status Bar:**
+  * Simulation state indicator (running, paused, error).
+  * Current simulation time and cycle counter.
+  * Worst-case stress component link ("Weakest Link: Connecting Rod @ 1.15× yield").
+  * Emergency stop button (hard reset to safe default).
+
+### 4.2 Mode Toggles & Views
+* **Schematic View (Default):** Full engine diagram with stress heatmap.
+* **Thermal View:** Overlay showing temperature distribution across oil galleries, coolant channels, and combustion chamber.
+* **Pressure Map View:** Spatial distribution of pressure spikes across cylinders and boost circuit.
+* **Fatigue Accumulation View (WEC/Rally):** S-N curve progress, Miner sum damage, and predicted service interval.
+* **Kennfield View:** 2D/3D maps of ignition and fuel delivery with operating-point marker.
+* **Report Preview:** Pre-formatted export report with all results, charts, and weakest-link analysis.
+
+## 5. Error Handling & User Feedback
+
+### 5.1 Validation & Constraint Warnings
+* **Pre-Simulation Checks:** Before execution, engine configuration is scanned for:
+  * Physically impossible parameters (bore/stroke ratio < 1:1.5).
+  * Regulatory violation (fuel flow > F1 limit, boost > discipline cap).
+  * Missing mandatory fields (engine displacement, fuel type).
+* **Real-Time Advisory Panels:**
+  * Yellow banner: "Boost pressure approaches turbocharger rating (95% of max)."
+  * Orange banner: "Oil temperature exceeds viscosity stability limit; engine may suffer bearing wear."
+  * Red banner: "Fuel octane insufficient for selected boost; detonation imminent."
+
+### 5.2 Graceful Degradation
+* **Calculation Fallback:** If a component calculation fails (e.g., invalid thermodynamic state), the system logs the error but continues simulation with last valid state, alerting user without crashing.
+* **NaN/Infinity Protection:** Automatic clipping of unphysical results (negative pressure, infinite temperature) with diagnostic logging.
+
+## 6. Export & Reporting
+
+### 6.1 Report Generation
+* **Decoupled PDF/HTML Export:** Generates a formatted technical report independent of the UI layout, including:
+  * Setup summary (engine, fuel, turbo, transmission, weather preset).
+  * Simulation parameters (throttle profile, track distance, simulation duration).
+  * Performance metrics (peak power, peak torque, EGT, fuel consumption).
+  * Thermal analysis (peak oil/coolant/combustion temperatures, thermal transients).
+  * Weakest-link analysis: component name, failure mode, margin-to-failure, contributing factors.
+  * Time-series plots (RPM, pressure, temperature, stress evolution).
+  * Engine schematic with final stress state colors and annotations.
+* **Format Selection:** DIN A4 (210 × 297 mm) or US Letter (8.5 × 11 in.) document standard.
+* **Timestamp & Versioning:** Each report tagged with generation timestamp and configuration hash for traceability.
+
+### 6.2 Data Export
+* **CSV Time-Series Export:** Download full simulation log as comma-separated values for external analysis (Excel, MATLAB, Python).
+* **JSON Configuration Archive:** Export current setup state (all parameters, presets, slider positions) as portable JSON for later reload or team collaboration.
+* **Image Export:** Save engine schematic or time-series plots as PNG/SVG for presentations or documentation.
+
+## 7. Performance & Optimization Considerations
+
+### 7.1 Calculation Performance
+* **Web Worker Thread:** Long-running simulation calculations delegated to a background Web Worker to prevent UI thread blocking.
+* **Adaptive Step Size:** Simulation timestep automatically coarsens during low-stress periods and refines during transient events (gear shifts, throttle changes) to balance accuracy and performance.
+* **Memoization & Lookup Tables:** Frequently accessed thermodynamic properties (oil viscosity, air density, combustion constants) cached in memory with O(1) lookup.
+
+### 7.2 Rendering Optimization
+* **SVG Dirty Checking:** Only SVG elements with changed color state are redrawn; static geometry paths remain cached.
+* **Canvas Resize Throttling:** Window resize events throttled to 60 FPS to avoid redundant SVG recomputation.
+* **Lazy Loading:** Kennfield and detailed component views only rendered on user request, not on initial page load.
+
+## 8. Accessibility & Localization
+
+### 8.1 Accessibility (WCAG 2.1 AA)
+* **Keyboard Navigation:** Full keyboard control via arrow keys, Tab, and Enter for all input controls and interactive elements.
+* **Screen Reader Support:** ARIA labels and semantic HTML for all UI components.
+* **High-Contrast Mode:** Optional inverted color scheme for visually impaired users.
+* **Adjustable Font Size:** UI-level text scaling without breaking layout.
+
+### 8.2 Internationalization
+* **Language Support:** English as primary; German, French, and Spanish as secondary locales with complete UI/error message translation.
+* **Unit Localization:** Automatic display of metric vs. imperial based on user preference or browser locale.
+* **Formula Notation:** LaTeX math rendering respects language convention (e.g., decimal comma in German, decimal point in English).

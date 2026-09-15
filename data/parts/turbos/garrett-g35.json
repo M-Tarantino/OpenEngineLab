@@ -1,0 +1,23 @@
+{
+  "id": "garrett-g35-900",
+  "name": "Garrett G35-900",
+  "type": "Turbocharger",
+  "compressor": {
+    "inducerMM": 52.0,
+    "exducerMM": 71.0,
+    "peakEfficiency": 0.80,
+    "maxMassFlowKgMin": 74.5
+  },
+  "turbine": {
+    "inducerMM": 56.4,
+    "exducerMM": 62.0,
+    "housingAR": 0.83
+  },
+  "limits": {
+    "maxBoostBar": 2.6,
+    "maxShaftSpeedRPM": 145000
+  },
+  "responseFactor": 0.62,
+  "wastegateType": "external",
+  "wastegateSpringBar": 0.9
+}

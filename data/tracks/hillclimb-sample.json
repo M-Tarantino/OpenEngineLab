@@ -1,0 +1,10 @@
+{
+  "id": "hillclimb-sample",
+  "name": "Bergrennen — Beispielabschnitt",
+  "segments": [
+    { "durationS": 8, "throttle01": 0.9, "gear": 3, "gradePercent": 8 },
+    { "durationS": 4, "throttle01": 0.3, "brake01": 0.6, "gear": 2, "gradePercent": 10, "note": "Haarnadelkurve" },
+    { "durationS": 10, "throttle01": 1.0, "gear": 3, "gradePercent": 12 },
+    { "durationS": 6, "throttle01": 0.5, "gear": 4, "gradePercent": 6 }
+  ]
+}
