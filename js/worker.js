@@ -1,4 +1,4 @@
-/* OpenEngineLab :: js/worker.js — Simulation im Web Worker (entkoppelt von UI-Rendering) */
+/* OpenEngineLab :: js/worker.js — simulation inside a Web Worker (decoupled from UI rendering) */
 importScripts("engine.js", "ecm.js");
 
 let simState = null;

@@ -1,0 +1,130 @@
+{
+  "version": "0.2.0",
+  "metadata": {
+    "name": "Track Day Preset",
+    "created": "2026-09-17T05:26:07.608378Z",
+    "iterations": [
+      {
+        "v": 1,
+        "date": "2026-09-17T05:26:07.608378Z",
+        "change": "Forged rods for a safety margin, boost held at 80% of the charger's rated maximum for sustained track sessions"
+      }
+    ],
+    "currentVersion": 1
+  },
+  "config": {
+    "engineBase": {
+      "id": "vr38dett",
+      "name": "Nissan VR38DETT 3.8L V6 Twin-Turbo",
+      "engineCodes": [
+        "VR38DETT"
+      ],
+      "configuration": "V",
+      "vAngleDeg": 60,
+      "cylinders": 6,
+      "firingOrder": [
+        1,
+        4,
+        2,
+        5,
+        3,
+        6
+      ],
+      "baseStock": {
+        "boreMm": 95.5,
+        "strokeMm": 88.4,
+        "compressionRatio": 9.0,
+        "maxRpm": 7000,
+        "rotatingMassKg": 24.0,
+        "parasiticLossHp": 18
+      },
+      "geometry": {
+        "boreMM": 95.5,
+        "strokeMM": 88.4,
+        "rodLengthMM": 150.9,
+        "displacementCC": 3799,
+        "compressionRatio": 9.0
+      },
+      "materials": {
+        "connectingRod": {
+          "material": "Forged C-70 Steel",
+          "yieldStrengthMPa": 950,
+          "crossSectionAreaMM2": 420,
+          "snCurveExponentB": 6.1,
+          "snCurveRefCyclesN0": 1000000.0
+        },
+        "headBolt": {
+          "material": "10.9 Alloy Steel",
+          "yieldStrengthMPa": 1040,
+          "crossSectionAreaMM2": 78.5,
+          "boltsPerCylinder": 4,
+          "snCurveExponentB": 7.5,
+          "snCurveRefCyclesN0": 2000000.0
+        },
+        "pistonPin": {
+          "material": "Case-Hardened Chromoly",
+          "yieldStrengthMPa": 850,
+          "crossSectionAreaMM2": 330,
+          "snCurveExponentB": 6.8,
+          "snCurveRefCyclesN0": 1500000.0
+        }
+      },
+      "thermal": {
+        "oilMassKG": 6.5,
+        "oilSpecificHeatJPerKgK": 2000,
+        "oilRefTempC": 90,
+        "oilViscosityEta0": 12.5,
+        "oilViscosityAlpha": -0.028,
+        "oilViscosityMinSafe": 3.0,
+        "frictionCoeff": 4.2e-05,
+        "combustionHeatFraction": 0.028,
+        "coolingCoeff": 180,
+        "ambientLossCoeff": 8,
+        "thermalDerationBaselineC": 150,
+        "thermalDerationRate": 0.0025
+      },
+      "dynamics": {
+        "rotatingInertiaKgM2": 0.22,
+        "frictionTorqueBaseNm": 18,
+        "frictionTorquePerRPM": 0.0035,
+        "dynoLoadCoeffNmPerRPM2": 3.75e-05
+      },
+      "idleRPM": 800,
+      "redlineRPM": 7000,
+      "revLimiterRPM": 7100,
+      "intercoolerEfficiency": 0.72
+    },
+    "turbo": {
+      "id": "garrett-g35-900",
+      "name": "Garrett G35-900",
+      "type": "Turbocharger",
+      "compressor": {
+        "inducerMM": 52.0,
+        "exducerMM": 71.0,
+        "peakEfficiency": 0.8,
+        "maxMassFlowKgMin": 74.5
+      },
+      "turbine": {
+        "inducerMM": 56.4,
+        "exducerMM": 62.0,
+        "housingAR": 0.83
+      },
+      "limits": {
+        "maxBoostBar": 2.6,
+        "maxShaftSpeedRPM": 145000
+      },
+      "responseFactor": 0.62,
+      "wastegateType": "external",
+      "wastegateSpringBar": 0.9
+    },
+    "mods": {
+      "active": [
+        "FORGED_H_BEAM_RODS"
+      ],
+      "variants": {}
+    },
+    "activeFuelId": "super-plus-98",
+    "boostTargetBar": 2.08,
+    "discipline": "standard"
+  }
+}

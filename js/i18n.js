@@ -1,4 +1,4 @@
-/* OpenEngineLab :: js/i18n.js — Mehrsprachigkeit (DE/EN/FR/ES) */
+/* OpenEngineLab :: js/i18n.js — localization (DE/EN/FR/ES) */
 (function (root) {
   "use strict";
 
@@ -7,15 +7,44 @@
     compressionRatio: "Verdichtung", boostTarget: "Ladedruck-Ziel", fuel: "Kraftstoff",
     transientParams: "Transiente Parameter", throttle: "Drosselklappe",
     ambientTemp: "Umgebungstemperatur", airPressure: "Luftdruck", altitude: "Höhe",
-    importSection: "Import", importHint: "Motor- oder Turbo-JSON-Profil laden (Auto-Erkennung).",
+    importSection: "Import", importHint: "Motor-, Turbo-, Kraftstoff- oder Mod-JSON-Profil laden (Auto-Erkennung).",
+    engineCatalog: "Basismotor", chargerCatalog: "Aufladung", modifications: "Modifikationen",
+    modVariantDefault: "Standard", catBottomEnd: "Kurbeltrieb", catValvetrain: "Ventiltrieb",
+    catAirflow: "Luftstrom", catForcedInduction: "Aufladung", catIntake: "Ansaugsystem", catExhaust: "Abgassystem",
+    resolvedConfig: "Berechnete Konfiguration", effMaxRpm: "Effektive Maximaldrehzahl",
+    totalMass: "Rotierende Masse", strengthFactor: "Festigkeitsfaktor", parasiticLoss: "Parasitärer Verlust",
     telemetry: "Telemetrie", stats: "Statistik (min / ø / max)",
     running: "LÄUFT", stopped: "GESTOPPT", weakestLink: "Weakest Link",
     knockWarning: "⚠ Klopfen erkannt — Zündung wird zurückgenommen",
     oilFilmWarning: "⚠ Ölfilm-Stabilität kritisch — Lagerschaden droht",
     overrunActive: "Schubabschaltung aktiv", alsFiring: "ALS aktiv",
     estop: "NOT-STOPP", tabSchematic: "Schema", tabKennfield: "Kennfeld",
+    tabLaunch: "Start", tabCompare: "Vergleich",
+    saveSetup: "Setup speichern (.oel)", loadSetup: "Setup laden (.oel)", csvExport: "CSV exportieren",
+    saveSetupPrompt: "Was hast du geändert? (optional)", saveSetupDefaultChange: "Gespeichert",
+    saveSetupSaved: "Gespeichert als", loadSetupLoaded: "Geladen", loadSetupInvalid: "Ungültige .oel-Datei",
+    launchTitle: "Start-Simulation (0–3 s)", launchHint: "Simuliert einen Start im 1. Gang bei Vollgas mit aktuellem Motor, Lader und Antriebsstrang. Zeigt Drehzahl-Aufbau, Ladedruck-Aufbau und Reifenschlupf-Risiko.",
+    launchRun: "Start-Test ausführen", speedLabel: "Geschwindigkeit",
+    launchHydrolockRisk: "⚠ Hydrolock-Risiko erkannt bei", launchNoHydrolock: "✓ Kein Hydrolock-Risiko erkannt",
+    launchWheelspinUntil: "⚠ Durchdrehen der Reifen bis", launchNoWheelspin: "✓ Kein Durchdrehen der Reifen",
+    launchWheelspinOngoing: "⚠ Reifen drehen die gesamte Testdauer durch — mehr Grip oder weniger Leistung nötig",
+    compareTitle: "Setup-Vergleich", compareHint: "Lade zwei .oel-Setup-Dateien, um ihre Spitzenwerte in einem standardisierten Volllast-Lauf zu vergleichen.",
+    compareSetupA: "Setup A", compareSetupB: "Setup B", compareRun: "Vergleichen",
+    compareInvalidFile: "Ungültige Datei", compareParameter: "Parameter", compareDiff: "Differenz",
+    cmpPeakPower: "Spitzenleistung", cmpPeakTorque: "Spitzendrehmoment", cmpOilTempPeak: "Öltemp. Spitze",
+    cmpCylPressurePeak: "Zyl.-Druck Spitze", cmpWeakestSf: "Weakest-Link SF", cmpKnockMargin: "Klopfmarge",
+    realismTitle: "Realismus-Check", realismHint: "Prüft die aktuelle Konfiguration nach einem Standard-Volllastlauf auf physikalische Plausibilität.",
+    realismRun: "Aktuelles Setup prüfen",
+    realismCrBoostOk: "✓ Verdichtung + Ladedruck ({v}) realistisch", realismCrBoostWarn: "⚠ Verdichtung + Ladedruck ({v}) im Grenzbereich", realismCrBoostCritical: "❌ Verdichtung + Ladedruck ({v}) unrealistisch hoch",
+    realismStressOk: "✓ Weakest-Link SF {v}x — sicher", realismStressWarn: "⚠ Weakest-Link SF {v}x — am Limit", realismStressCritical: "❌ Weakest-Link SF {v}x — ÜBERLASTET, würde in der Realität reißen",
+    realismOilOk: "✓ Öltemperatur {v}°C — sicher", realismOilWarn: "⚠ Öltemperatur {v}°C — am Limit", realismOilCritical: "❌ Öltemperatur {v}°C — über der Ableitungsgrenze",
+    realismKnockOk: "✓ Klopfmarge {v}% — sicher", realismKnockWarn: "⚠ Klopfmarge {v}% — Klopfen tritt auf", realismKnockCritical: "❌ Klopfmarge {v}% — starkes Klopfen, Motorschaden wahrscheinlich",
+    scenariosTitle: "Szenario-Vorlagen", scenarioLaunch: "Start", scenarioTrackday: "Trackday", scenarioStreet: "Straße",
     kennfieldIgnition: "Zündwinkel (° v. OT)", kennfieldFuel: "Kraftstoffmenge (mg/Zyklus)",
-    compRod: "Pleuel", compHeadBolt: "Zylinderkopfschraube", compPistonPin: "Kolbenbolzen",
+    compRod: "Pleuel", compHeadBolt: "Zylinderkopfschraube", compPistonPin: "Kolbenbolzen", compCylinderHead: "Zylinderkopf", compBlock: "Motorblock",
+    schematicAlt: "Motorschema", cylinderLabel: "Zylinder",
+    powerLabel: "Leistung", torqueLabel: "Drehmoment", afrLabel: "Gemisch (AFR)", boostLabel: "Ladedruck",
+    dynoTestBtn: "Dyno-Test", dynoTestTitle: "Dyno-Test-Ergebnis (Standard-Volllastlauf)", close: "Schließen",
     tooltipFormat: "{label}: σ={stress} MPa | SF={sf} | Schaden D={damage}%",
     engineLoaded: "Motorprofil geladen: {name}", turboLoaded: "Turboprofil geladen: {name}",
     fuelDbLoaded: "Kraftstoffdatenbank geladen", unknownFormat: "Unbekanntes JSON-Format",
@@ -36,7 +65,7 @@
     reportCreated: "Erstellt am", reportEngineConfig: "Motorkonfiguration", reportStats: "Betriebsstatistik",
     reportWeakest: "Schwachstellenanalyse", reportSavePdf: "Als PDF speichern",
     hydrolockBanner: "☠ HYDROLOCK — KATASTROPHALER MOTORSCHADEN", rebuildEngine: "Motor neu aufbauen",
-    language: "Sprache", rpmUnit: "1/min"
+    language: "Sprache", rpmUnit: "1/min", oilTempLabel: "Öl", cylPressureLabel: "Zyl.-Druck", cyclesLabel: "Zyklen"
   };
 
   const EN = {
@@ -44,15 +73,44 @@
     compressionRatio: "Compression", boostTarget: "Boost Target", fuel: "Fuel",
     transientParams: "Transient Parameters", throttle: "Throttle",
     ambientTemp: "Ambient Temperature", airPressure: "Air Pressure", altitude: "Altitude",
-    importSection: "Import", importHint: "Load an engine or turbo JSON profile (auto-detected).",
+    importSection: "Import", importHint: "Load an engine, turbo, fuel, or mod JSON profile (auto-detected).",
+    engineCatalog: "Base Engine", chargerCatalog: "Forced Induction", modifications: "Modifications",
+    modVariantDefault: "Standard", catBottomEnd: "Bottom End", catValvetrain: "Valvetrain",
+    catAirflow: "Airflow", catForcedInduction: "Forced Induction", catIntake: "Intake System", catExhaust: "Exhaust System",
+    resolvedConfig: "Resolved Configuration", effMaxRpm: "Effective Max RPM",
+    totalMass: "Rotating Mass", strengthFactor: "Strength Factor", parasiticLoss: "Parasitic Loss",
     telemetry: "Telemetry", stats: "Statistics (min / avg / max)",
     running: "RUNNING", stopped: "STOPPED", weakestLink: "Weakest Link",
     knockWarning: "⚠ Knock detected — retarding ignition",
     oilFilmWarning: "⚠ Oil film stability critical — bearing damage imminent",
     overrunActive: "Overrun fuel cut active", alsFiring: "ALS active",
     estop: "E-STOP", tabSchematic: "Schematic", tabKennfield: "Map",
+    tabLaunch: "Launch", tabCompare: "Compare",
+    saveSetup: "Save Setup (.oel)", loadSetup: "Load Setup (.oel)", csvExport: "Export CSV",
+    saveSetupPrompt: "What did you change? (optional)", saveSetupDefaultChange: "Saved",
+    saveSetupSaved: "Saved as", loadSetupLoaded: "Loaded", loadSetupInvalid: "Invalid .oel file",
+    launchTitle: "Launch Simulation (0–3 s)", launchHint: "Simulates a wide-open-throttle launch in 1st gear with the current engine, charger, and drivetrain. Shows RPM ramp, boost buildup, and wheelspin risk.",
+    launchRun: "Run Launch Test", speedLabel: "Speed",
+    launchHydrolockRisk: "⚠ Hydrolock risk detected at", launchNoHydrolock: "✓ No hydrolock risk detected",
+    launchWheelspinUntil: "⚠ Wheelspin until", launchNoWheelspin: "✓ No wheelspin",
+    launchWheelspinOngoing: "⚠ Tires spin for the entire test window — needs more grip or less power",
+    compareTitle: "Setup Comparison", compareHint: "Load two .oel setup files to compare their peak values in a standardized wide-open-throttle run.",
+    compareSetupA: "Setup A", compareSetupB: "Setup B", compareRun: "Compare",
+    compareInvalidFile: "Invalid file", compareParameter: "Parameter", compareDiff: "Diff",
+    cmpPeakPower: "Peak Power", cmpPeakTorque: "Peak Torque", cmpOilTempPeak: "Oil Temp Peak",
+    cmpCylPressurePeak: "Cyl. Pressure Peak", cmpWeakestSf: "Weakest Link SF", cmpKnockMargin: "Knock Margin",
+    realismTitle: "Realism Check", realismHint: "Checks the current configuration for physical plausibility after a standard wide-open-throttle run.",
+    realismRun: "Check Current Setup",
+    realismCrBoostOk: "✓ Compression + boost ({v}) realistic", realismCrBoostWarn: "⚠ Compression + boost ({v}) at the edge", realismCrBoostCritical: "❌ Compression + boost ({v}) unrealistically high",
+    realismStressOk: "✓ Weakest link SF {v}x — safe", realismStressWarn: "⚠ Weakest link SF {v}x — at the limit", realismStressCritical: "❌ Weakest link SF {v}x — OVERLOADED, would fail in reality",
+    realismOilOk: "✓ Oil temp {v}°C — safe", realismOilWarn: "⚠ Oil temp {v}°C — at the limit", realismOilCritical: "❌ Oil temp {v}°C — beyond the derating threshold",
+    realismKnockOk: "✓ Knock margin {v}% — safe", realismKnockWarn: "⚠ Knock margin {v}% — knock occurring", realismKnockCritical: "❌ Knock margin {v}% — heavy knock, engine damage likely",
+    scenariosTitle: "Scenario Presets", scenarioLaunch: "Launch", scenarioTrackday: "Track Day", scenarioStreet: "Street",
     kennfieldIgnition: "Ignition Timing (° BTDC)", kennfieldFuel: "Fuel Quantity (mg/cycle)",
-    compRod: "Connecting Rod", compHeadBolt: "Head Bolt", compPistonPin: "Piston Pin",
+    compRod: "Connecting Rod", compHeadBolt: "Head Bolt", compPistonPin: "Piston Pin", compCylinderHead: "Cylinder Head", compBlock: "Engine Block",
+    schematicAlt: "Engine schematic", cylinderLabel: "Cylinder",
+    powerLabel: "Power", torqueLabel: "Torque", afrLabel: "Fuel Ratio (AFR)", boostLabel: "Boost",
+    dynoTestBtn: "Dyno Test", dynoTestTitle: "Dyno Test Result (Standard WOT Pull)", close: "Close",
     tooltipFormat: "{label}: σ={stress} MPa | SF={sf} | Damage D={damage}%",
     engineLoaded: "Engine profile loaded: {name}", turboLoaded: "Turbo profile loaded: {name}",
     fuelDbLoaded: "Fuel database loaded", unknownFormat: "Unknown JSON format",
@@ -73,7 +131,7 @@
     reportCreated: "Created on", reportEngineConfig: "Engine Configuration", reportStats: "Operating Statistics",
     reportWeakest: "Weak-Point Analysis", reportSavePdf: "Save as PDF",
     hydrolockBanner: "☠ HYDROLOCK — CATASTROPHIC ENGINE FAILURE", rebuildEngine: "Rebuild Engine",
-    language: "Language", rpmUnit: "rpm"
+    language: "Language", rpmUnit: "rpm", oilTempLabel: "Oil", cylPressureLabel: "Cyl. Pressure", cyclesLabel: "Cycles"
   };
 
   const FR = {
@@ -81,15 +139,44 @@
     compressionRatio: "Compression", boostTarget: "Pression cible", fuel: "Carburant",
     transientParams: "Paramètres transitoires", throttle: "Papillon des gaz",
     ambientTemp: "Température ambiante", airPressure: "Pression atmosphérique", altitude: "Altitude",
-    importSection: "Import", importHint: "Charger un profil JSON moteur ou turbo (détection automatique).",
+    importSection: "Import", importHint: "Charger un profil JSON moteur, turbo, carburant ou modification (détection automatique).",
+    engineCatalog: "Moteur de base", chargerCatalog: "Suralimentation", modifications: "Modifications",
+    modVariantDefault: "Standard", catBottomEnd: "Bas moteur", catValvetrain: "Distribution",
+    catAirflow: "Flux d'air", catForcedInduction: "Suralimentation", catIntake: "Admission", catExhaust: "Échappement",
+    resolvedConfig: "Configuration calculée", effMaxRpm: "Régime max. effectif",
+    totalMass: "Masse tournante", strengthFactor: "Facteur de résistance", parasiticLoss: "Perte parasite",
     telemetry: "Télémétrie", stats: "Statistiques (min / moy / max)",
     running: "EN MARCHE", stopped: "ARRÊTÉ", weakestLink: "Maillon Faible",
     knockWarning: "⚠ Cliquetis détecté — retard à l'allumage",
     oilFilmWarning: "⚠ Film d'huile critique — risque de grippage",
     overrunActive: "Coupure en décélération active", alsFiring: "ALS actif",
     estop: "ARRÊT D'URGENCE", tabSchematic: "Schéma", tabKennfield: "Cartographie",
+    tabLaunch: "Départ", tabCompare: "Comparer",
+    saveSetup: "Enregistrer (.oel)", loadSetup: "Charger (.oel)", csvExport: "Exporter CSV",
+    saveSetupPrompt: "Qu'avez-vous changé ? (optionnel)", saveSetupDefaultChange: "Enregistré",
+    saveSetupSaved: "Enregistré comme", loadSetupLoaded: "Chargé", loadSetupInvalid: "Fichier .oel invalide",
+    launchTitle: "Simulation de départ (0–3 s)", launchHint: "Simule un départ pleins gaz en 1ère avec le moteur, le turbo et la transmission actuels. Affiche la montée en régime, la pression et le risque de patinage.",
+    launchRun: "Lancer le test", speedLabel: "Vitesse",
+    launchHydrolockRisk: "⚠ Risque de coup de bélier détecté à", launchNoHydrolock: "✓ Aucun risque de coup de bélier",
+    launchWheelspinUntil: "⚠ Patinage jusqu'à", launchNoWheelspin: "✓ Pas de patinage",
+    launchWheelspinOngoing: "⚠ Les pneus patinent pendant tout le test — plus d'adhérence ou moins de puissance nécessaire",
+    compareTitle: "Comparaison de configurations", compareHint: "Chargez deux fichiers .oel pour comparer leurs valeurs de pointe dans un essai standardisé pleins gaz.",
+    compareSetupA: "Config A", compareSetupB: "Config B", compareRun: "Comparer",
+    compareInvalidFile: "Fichier invalide", compareParameter: "Paramètre", compareDiff: "Différence",
+    cmpPeakPower: "Puissance max.", cmpPeakTorque: "Couple max.", cmpOilTempPeak: "Temp. huile max.",
+    cmpCylPressurePeak: "Pression cyl. max.", cmpWeakestSf: "Maillon faible SF", cmpKnockMargin: "Marge cliquetis",
+    realismTitle: "Contrôle de réalisme", realismHint: "Vérifie la plausibilité physique de la configuration actuelle après un essai standard pleins gaz.",
+    realismRun: "Vérifier la config. actuelle",
+    realismCrBoostOk: "✓ Compression + suralimentation ({v}) réaliste", realismCrBoostWarn: "⚠ Compression + suralimentation ({v}) à la limite", realismCrBoostCritical: "❌ Compression + suralimentation ({v}) irréaliste",
+    realismStressOk: "✓ Maillon faible SF {v}x — sûr", realismStressWarn: "⚠ Maillon faible SF {v}x — à la limite", realismStressCritical: "❌ Maillon faible SF {v}x — SURCHARGÉ, casserait en réalité",
+    realismOilOk: "✓ Temp. huile {v}°C — sûre", realismOilWarn: "⚠ Temp. huile {v}°C — à la limite", realismOilCritical: "❌ Temp. huile {v}°C — au-delà du seuil de déclassement",
+    realismKnockOk: "✓ Marge cliquetis {v}% — sûre", realismKnockWarn: "⚠ Marge cliquetis {v}% — cliquetis présent", realismKnockCritical: "❌ Marge cliquetis {v}% — cliquetis sévère, casse probable",
+    scenariosTitle: "Scénarios prédéfinis", scenarioLaunch: "Départ", scenarioTrackday: "Journée circuit", scenarioStreet: "Route",
     kennfieldIgnition: "Avance à l'allumage (° av. PMH)", kennfieldFuel: "Quantité de carburant (mg/cycle)",
-    compRod: "Bielle", compHeadBolt: "Vis de culasse", compPistonPin: "Axe de piston",
+    compRod: "Bielle", compHeadBolt: "Vis de culasse", compPistonPin: "Axe de piston", compCylinderHead: "Culasse", compBlock: "Bloc-moteur",
+    schematicAlt: "Schéma du moteur", cylinderLabel: "Cylindre",
+    powerLabel: "Puissance", torqueLabel: "Couple", afrLabel: "Mélange (AFR)", boostLabel: "Pression",
+    dynoTestBtn: "Test dyno", dynoTestTitle: "Résultat du test dyno (essai standard pleins gaz)", close: "Fermer",
     tooltipFormat: "{label} : σ={stress} MPa | SF={sf} | Dommage D={damage}%",
     engineLoaded: "Profil moteur chargé : {name}", turboLoaded: "Profil turbo chargé : {name}",
     fuelDbLoaded: "Base de carburants chargée", unknownFormat: "Format JSON inconnu",
@@ -110,7 +197,7 @@
     reportCreated: "Créé le", reportEngineConfig: "Configuration moteur", reportStats: "Statistiques de fonctionnement",
     reportWeakest: "Analyse des points faibles", reportSavePdf: "Enregistrer en PDF",
     hydrolockBanner: "☠ COUP HYDRAULIQUE — DÉFAILLANCE MOTEUR CATASTROPHIQUE", rebuildEngine: "Reconstruire le moteur",
-    language: "Langue", rpmUnit: "tr/min"
+    language: "Langue", rpmUnit: "tr/min", oilTempLabel: "Huile", cylPressureLabel: "Press. cyl.", cyclesLabel: "Cycles"
   };
 
   const ES = {
@@ -118,15 +205,44 @@
     compressionRatio: "Compresión", boostTarget: "Presión objetivo", fuel: "Combustible",
     transientParams: "Parámetros transitorios", throttle: "Acelerador",
     ambientTemp: "Temperatura ambiente", airPressure: "Presión atmosférica", altitude: "Altitud",
-    importSection: "Importar", importHint: "Cargar un perfil JSON de motor o turbo (detección automática).",
+    importSection: "Importar", importHint: "Cargar un perfil JSON de motor, turbo, combustible o modificación (detección automática).",
+    engineCatalog: "Motor base", chargerCatalog: "Sobrealimentación", modifications: "Modificaciones",
+    modVariantDefault: "Estándar", catBottomEnd: "Tren inferior", catValvetrain: "Tren de válvulas",
+    catAirflow: "Flujo de aire", catForcedInduction: "Sobrealimentación", catIntake: "Admisión", catExhaust: "Escape",
+    resolvedConfig: "Configuración calculada", effMaxRpm: "RPM máx. efectivo",
+    totalMass: "Masa rotante", strengthFactor: "Factor de resistencia", parasiticLoss: "Pérdida parasitaria",
     telemetry: "Telemetría", stats: "Estadísticas (mín / prom / máx)",
     running: "EN MARCHA", stopped: "DETENIDO", weakestLink: "Punto Débil",
     knockWarning: "⚠ Detonación detectada — retrasando encendido",
     oilFilmWarning: "⚠ Película de aceite crítica — riesgo de gripaje",
     overrunActive: "Corte por retención activo", alsFiring: "ALS activo",
     estop: "PARO DE EMERGENCIA", tabSchematic: "Esquema", tabKennfield: "Mapa",
+    tabLaunch: "Salida", tabCompare: "Comparar",
+    saveSetup: "Guardar (.oel)", loadSetup: "Cargar (.oel)", csvExport: "Exportar CSV",
+    saveSetupPrompt: "¿Qué cambiaste? (opcional)", saveSetupDefaultChange: "Guardado",
+    saveSetupSaved: "Guardado como", loadSetupLoaded: "Cargado", loadSetupInvalid: "Archivo .oel inválido",
+    launchTitle: "Simulación de salida (0–3 s)", launchHint: "Simula una salida a fondo en 1ª marcha con el motor, turbo y transmisión actuales. Muestra subida de RPM, presión de sobrealimentación y riesgo de patinaje.",
+    launchRun: "Ejecutar prueba de salida", speedLabel: "Velocidad",
+    launchHydrolockRisk: "⚠ Riesgo de hidrobloqueo detectado en", launchNoHydrolock: "✓ Sin riesgo de hidrobloqueo",
+    launchWheelspinUntil: "⚠ Patinaje hasta", launchNoWheelspin: "✓ Sin patinaje",
+    launchWheelspinOngoing: "⚠ Las ruedas patinan durante toda la prueba — se necesita más agarre o menos potencia",
+    compareTitle: "Comparación de configuraciones", compareHint: "Carga dos archivos .oel para comparar sus valores máximos en una prueba estandarizada a fondo.",
+    compareSetupA: "Config. A", compareSetupB: "Config. B", compareRun: "Comparar",
+    compareInvalidFile: "Archivo inválido", compareParameter: "Parámetro", compareDiff: "Diferencia",
+    cmpPeakPower: "Potencia máx.", cmpPeakTorque: "Par máx.", cmpOilTempPeak: "Temp. aceite máx.",
+    cmpCylPressurePeak: "Presión cil. máx.", cmpWeakestSf: "Eslabón débil SF", cmpKnockMargin: "Margen detonación",
+    realismTitle: "Comprobación de realismo", realismHint: "Comprueba la plausibilidad física de la configuración actual tras una prueba estándar a fondo.",
+    realismRun: "Comprobar configuración actual",
+    realismCrBoostOk: "✓ Compresión + sobrealim. ({v}) realista", realismCrBoostWarn: "⚠ Compresión + sobrealim. ({v}) al límite", realismCrBoostCritical: "❌ Compresión + sobrealim. ({v}) irrealmente alta",
+    realismStressOk: "✓ Eslabón débil SF {v}x — seguro", realismStressWarn: "⚠ Eslabón débil SF {v}x — al límite", realismStressCritical: "❌ Eslabón débil SF {v}x — SOBRECARGADO, fallaría en la realidad",
+    realismOilOk: "✓ Temp. aceite {v}°C — segura", realismOilWarn: "⚠ Temp. aceite {v}°C — al límite", realismOilCritical: "❌ Temp. aceite {v}°C — supera el umbral de reducción",
+    realismKnockOk: "✓ Margen detonación {v}% — seguro", realismKnockWarn: "⚠ Margen detonación {v}% — hay detonación", realismKnockCritical: "❌ Margen detonación {v}% — detonación severa, daño probable",
+    scenariosTitle: "Escenarios predefinidos", scenarioLaunch: "Salida", scenarioTrackday: "Día de pista", scenarioStreet: "Calle",
     kennfieldIgnition: "Avance de encendido (° antes PMS)", kennfieldFuel: "Cantidad de combustible (mg/ciclo)",
-    compRod: "Biela", compHeadBolt: "Tornillo de culata", compPistonPin: "Bulón de pistón",
+    compRod: "Biela", compHeadBolt: "Tornillo de culata", compPistonPin: "Bulón de pistón", compCylinderHead: "Culata", compBlock: "Bloque motor",
+    schematicAlt: "Esquema del motor", cylinderLabel: "Cilindro",
+    powerLabel: "Potencia", torqueLabel: "Par motor", afrLabel: "Mezcla (AFR)", boostLabel: "Sobrealim.",
+    dynoTestBtn: "Prueba dinamométrica", dynoTestTitle: "Resultado de la prueba (marcha estándar a fondo)", close: "Cerrar",
     tooltipFormat: "{label}: σ={stress} MPa | SF={sf} | Daño D={damage}%",
     engineLoaded: "Perfil de motor cargado: {name}", turboLoaded: "Perfil de turbo cargado: {name}",
     fuelDbLoaded: "Base de combustibles cargada", unknownFormat: "Formato JSON desconocido",
@@ -147,7 +263,7 @@
     reportCreated: "Creado el", reportEngineConfig: "Configuración del motor", reportStats: "Estadísticas de funcionamiento",
     reportWeakest: "Análisis de puntos débiles", reportSavePdf: "Guardar como PDF",
     hydrolockBanner: "☠ GOLPE DE ARIETE — FALLO CATASTRÓFICO DEL MOTOR", rebuildEngine: "Reconstruir motor",
-    language: "Idioma", rpmUnit: "rpm"
+    language: "Idioma", rpmUnit: "rpm", oilTempLabel: "Aceite", cylPressureLabel: "Presión cil.", cyclesLabel: "Ciclos"
   };
 
   const DICT = { de: DE, en: EN, fr: FR, es: ES };
@@ -156,22 +272,22 @@
     try {
       const saved = localStorage.getItem("oel_lang");
       if (saved && DICT[saved]) return saved;
-    } catch (e) { /* Speicherzugriff evtl. gesperrt — ignorieren */ }
-    return "de";
+    } catch (e) { /* storage access may be blocked — ignore */ }
+    return "en";
   }
 
   const I18N = {
     current: detectInitialLang(),
     langs: ["de", "en", "fr", "es"],
     t(key, vars) {
-      let s = (DICT[this.current] && DICT[this.current][key]) || DICT.de[key] || key;
+      let s = (DICT[this.current] && DICT[this.current][key]) || DICT.en[key] || key;
       if (vars) for (const k in vars) s = s.replace("{" + k + "}", vars[k]);
       return s;
     },
     setLang(lang) {
       if (!DICT[lang]) return;
       this.current = lang;
-      try { localStorage.setItem("oel_lang", lang); } catch (e) { /* ignorieren */ }
+      try { localStorage.setItem("oel_lang", lang); } catch (e) { /* ignore */ }
     }
   };
 

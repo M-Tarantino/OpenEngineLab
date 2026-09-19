@@ -1,0 +1,20 @@
+{
+  "modId": "PERFORMANCE_CAMSHAFT",
+  "name": "Performance Camshaft",
+  "category": "VALVETRAIN",
+  "description": "Increased lift and duration profile, raising the safe RPM ceiling and airflow at the cost of some low-RPM manners and additional valvetrain drag.",
+  "defaultEffects": {
+    "rpmMultiplier": 1.15,
+    "parasiticLossDeltaHp": 3
+  },
+  "manufacturerOverrides": {
+    "spec_street": {
+      "rpmMultiplier": 1.08,
+      "parasiticLossDeltaHp": 1
+    },
+    "spec_race": {
+      "rpmMultiplier": 1.25,
+      "parasiticLossDeltaHp": 6
+    }
+  }
+}

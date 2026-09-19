@@ -1,0 +1,23 @@
+{
+  "modId": "FORGED_H_BEAM_RODS",
+  "name": "Forged H-Beam Connecting Rods",
+  "category": "BOTTOM_END",
+  "description": "High-strength forged steel connecting rods designed to withstand elevated cylinder pressures and higher rotational speeds.",
+  "defaultEffects": {
+    "massDeltaKg": 0.10,
+    "rpmMultiplier": 1.20,
+    "strengthMultiplier": 2.2
+  },
+  "manufacturerOverrides": {
+    "spec_heavy_duty": {
+      "massDeltaKg": 0.25,
+      "rpmMultiplier": 1.25,
+      "strengthMultiplier": 2.8
+    },
+    "spec_lightweight": {
+      "massDeltaKg": -0.05,
+      "rpmMultiplier": 1.30,
+      "strengthMultiplier": 1.8
+    }
+  }
+}

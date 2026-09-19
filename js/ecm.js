@@ -1,4 +1,4 @@
-/* OpenEngineLab :: js/ecm.js — virtuelle ECU (vECU) + Erweiterungspaket (ALS, Overrun-Cut, N2O-Gating) */
+/* OpenEngineLab :: js/ecm.js — virtual ECU (vECU) + extension package (ALS, overrun cut, N2O gating) */
 (function (root) {
   "use strict";
 
@@ -34,7 +34,7 @@
     return { i0: 0, i1: 0, t: 0 };
   }
 
-  /** Bilineare Interpolation auf map[loadIdx][rpmIdx]. */
+  /** Bilinear interpolation over map[loadIdx][rpmIdx]. */
   function bilinear(map, rpmAxis, loadAxis, rpm, load) {
     const rx = clampIndex(rpmAxis, rpm);
     const ry = clampIndex(loadAxis, load);
@@ -45,7 +45,7 @@
     return vTop + (vBot - vTop) * ry.t;
   }
 
-  /** Trilineare Interpolation auf map3d[zIdx][loadIdx][rpmIdx], z.B. IAT-Korrektur. */
+  /** Trilinear interpolation over map3d[zIdx][loadIdx][rpmIdx], e.g. IAT correction. */
   function trilinear(map3d, rpmAxis, loadAxis, zAxis, rpm, load, z) {
     const rz = clampIndex(zAxis, z);
     const loLayer = bilinear(map3d[rz.i0], rpmAxis, loadAxis, rpm, load);
@@ -62,11 +62,11 @@
   }
 
   /**
-   * Berechnet einen vollständigen ECU-Zyklus.
+   * Computes one full ECU cycle.
    * args: { rpm, throttle01, boostBar, boostTargetBar, knockDetected, dt,
    *         alsActive, nitrousArmed, nitrousBottleKg }
-   * Rückgabe: { ignitionAdvanceDeg, fuelCommandMg, boostCommandBar, cutIgnition,
-   *             revLimiting, loadPercent, overrunActive, alsFiring, nitrousActive }
+   * Returns: { ignitionAdvanceDeg, fuelCommandMg, boostCommandBar, cutIgnition,
+   *            revLimiting, loadPercent, overrunActive, alsFiring, nitrousActive }
    */
   function computeCycle(ecmState, engineProfile, turboProfile, args) {
     const rpm = args.rpm, throttle01 = args.throttle01, boostBar = args.boostBar;
@@ -79,8 +79,8 @@
 
     const revLimiting = rpm >= engineProfile.revLimiterRPM;
 
-    // Schubabschaltung (Overrun Fuel Cut): aktiv, solange die Drossel geschlossen ist und
-    // die Drehzahl über Leerlauf liegt — genau wie bei einer realen ECU, nicht als Zeitimpuls.
+    // Overrun fuel cut: active as long as the throttle is closed and RPM is above idle —
+    // just like a real ECU, not as a fixed-duration timer pulse.
     const throttleClosed = throttle01 < 0.08 && rpm > engineProfile.idleRPM * 1.1;
     const alsFiring = throttleClosed && !!args.alsActive;
     const overrunActive = throttleClosed && !args.alsActive;
@@ -103,8 +103,8 @@
     let boostCommandBar = Math.max(0, Math.min(boostTargetBar, boostBar + boostError * 0.8 + ecmState.boostIntegral));
     boostCommandBar = revLimiting ? Math.max(0, boostBar - 0.5) : boostCommandBar;
     boostCommandBar = Math.min(boostCommandBar, turboProfile.limits.maxBoostBar);
-    // Bei ALS bleibt der Ladedruck-Sollwert erhalten (Turbine wird durch die nachgezündete,
-    // fette Mischung weiter angetrieben) statt auf den (niedrigen) Lastpunkt-Zielwert abzufallen.
+    // With ALS, the boost target is held (the turbine keeps spinning, driven by the
+    // after-fired rich mixture) instead of dropping to the (low) part-throttle target.
     if (alsFiring) boostCommandBar = Math.max(boostCommandBar, Math.min(boostBar, boostTargetBar));
 
     const nitrousActive = !!(args.nitrousArmed && args.nitrousBottleKg > 0 && throttle01 > 0.9 && !revLimiting);

@@ -1,0 +1,20 @@
+{
+  "modId": "PORTED_CYLINDER_HEAD",
+  "name": "Ported & Polished Cylinder Head",
+  "category": "AIRFLOW",
+  "description": "CNC-ported intake and exhaust runners reduce pumping losses and improve high-RPM breathing.",
+  "defaultEffects": {
+    "parasiticLossDeltaHp": -2,
+    "rpmMultiplier": 1.05
+  },
+  "manufacturerOverrides": {
+    "spec_stage1": {
+      "parasiticLossDeltaHp": -1,
+      "rpmMultiplier": 1.03
+    },
+    "spec_stage2_cnc": {
+      "parasiticLossDeltaHp": -3.5,
+      "rpmMultiplier": 1.08
+    }
+  }
+}

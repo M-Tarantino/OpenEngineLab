@@ -1,4 +1,4 @@
-/* OpenEngineLab :: js/track.js — Streckenprofil-Wiedergabe */
+/* OpenEngineLab :: js/track.js — track profile playback */
 (function (root) {
   "use strict";
 
@@ -16,7 +16,7 @@
   function pause(player) { player.playing = false; }
   function stop(player) { player.playing = false; player.elapsedS = 0; player.segmentIndex = 0; }
 
-  /** Rückt die Wiedergabe um dt Sekunden vor; gibt den aktuell aktiven Segment-Zustand zurück. */
+  /** Advances playback by dt seconds; returns the currently active segment state. */
   function advance(player, dt) {
     if (!player.playing) return currentState(player);
     player.elapsedS += dt;

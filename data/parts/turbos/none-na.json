@@ -1,0 +1,24 @@
+{
+  "id": "none-na",
+  "name": "None (Naturally Aspirated)",
+  "type": "none",
+  "compressor": {
+    "inducerMM": 0,
+    "exducerMM": 0,
+    "peakEfficiency": 0,
+    "maxMassFlowKgMin": 0
+  },
+  "turbine": {
+    "inducerMM": 0,
+    "exducerMM": 0,
+    "housingAR": 0
+  },
+  "limits": {
+    "maxBoostBar": 0,
+    "maxShaftSpeedRPM": 0
+  },
+  "responseFactor": 0,
+  "wastegateType": "none",
+  "wastegateSpringBar": 0,
+  "description": "No forced induction. The engine breathes on atmospheric pressure alone, so boostTargetBar has no effect."
+}

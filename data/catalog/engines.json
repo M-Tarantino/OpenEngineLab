@@ -1,0 +1,15 @@
+{
+  "entries": [
+    { "id": "vr38dett", "name": "Nissan VR38DETT 3.8L V6 Twin-Turbo", "file": "data/engines/vr38dett.json" },
+    { "id": "chrysler_3.8_v6_ohv", "name": "Chrysler 3.8L V6 OHV (EGL/EGH)", "file": "data/engines/chrysler-3.8-v6-ohv.json" },
+    { "id": "ford_kent_1.6", "name": "Ford Kent 1.6L (Crossflow)", "file": "data/engines/ford-kent-1-6.json" },
+    { "id": "honda_d15", "name": "Honda D15 SOHC", "file": "data/engines/honda-d15.json" },
+    { "id": "honda_d16", "name": "Honda D16 SOHC", "file": "data/engines/honda-d16.json" },
+    { "id": "toyota_3k", "name": "Toyota 3K", "file": "data/engines/toyota-3k.json" },
+    { "id": "toyota_4k", "name": "Toyota 4K", "file": "data/engines/toyota-4k.json" },
+    { "id": "toyota_5k", "name": "Toyota 5K", "file": "data/engines/toyota-5k.json" },
+    { "id": "toyota_7k", "name": "Toyota 7K", "file": "data/engines/toyota-7k.json" },
+    { "id": "vw_ea827_1.8", "name": "VW EA827 1.8L 8v", "file": "data/engines/vw-ea827-1-8.json" },
+    { "id": "vw_ea827_2.0", "name": "VW EA827 2.0L 8v", "file": "data/engines/vw-ea827-2-0.json" }
+  ]
+}

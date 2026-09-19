@@ -1,4 +1,4 @@
-/* OpenEngineLab :: js/engine.js — physikalischer Simulationskern (+ Erweiterungspaket) */
+/* OpenEngineLab :: js/engine.js — physics simulation core (+ extension package) */
 (function (root) {
   "use strict";
 
@@ -16,7 +16,7 @@
     return p / (R_AIR * T);
   }
 
-  /** Barometrische Höhenformel: Luftdruck (bar) auf Meereshöhe -> Höhe (m). */
+  /** Barometric altitude formula: air pressure (bar) at sea level -> altitude (m). */
   function baroAtAltitude(seaLevelBar, altitudeM) {
     return seaLevelBar * Math.exp(-altitudeM / 8434);
   }
@@ -45,7 +45,7 @@
   }
 
   /**
-   * Erstellt einen neuen Simulationszustand.
+   * Creates a new simulation state.
    * extras (optional): { nitrousProfile, hybridProfile, drivetrainProfile }
    */
   function createState(engineProfile, turboProfile, fuel, extras) {
@@ -66,7 +66,7 @@
       oilFilmOK: true,
       knockDetected: false,
       hydrolockFailure: false,
-      damage: { rod: 0, headBolt: 0, pistonPin: 0 },
+      damage: { rod: 0, headBolt: 0, pistonPin: 0, cylinderHead: 0, block: 0 },
       nitrousRemainingKg: extras.nitrousProfile ? extras.nitrousProfile.bottleCapacityKg : 0,
       batterySoC: extras.hybridProfile ? 0.5 : 0,
       vehicleSpeedMS: 0,
@@ -74,9 +74,9 @@
     };
   }
 
-  /** Setzt Schäden, Betriebstemperaturen und Ausfälle zurück (neuer Motor / Rebuild). */
+  /** Resets damage, operating temperatures and failures (fresh engine / rebuild). */
   function resetFailure(state) {
-    state.damage = { rod: 0, headBolt: 0, pistonPin: 0 };
+    state.damage = { rod: 0, headBolt: 0, pistonPin: 0, cylinderHead: 0, block: 0 };
     state.hydrolockFailure = false;
     state.oilTempC = 20;
     state.chamberTempC = 20;
@@ -85,7 +85,7 @@
   }
 
   /**
-   * Führt einen Simulationsschritt aus.
+   * Runs one simulation step.
    * inputs: {
    *   throttle01, ambientC, baroBar, boostCommandBar, ignitionAdvanceDeg, cutIgnition,
    *   nitrousActive, hybridDeployKw, boostLerpRateOverride,
@@ -105,7 +105,7 @@
     const ambientC = inputs.ambientC;
 
     const hasMguH = !!(state.hybridProfile && state.hybridProfile.hasMguH);
-    const isSupercharger = state.turbo.type === "supercharger";
+    const isSupercharger = (state.turbo.type || "").toLowerCase() === "supercharger";
     
     if (isSupercharger) {
       // Supercharger: RPM-dependent, no turbo lag, instant response
@@ -177,19 +177,27 @@
     const sigmaRodMPa = forceN / mats.connectingRod.crossSectionAreaMM2;
     const sigmaBoltMPa = (forceN / mats.headBolt.boltsPerCylinder) / mats.headBolt.crossSectionAreaMM2;
     const sigmaPinMPa = forceN / mats.pistonPin.crossSectionAreaMM2;
+    const sigmaHeadMPa = mats.cylinderHead ? forceN / mats.cylinderHead.crossSectionAreaMM2 : 0;
+    const sigmaBlockMPa = mats.block ? forceN / mats.block.crossSectionAreaMM2 : 0;
 
     const yieldRod = mats.connectingRod.yieldStrengthMPa * deration;
     const yieldBolt = mats.headBolt.yieldStrengthMPa * deration;
     const yieldPin = mats.pistonPin.yieldStrengthMPa * deration;
+    const yieldHead = mats.cylinderHead ? mats.cylinderHead.yieldStrengthMPa * deration : Infinity;
+    const yieldBlock = mats.block ? mats.block.yieldStrengthMPa * deration : Infinity;
 
     const sfRod = state.hydrolockFailure ? 0 : yieldRod / Math.max(1e-6, sigmaRodMPa);
     const sfBolt = state.hydrolockFailure ? 0 : yieldBolt / Math.max(1e-6, sigmaBoltMPa);
     const sfPin = state.hydrolockFailure ? 0 : yieldPin / Math.max(1e-6, sigmaPinMPa);
+    const sfHead = state.hydrolockFailure ? 0 : (mats.cylinderHead ? yieldHead / Math.max(1e-6, sigmaHeadMPa) : Infinity);
+    const sfBlock = state.hydrolockFailure ? 0 : (mats.block ? yieldBlock / Math.max(1e-6, sigmaBlockMPa) : Infinity);
 
     const cyclesThisTick = (rpm / 120) * dt;
     accumulateDamage(state.damage, "rod", sigmaRodMPa, mats.connectingRod, cyclesThisTick);
     accumulateDamage(state.damage, "headBolt", sigmaBoltMPa, mats.headBolt, cyclesThisTick);
     accumulateDamage(state.damage, "pistonPin", sigmaPinMPa, mats.pistonPin, cyclesThisTick);
+    if (mats.cylinderHead) accumulateDamage(state.damage, "cylinderHead", sigmaHeadMPa, mats.cylinderHead, cyclesThisTick);
+    if (mats.block) accumulateDamage(state.damage, "block", sigmaBlockMPa, mats.block, cyclesThisTick);
 
     const viscosity = oilViscosity(state.oilTempC, th.oilViscosityEta0, th.oilViscosityAlpha, th.oilRefTempC);
     state.oilFilmOK = viscosity >= th.oilViscosityMinSafe;
@@ -207,6 +215,8 @@
       { id: "headBolt", stress: sigmaBoltMPa, yield: yieldBolt, sf: sfBolt, damage: state.damage.headBolt },
       { id: "pistonPin", stress: sigmaPinMPa, yield: yieldPin, sf: sfPin, damage: state.damage.pistonPin }
     ];
+    if (mats.cylinderHead) components.push({ id: "cylinderHead", stress: sigmaHeadMPa, yield: yieldHead, sf: sfHead, damage: state.damage.cylinderHead });
+    if (mats.block) components.push({ id: "block", stress: sigmaBlockMPa, yield: yieldBlock, sf: sfBlock, damage: state.damage.block });
     let weakest = components[0];
     for (const c of components) if (c.sf < weakest.sf) weakest = c;
 
@@ -216,7 +226,7 @@
     const dyn = state.engine.dynamics;
     const strokeM = eg.strokeMM / 1000;
     const seized = state.hydrolockFailure;
-    const combustionTorqueNm = (inputs.cutIgnition || seized) ? 0 : forceN * (strokeM / 2) * 0.42 * (cyl / 2);
+    const combustionTorqueNm = (inputs.cutIgnition || seized) ? 0 : forceN * (strokeM / 2) * 0.075 * (cyl / 2);
     const frictionTorqueNm = dyn.frictionTorqueBaseNm + dyn.frictionTorquePerRPM * rpm;
 
     const omega = Math.max(10, rpm * 2 * Math.PI / 60);
@@ -255,9 +265,9 @@
       const brakeN = (dtInput.brake01 || 0) * dtp.maxBrakeForceN;
       const resistiveForceN = aeroDragN + rollingResN + gradeN + brakeN;
 
-      // Reifenhaftungsgrenze: die Antriebskraft, die die Reifen ohne Durchdrehen auf die
-      // Fahrbahn übertragen können. Darüber hinaus koppelt der Motor teilweise von der
-      // vollen Fahrzeugmasse ab (Räder drehen durch) statt die Last 1:1 zu spüren.
+      // Tire traction limit: the drive force the tires can put down without spinning.
+      // Beyond this limit, the engine partially decouples from the full vehicle mass
+      // (wheelspin) instead of feeling the load 1:1.
       const driveWheelTorqueWantedNm = combustionTorqueNm * overallRatio * dtp.drivetrainEfficiency;
       const maxTractionForceN = dtp.vehicleMassKG * G * (dtp.tireGripCoeff || 1.1) * (dtp.driveWeightFraction || 0.5);
       const maxTractionTorqueNm = maxTractionForceN * dtp.wheelRadiusM;
@@ -289,11 +299,16 @@
     const newRpm = rpm + angularAccelRadS2 * (60 / (2 * Math.PI)) * dt;
     state.rpm = Math.max(seized ? 0 : 300, Math.min(state.engine.revLimiterRPM * 1.05, newRpm));
 
+    const brakeTorqueNm = Math.max(0, combustionTorqueNm - frictionTorqueNm);
+    const powerHp = (brakeTorqueNm * rpm) / 7127;
+    const powerKw = (brakeTorqueNm * rpm * 2 * Math.PI) / 60000;
+
     const result = {
       time: state.time,
       cycles: state.cycles,
       rpm, boostBar: state.boostBar,
       cylinderPressureBar, afr,
+      brakeTorqueNm, powerHp, powerKw,
       oilTempC: state.oilTempC, chamberTempC: state.chamberTempC,
       oilFilmOK: state.oilFilmOK, oilViscosity: viscosity,
       knockDetected: state.knockDetected, knockLimitBar: knockLimit,

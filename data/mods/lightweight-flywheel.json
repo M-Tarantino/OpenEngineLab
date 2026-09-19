@@ -1,0 +1,20 @@
+{
+  "modId": "LIGHTWEIGHT_FLYWHEEL",
+  "name": "Lightweight Flywheel",
+  "category": "DRIVETRAIN",
+  "description": "Reduced rotating mass at the crank's output end lets the engine accelerate and decelerate faster, at the cost of some idle smoothness.",
+  "defaultEffects": {
+    "massDeltaKg": -1.2,
+    "rpmMultiplier": 1.08
+  },
+  "manufacturerOverrides": {
+    "spec_street_aluminum": {
+      "massDeltaKg": -0.8,
+      "rpmMultiplier": 1.05
+    },
+    "spec_race_chromoly": {
+      "massDeltaKg": -1.8,
+      "rpmMultiplier": 1.12
+    }
+  }
+}

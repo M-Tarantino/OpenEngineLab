@@ -1,0 +1,93 @@
+{
+  "id": "toyota_5k",
+  "name": "Toyota 5K",
+  "engineCodes": [
+    "5K"
+  ],
+  "configuration": "I",
+  "vAngleDeg": 0,
+  "cylinders": 4,
+  "firingOrder": [
+    1,
+    3,
+    4,
+    2
+  ],
+  "baseStock": {
+    "boreMm": 80.5,
+    "strokeMm": 73.0,
+    "compressionRatio": 9.0,
+    "maxRpm": 6000,
+    "rotatingMassKg": 20.7,
+    "parasiticLossHp": 10.8
+  },
+  "geometry": {
+    "boreMM": 80.5,
+    "strokeMM": 73.0,
+    "rodLengthMM": 124.1,
+    "displacementCC": 1486,
+    "compressionRatio": 9.0
+  },
+  "materials": {
+    "connectingRod": {
+      "material": "Forged Steel",
+      "yieldStrengthMPa": 620,
+      "crossSectionAreaMM2": 155,
+      "snCurveExponentB": 5.7,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "headBolt": {
+      "material": "8.8 Alloy Steel",
+      "yieldStrengthMPa": 800,
+      "crossSectionAreaMM2": 39,
+      "boltsPerCylinder": 2,
+      "snCurveExponentB": 6.8,
+      "snCurveRefCyclesN0": 1500000.0
+    },
+    "pistonPin": {
+      "material": "Case-Hardened Steel",
+      "yieldStrengthMPa": 620,
+      "crossSectionAreaMM2": 120,
+      "snCurveExponentB": 6.0,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "cylinderHead": {
+      "material": "Cast Iron (Head)",
+      "yieldStrengthMPa": 330,
+      "crossSectionAreaMM2": 295,
+      "snCurveExponentB": 5.9,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "block": {
+      "material": "Cast Iron (Block)",
+      "yieldStrengthMPa": 340,
+      "crossSectionAreaMM2": 844,
+      "snCurveExponentB": 6.3,
+      "snCurveRefCyclesN0": 1300000.0
+    }
+  },
+  "thermal": {
+    "oilMassKG": 3.5,
+    "oilSpecificHeatJPerKgK": 2000,
+    "oilRefTempC": 90,
+    "oilViscosityEta0": 12.0,
+    "oilViscosityAlpha": -0.026,
+    "oilViscosityMinSafe": 3.0,
+    "frictionCoeff": 5e-05,
+    "combustionHeatFraction": 0.03,
+    "coolingCoeff": 108.0,
+    "ambientLossCoeff": 5.5,
+    "thermalDerationBaselineC": 148,
+    "thermalDerationRate": 0.0025
+  },
+  "dynamics": {
+    "rotatingInertiaKgM2": 0.092,
+    "frictionTorqueBaseNm": 13.5,
+    "frictionTorquePerRPM": 0.0027,
+    "dynoLoadCoeffNmPerRPM2": 1.467e-05
+  },
+  "idleRPM": 750,
+  "redlineRPM": 6000,
+  "revLimiterRPM": 6300,
+  "intercoolerEfficiency": 0
+}

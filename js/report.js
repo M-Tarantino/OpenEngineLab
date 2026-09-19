@@ -1,4 +1,4 @@
-/* OpenEngineLab :: js/report.js — Sitzungsbericht (HTML, druckbar als PDF) */
+/* OpenEngineLab :: js/report.js — session report (HTML, printable as PDF) */
 (function (root) {
   "use strict";
 
@@ -12,7 +12,7 @@
   function chartImg(chart) {
     try {
       if (chart && chart.ctx && chart.ctx.canvas) return chart.ctx.canvas.toDataURL("image/png");
-    } catch (e) { /* Canvas evtl. leer — Bild einfach auslassen */ }
+    } catch (e) { /* canvas may be empty — just skip the image */ }
     return null;
   }
 
@@ -65,8 +65,8 @@
 <table>
   <tr><th></th><th>Min</th><th>Ø</th><th>Max</th></tr>
   <tr><td>${t("rpmUnit")}</td><td>${rpmS.min.toFixed(0)}</td><td>${rpmS.mean.toFixed(0)}</td><td>${rpmS.max.toFixed(0)}</td></tr>
-  <tr><td>Öl °C</td><td>${oilS.min.toFixed(0)}</td><td>${oilS.mean.toFixed(0)}</td><td>${oilS.max.toFixed(0)}</td></tr>
-  <tr><td>Zyl.-Druck bar</td><td>${pS.min.toFixed(0)}</td><td>${pS.mean.toFixed(0)}</td><td>${pS.max.toFixed(0)}</td></tr>
+  <tr><td>${t("oilTempLabel")} °C</td><td>${oilS.min.toFixed(0)}</td><td>${oilS.mean.toFixed(0)}</td><td>${oilS.max.toFixed(0)}</td></tr>
+  <tr><td>${t("cylPressureLabel")} bar</td><td>${pS.min.toFixed(0)}</td><td>${pS.mean.toFixed(0)}</td><td>${pS.max.toFixed(0)}</td></tr>
 </table>
 
 <h2>${t("reportWeakest")}</h2>

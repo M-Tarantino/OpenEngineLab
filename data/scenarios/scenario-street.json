@@ -1,0 +1,130 @@
+{
+  "version": "0.2.0",
+  "metadata": {
+    "name": "Street Preset",
+    "created": "2026-09-17T05:26:07.608378Z",
+    "iterations": [
+      {
+        "v": 1,
+        "date": "2026-09-17T05:26:07.608378Z",
+        "change": "Naturally aspirated, mild everyday street configuration"
+      }
+    ],
+    "currentVersion": 1
+  },
+  "config": {
+    "engineBase": {
+      "id": "chrysler_3.8_v6_ohv",
+      "name": "Chrysler 3.8L V6 OHV (EGL/EGH)",
+      "engineCodes": [
+        "EGL",
+        "EGH"
+      ],
+      "configuration": "V",
+      "vAngleDeg": 60,
+      "cylinders": 6,
+      "firingOrder": [
+        1,
+        4,
+        2,
+        5,
+        3,
+        6
+      ],
+      "baseStock": {
+        "boreMm": 96.0,
+        "strokeMm": 87.0,
+        "compressionRatio": 9.6,
+        "maxRpm": 5200,
+        "rotatingMassKg": 28.5,
+        "parasiticLossHp": 15
+      },
+      "geometry": {
+        "boreMM": 96.0,
+        "strokeMM": 87.0,
+        "rodLengthMM": 146.0,
+        "displacementCC": 3778,
+        "compressionRatio": 9.6
+      },
+      "materials": {
+        "connectingRod": {
+          "material": "Forged Steel",
+          "yieldStrengthMPa": 600,
+          "crossSectionAreaMM2": 380,
+          "snCurveExponentB": 5.6,
+          "snCurveRefCyclesN0": 1000000.0
+        },
+        "headBolt": {
+          "material": "8.8 Alloy Steel",
+          "yieldStrengthMPa": 850,
+          "crossSectionAreaMM2": 70,
+          "boltsPerCylinder": 2,
+          "snCurveExponentB": 6.8,
+          "snCurveRefCyclesN0": 1800000.0
+        },
+        "pistonPin": {
+          "material": "Case-Hardened Steel",
+          "yieldStrengthMPa": 650,
+          "crossSectionAreaMM2": 300,
+          "snCurveExponentB": 6.2,
+          "snCurveRefCyclesN0": 1200000.0
+        }
+      },
+      "thermal": {
+        "oilMassKG": 4.5,
+        "oilSpecificHeatJPerKgK": 2000,
+        "oilRefTempC": 90,
+        "oilViscosityEta0": 12.0,
+        "oilViscosityAlpha": -0.026,
+        "oilViscosityMinSafe": 3.0,
+        "frictionCoeff": 5.5e-05,
+        "combustionHeatFraction": 0.03,
+        "coolingCoeff": 150,
+        "ambientLossCoeff": 7,
+        "thermalDerationBaselineC": 145,
+        "thermalDerationRate": 0.0025
+      },
+      "dynamics": {
+        "rotatingInertiaKgM2": 0.19,
+        "frictionTorqueBaseNm": 20,
+        "frictionTorquePerRPM": 0.004,
+        "dynoLoadCoeffNmPerRPM2": 3.393e-05
+      },
+      "idleRPM": 700,
+      "redlineRPM": 5200,
+      "revLimiterRPM": 5400,
+      "intercoolerEfficiency": 0.5
+    },
+    "turbo": {
+      "id": "none-na",
+      "name": "None (Naturally Aspirated)",
+      "type": "none",
+      "compressor": {
+        "inducerMM": 0,
+        "exducerMM": 0,
+        "peakEfficiency": 0,
+        "maxMassFlowKgMin": 0
+      },
+      "turbine": {
+        "inducerMM": 0,
+        "exducerMM": 0,
+        "housingAR": 0
+      },
+      "limits": {
+        "maxBoostBar": 0,
+        "maxShaftSpeedRPM": 0
+      },
+      "responseFactor": 0,
+      "wastegateType": "none",
+      "wastegateSpringBar": 0,
+      "description": "No forced induction. The engine breathes on atmospheric pressure alone, so boostTargetBar has no effect."
+    },
+    "mods": {
+      "active": [],
+      "variants": {}
+    },
+    "activeFuelId": "e10-95",
+    "boostTargetBar": 0,
+    "discipline": "standard"
+  }
+}

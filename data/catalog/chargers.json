@@ -1,0 +1,8 @@
+{
+  "entries": [
+    { "id": "none-na", "name": "None (Naturally Aspirated)", "type": "none", "file": "data/parts/turbos/none-na.json" },
+    { "id": "garrett-g35-900", "name": "Garrett G35-900 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/garrett-g35.json" },
+    { "id": "ls-roots-blower", "name": "LS Roots Blower 2.3L (Supercharger)", "type": "supercharger", "file": "data/parts/turbos/ls-roots-blower.json" },
+    { "id": "lysholm-sc-v3", "name": "Lysholm Screw SC V3 (Supercharger)", "type": "supercharger", "file": "data/parts/turbos/lysholm-sc-v3.json" }
+  ]
+}

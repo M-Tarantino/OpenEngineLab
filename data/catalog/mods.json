@@ -1,0 +1,12 @@
+{
+  "entries": [
+    { "modId": "FORGED_H_BEAM_RODS", "category": "BOTTOM_END", "file": "data/mods/forged-h-beam-rods.json" },
+    { "modId": "FORGED_PISTONS", "category": "BOTTOM_END", "file": "data/mods/forged-pistons.json" },
+    { "modId": "PERFORMANCE_CAMSHAFT", "category": "VALVETRAIN", "file": "data/mods/performance-camshaft.json" },
+    { "modId": "PORTED_CYLINDER_HEAD", "category": "AIRFLOW", "file": "data/mods/ported-cylinder-head.json" },
+    { "modId": "COLD_AIR_INTAKE", "category": "INTAKE", "file": "data/mods/cold-air-intake.json" },
+    { "modId": "PERFORMANCE_HEADERS", "category": "EXHAUST", "file": "data/mods/performance-headers.json" },
+    { "modId": "UPGRADED_INTERCOOLER", "category": "FORCED_INDUCTION", "file": "data/mods/upgraded-intercooler.json" },
+    { "modId": "LIGHTWEIGHT_FLYWHEEL", "category": "DRIVETRAIN", "file": "data/mods/lightweight-flywheel.json" }
+  ]
+}

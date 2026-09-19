@@ -1,4 +1,4 @@
-/* OpenEngineLab :: js/renderer.js — prozedurale SVG-Engine + Stress-Heatmap */
+/* OpenEngineLab :: js/renderer.js — procedural SVG engine + stress heatmap */
 (function (root) {
   "use strict";
 
@@ -28,7 +28,7 @@
     return { color: rgb(COLOR_CRITICAL), pulseHz: 0.6 + overshoot * 3.4, level: "critical" };
   }
 
-  /** Slider-Kurbel-Kinematik: Kolbenweg ab OT bei Kurbelwinkel theta (rad). */
+  /** Slider-crank kinematics: piston travel from TDC at crank angle theta (rad). */
   function pistonTravelMM(theta, crankRadiusMM, rodLengthMM) {
     const top = crankRadiusMM + rodLengthMM;
     const pos = crankRadiusMM * Math.cos(theta) +
@@ -36,7 +36,18 @@
     return top - pos;
   }
 
-  function buildSchematic(container, profile) {
+  function bankPolygon(minCx, maxCx, margin, crankY, dirX, dirY, fromFrac, toFrac, cylLen) {
+    const y0 = fromFrac * cylLen, y1 = toFrac * cylLen;
+    const x1 = minCx - margin, x2 = maxCx + margin;
+    const p1 = [x1 + dirX * y0, crankY + dirY * y0];
+    const p2 = [x2 + dirX * y0, crankY + dirY * y0];
+    const p3 = [x2 + dirX * y1, crankY + dirY * y1];
+    const p4 = [x1 + dirX * y1, crankY + dirY * y1];
+    return [p1, p2, p3, p4].map(p => p.join(",")).join(" ");
+  }
+
+  function buildSchematic(container, profile, labels) {
+    labels = labels || {};
     container.innerHTML = "";
     const cylCount = profile.cylinders;
     const isSingleBank = profile.configuration === "I";
@@ -48,15 +59,55 @@
 
     const width = Math.max(420, base * 2 + (perBank - 1) * spacing);
     const height = 420;
-    const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, class: "engine-svg", role: "img", "aria-label": "Motorschema" });
+    const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, class: "engine-svg", role: "img", "aria-label": labels.schematicAlt || "Engine schematic" });
     container.appendChild(svg);
 
     const crankY = height - 70;
     const crankAxis = el("line", { x1: 40, y1: crankY, x2: width - 40, y2: crankY, class: "crank-axis" });
     svg.appendChild(crankAxis);
 
+    // First pass: figure out each bank's cylinder-center span, so the block
+    // and cylinder head shapes can be sized to actually enclose their bank.
+    const bankCount = isSingleBank ? 1 : 2;
+    const bankInfo = [];
+    for (let b = 0; b < bankCount; b++) {
+      const bank = isSingleBank ? 0 : (b === 0 ? -1 : 1);
+      const angle = bank * halfAngleRad;
+      const dirX = Math.sin(angle), dirY = -Math.cos(angle);
+      const cxs = [];
+      for (let i = 0; i < cylCount; i++) {
+        const cylBank = isSingleBank ? 0 : (i % 2 === 0 ? -1 : 1);
+        if (cylBank !== bank) continue;
+        const posIdx = isSingleBank ? i : Math.floor(i / 2);
+        cxs.push(base + posIdx * spacing);
+      }
+      bankInfo.push({ dirX, dirY, minCx: Math.min(...cxs), maxCx: Math.max(...cxs) });
+    }
+
+    const groups = { rod: [], headBolt: [], pistonPin: [], cylinderHead: [], block: [] };
+
+    // Block and cylinder head shapes, drawn first so pistons/rods layer on top.
+    for (const b of bankInfo) {
+      const blockPoly = el("polygon", {
+        points: bankPolygon(b.minCx, b.maxCx, 40, crankY, b.dirX, b.dirY, 0.04, 0.5, cylLen),
+        class: "engine-block"
+      });
+      const blockTip = el("title", {}); blockTip.textContent = labels.block || "Engine Block";
+      blockPoly.appendChild(blockTip);
+      svg.appendChild(blockPoly);
+      groups.block.push(blockPoly);
+
+      const headPoly = el("polygon", {
+        points: bankPolygon(b.minCx, b.maxCx, 34, crankY, b.dirX, b.dirY, 0.58, 0.88, cylLen),
+        class: "cylinder-head"
+      });
+      const headTip = el("title", {}); headTip.textContent = labels.cylinderHead || "Cylinder Head";
+      headPoly.appendChild(headTip);
+      svg.appendChild(headPoly);
+      groups.cylinderHead.push(headPoly);
+    }
+
     const cylinders = [];
-    const groups = { rod: [], headBolt: [], pistonPin: [] };
 
     for (let i = 0; i < cylCount; i++) {
       const bank = isSingleBank ? 0 : (i % 2 === 0 ? -1 : 1);
@@ -92,7 +143,7 @@
       svg.appendChild(boltA); svg.appendChild(boltB);
 
       const tip = el("title", {});
-      tip.textContent = `Zylinder ${i + 1}`;
+      tip.textContent = `${labels.cylinder || "Cylinder"} ${i + 1}`;
       pistonGroup.appendChild(tip);
 
       cylinders.push({
@@ -149,7 +200,7 @@
     return info;
   }
 
-  /** Zeichnet das Zündwinkel- oder Kraftstoff-Kennfeld auf ein Canvas inkl. Betriebspunkt. */
+  /** Draws the ignition or fuel map onto a canvas, including the live operating point. */
   function drawKennfield(canvas, map, rpmAxis, loadAxis, opPoint, unitLabel) {
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;

@@ -1,4 +1,4 @@
-/* OpenEngineLab :: js/disciplines.js — Diszipline-Presets */
+/* OpenEngineLab :: js/disciplines.js — discipline presets */
 (function (root) {
   "use strict";
 

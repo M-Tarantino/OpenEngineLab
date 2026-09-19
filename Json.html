@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenEngineLab — JSON Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-void: #0A0D10;
+  --bg-panel: #12171C;
+  --bg-raised: #1A2128;
+  --border: #262F37;
+  --text: #E4E9ED;
+  --text-dim: #7C8894;
+  --safe: #3DDC97;
+  --caution: #FFB627;
+  --critical: #FF2E2E;
+  --info: #4A9EFF;
+  --font-ui: "Barlow Condensed", sans-serif;
+  --font-data: "JetBrains Mono", monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+  height: 100%; margin: 0;
+  background: var(--bg-void); color: var(--text);
+  font-family: var(--font-data); font-size: 14px;
+}
+h1, h2, h3, label, button, select, input { font-family: var(--font-ui); }
+h2 { font-size: 1.05rem; font-weight: 600; margin: 0 0 12px; color: var(--text); }
+h3 { font-size: 0.92rem; font-weight: 600; margin: 18px 0 8px; color: var(--text-dim); }
+
+.topbar {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+  padding: 10px 20px; background: var(--bg-panel); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 10;
+}
+.brand { font-family: var(--font-ui); font-weight: 700; font-size: 1.15rem; letter-spacing: 0.2px; }
+.brand span.hl { color: var(--safe); }
+.brand-sub { color: var(--text-dim); font-size: 0.85rem; font-weight: 600; margin-left: 8px; }
+
+.topbar-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.topbar-select {
+  background: var(--bg-raised); color: var(--text); border: 1px solid var(--border);
+  border-radius: 3px; padding: 7px 10px; font-family: var(--font-ui); font-weight: 600; font-size: 0.95rem;
+}
+#type-select { min-width: 230px; }
+#lang-select { min-width: 70px; }
+
+.icon-btn-text {
+  background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+  padding: 6px 12px; border-radius: 3px; cursor: pointer; font-weight: 600; font-size: 0.9rem;
+  font-family: var(--font-ui);
+}
+.icon-btn-text:hover { border-color: var(--info); color: var(--text); }
+#backBtn { text-decoration: none; display: inline-block; }
+
+main { padding: 20px; max-width: 900px; margin: 0 auto; }
+
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.tab-btn {
+  background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+  padding: 6px 16px; border-radius: 3px; cursor: pointer; font-weight: 600; font-size: 0.95rem;
+  font-family: var(--font-ui);
+}
+.tab-btn.active { color: var(--bg-void); background: var(--safe); border-color: var(--safe); }
+
+.card {
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px;
+  padding: 14px 16px; margin-bottom: 14px;
+}
+.card-title {
+  font-family: var(--font-ui); font-weight: 700; font-size: 0.95rem; letter-spacing: .03em;
+  text-transform: uppercase; color: var(--info); margin-bottom: 10px;
+}
+
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px; font-weight: 600; }
+
+input[type=text], input[type=number], textarea, select.form-input {
+  background: var(--bg-raised); color: var(--text); border: 1px solid var(--border);
+  border-radius: 3px; padding: 8px 10px; font-family: var(--font-data); font-size: 0.9rem; width: 100%;
+}
+input[type=text]:focus, input[type=number]:focus, textarea:focus {
+  outline: none; border-color: var(--info);
+}
+
+.checkbox-row { display: flex; align-items: center; gap: 8px; }
+input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--safe); }
+
+.arr-item { border: 1px dashed var(--border); border-radius: 4px; padding: 10px; margin-bottom: 10px; position: relative; }
+.remove-btn { position: absolute; top: 8px; right: 8px; }
+
+.btn {
+  background: var(--safe); color: var(--bg-void); border: none; border-radius: 3px;
+  padding: 9px 16px; font-weight: 700; font-size: 0.9rem; cursor: pointer; font-family: var(--font-ui);
+}
+.btn.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.btn.secondary:hover { border-color: var(--info); }
+.btn.danger { background: var(--critical); color: #2a0006; }
+.btn.small { padding: 5px 10px; font-size: 0.8rem; }
+.btn:active { transform: scale(.97); }
+
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0 8px; }
+.hint { color: var(--text-dim); font-size: 0.8rem; margin-top: 4px; }
+.status { font-size: 0.82rem; color: var(--caution); min-height: 20px; margin-top: 6px; }
+.filename { font-family: var(--font-data); color: var(--safe); font-size: 0.82rem; }
+
+textarea#rawJson { width: 100%; min-height: 340px; font-family: var(--font-data); font-size: 0.82rem; white-space: pre; }
+
+.view { display: none; }
+.view.active { display: block; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Open<span class="hl">Engine</span>Lab<span class="brand-sub" id="brandSub">JSON-Editor</span></div>
+  <div class="topbar-controls">
+    <a href="index.html" class="icon-btn-text" id="backBtn">← Back</a>
+    <select id="type-select" class="topbar-select" aria-label="Type"></select>
+    <select id="lang-select" class="topbar-select" aria-label="Language">
+      <option value="de">DE</option><option value="en">EN</option>
+      <option value="fr">FR</option><option value="es">ES</option>
+    </select>
+    <button id="loadFileBtn" class="icon-btn-text" type="button">📂</button>
+    <input type="file" id="fileInput" accept=".json" style="display:none;">
+  </div>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab-btn active" data-view="form" id="tabForm">Formular</button>
+    <button class="tab-btn" data-view="raw" id="tabRaw">{ } Roh-JSON</button>
+  </div>
+
+  <div id="formView" class="view active"></div>
+
+  <div id="rawView" class="view">
+    <textarea id="rawJson" spellcheck="false"></textarea>
+    <div class="hint" id="rawHint"></div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn" id="downloadBtn" type="button"></button>
+    <button class="btn secondary" id="copyBtn" type="button"></button>
+    <button class="btn danger" id="resetBtn" type="button"></button>
+  </div>
+  <div class="status" id="status"></div>
+  <div class="hint"><span id="filenameLabel"></span> <span class="filename" id="filenameHint">—</span></div>
+</main>
+
+<script>
+/* ---------- i18n ---------- */
+const I18N = {
+  de: {
+    editorSub: "JSON-Editor", loadFile: "Datei laden", download: "JSON herunterladen",
+    copy: "In Zwischenablage kopieren", reset: "Zurücksetzen", filenameLabel: "Vorschlag Dateiname:",
+    rawHint: "Änderungen hier werden beim Wechsel zu \"Formular\" übernommen (muss gültiges JSON sein).",
+    tabForm: "Formular", tabRaw: "{ } Roh-JSON",
+    fileLoaded: "Datei geladen: ", fileInvalid: "Datei ist kein gültiges JSON.",
+    invalidRaw: "⚠ Ungültiges JSON im Roh-Editor — Formular zeigt evtl. alten Stand.",
+    downloadFail: "⚠ Ungültiges JSON — kann nicht heruntergeladen werden.",
+    downloaded: "✅ Heruntergeladen als ", copied: "✅ In Zwischenablage kopiert.",
+    copyFail: "⚠ Kopieren fehlgeschlagen.", addEntry: "+ Eintrag hinzufügen",
+    arrayPlaceholder: "Werte durch Komma getrennt",
+    types: {
+      engine: "Motor (data/engines/)", turbo: "Turbolader (data/parts/turbos/)",
+      supercharger: "Kompressor/Lader (data/parts/turbos/)", nitrous: "Lachgas (data/parts/nitrous/)",
+      hybrid: "Hybrid/ERS (data/parts/hybrid/)", mod: "Mod / Tuningteil (data/mods/)",
+      fuel: "Kraftstoff (data/fuels/)", drivetrain: "Antriebsstrang (data/drivetrain/)",
+      track: "Strecke (data/tracks/)", scenario: "Szenario / Preset (data/scenarios/)",
+      "catalog-entry": "Katalog-Eintrag (data/catalog/)"
+    }
+  },
+  en: {
+    editorSub: "JSON Editor", loadFile: "Load file", download: "Download JSON",
+    copy: "Copy to clipboard", reset: "Reset", filenameLabel: "Suggested filename:",
+    rawHint: "Edits here are applied when switching to \"Form\" (must be valid JSON).",
+    tabForm: "Form", tabRaw: "{ } Raw JSON",
+    fileLoaded: "File loaded: ", fileInvalid: "File is not valid JSON.",
+    invalidRaw: "⚠ Invalid JSON in raw editor — form may show an older state.",
+    downloadFail: "⚠ Invalid JSON — cannot download.",
+    downloaded: "✅ Downloaded as ", copied: "✅ Copied to clipboard.",
+    copyFail: "⚠ Copy failed.", addEntry: "+ Add entry",
+    arrayPlaceholder: "Comma-separated values",
+    types: {
+      engine: "Engine (data/engines/)", turbo: "Turbocharger (data/parts/turbos/)",
+      supercharger: "Supercharger (data/parts/turbos/)", nitrous: "Nitrous (data/parts/nitrous/)",
+      hybrid: "Hybrid/ERS (data/parts/hybrid/)", mod: "Mod / tuning part (data/mods/)",
+      fuel: "Fuel (data/fuels/)", drivetrain: "Drivetrain (data/drivetrain/)",
+      track: "Track (data/tracks/)", scenario: "Scenario / preset (data/scenarios/)",
+      "catalog-entry": "Catalog entry (data/catalog/)"
+    }
+  },
+  fr: {
+    editorSub: "Éditeur JSON", loadFile: "Charger un fichier", download: "Télécharger le JSON",
+    copy: "Copier dans le presse-papiers", reset: "Réinitialiser", filenameLabel: "Nom de fichier suggéré :",
+    rawHint: "Les modifications ici sont appliquées lors du passage à « Formulaire » (JSON valide requis).",
+    tabForm: "Formulaire", tabRaw: "{ } JSON brut",
+    fileLoaded: "Fichier chargé : ", fileInvalid: "Le fichier n'est pas un JSON valide.",
+    invalidRaw: "⚠ JSON invalide dans l'éditeur brut — le formulaire peut afficher un ancien état.",
+    downloadFail: "⚠ JSON invalide — téléchargement impossible.",
+    downloaded: "✅ Téléchargé sous ", copied: "✅ Copié dans le presse-papiers.",
+    copyFail: "⚠ Échec de la copie.", addEntry: "+ Ajouter une entrée",
+    arrayPlaceholder: "Valeurs séparées par des virgules",
+    types: {
+      engine: "Moteur (data/engines/)", turbo: "Turbocompresseur (data/parts/turbos/)",
+      supercharger: "Compresseur (data/parts/turbos/)", nitrous: "Protoxyde d'azote (data/parts/nitrous/)",
+      hybrid: "Hybride/ERS (data/parts/hybrid/)", mod: "Préparation moteur (data/mods/)",
+      fuel: "Carburant (data/fuels/)", drivetrain: "Transmission (data/drivetrain/)",
+      track: "Circuit (data/tracks/)", scenario: "Scénario / préréglage (data/scenarios/)",
+      "catalog-entry": "Entrée de catalogue (data/catalog/)"
+    }
+  },
+  es: {
+    editorSub: "Editor JSON", loadFile: "Cargar archivo", download: "Descargar JSON",
+    copy: "Copiar al portapapeles", reset: "Restablecer", filenameLabel: "Nombre de archivo sugerido:",
+    rawHint: "Los cambios aquí se aplican al cambiar a «Formulario» (debe ser JSON válido).",
+    tabForm: "Formulario", tabRaw: "{ } JSON sin procesar",
+    fileLoaded: "Archivo cargado: ", fileInvalid: "El archivo no es un JSON válido.",
+    invalidRaw: "⚠ JSON no válido en el editor sin procesar — el formulario puede mostrar un estado anterior.",
+    downloadFail: "⚠ JSON no válido — no se puede descargar.",
+    downloaded: "✅ Descargado como ", copied: "✅ Copiado al portapapeles.",
+    copyFail: "⚠ Error al copiar.", addEntry: "+ Añadir entrada",
+    arrayPlaceholder: "Valores separados por comas",
+    types: {
+      engine: "Motor (data/engines/)", turbo: "Turbocompresor (data/parts/turbos/)",
+      supercharger: "Compresor (data/parts/turbos/)", nitrous: "Óxido nitroso (data/parts/nitrous/)",
+      hybrid: "Híbrido/ERS (data/parts/hybrid/)", mod: "Preparación (data/mods/)",
+      fuel: "Combustible (data/fuels/)", drivetrain: "Transmisión (data/drivetrain/)",
+      track: "Circuito (data/tracks/)", scenario: "Escenario / preajuste (data/scenarios/)",
+      "catalog-entry": "Entrada de catálogo (data/catalog/)"
+    }
+  }
+};
+
+let lang = (navigator.language || 'de').slice(0,2);
+if (!I18N[lang]) lang = 'de';
+
+function t(key) { return I18N[lang][key] ?? key; }
+
+/* ---------- Vorlagen (Teile-Typen, sprachneutrale technische Feldnamen) ---------- */
+const TEMPLATES = {
+  "engine": {
+    folder: "data/engines/",
+    data: {
+      id: "", name: "", engineCodes: [""], configuration: "V", vAngleDeg: 60,
+      cylinders: 6, firingOrder: [1,4,2,5,3,6],
+      baseStock: { boreMm:0, strokeMm:0, compressionRatio:0, maxRpm:0, rotatingMassKg:0, parasiticLossHp:0 },
+      geometry: { boreMM:0, strokeMM:0, rodLengthMM:0, displacementCC:0, compressionRatio:0 },
+      materials: {
+        connectingRod: { material:"", yieldStrengthMPa:0, crossSectionAreaMM2:0, snCurveExponentB:0, snCurveRefCyclesN0:0 },
+        headBolt: { material:"", yieldStrengthMPa:0, crossSectionAreaMM2:0, boltsPerCylinder:0, snCurveExponentB:0, snCurveRefCyclesN0:0 },
+        pistonPin: { material:"", yieldStrengthMPa:0, crossSectionAreaMM2:0, snCurveExponentB:0, snCurveRefCyclesN0:0 }
+      },
+      thermal: { oilMassKG:0, oilSpecificHeatJPerKgK:0, oilRefTempC:0, oilViscosityEta0:0, oilViscosityAlpha:0, oilViscosityMinSafe:0, frictionCoeff:0, combustionHeatFraction:0, coolingCoeff:0, ambientLossCoeff:0, thermalDerationBaselineC:0, thermalDerationRate:0 },
+      dynamics: { rotatingInertiaKgM2:0, frictionTorqueBaseNm:0, frictionTorquePerRPM:0, dynoLoadCoeffNmPerRPM2:0 },
+      idleRPM: 700, redlineRPM: 6000, revLimiterRPM: 6200, intercoolerEfficiency: 0.5
+    }
+  },
+  "turbo": {
+    folder: "data/parts/turbos/",
+    data: {
+      id:"", name:"", type:"Turbocharger",
+      compressor:{ inducerMM:0, exducerMM:0, peakEfficiency:0, maxMassFlowKgMin:0 },
+      turbine:{ inducerMM:0, exducerMM:0, housingAR:0 },
+      limits:{ maxBoostBar:0, maxShaftSpeedRPM:0 },
+      responseFactor:0, wastegateType:"external", wastegateSpringBar:0
+    }
+  },
+  "supercharger": {
+    folder: "data/parts/turbos/",
+    data: {
+      id:"", type:"supercharger", name:"", displacement_liters:0, drive_type:"belt", pulley_ratio:0,
+      limits:{ maxBoostBar:0, maxRPM:0, peakEfficiencyRPM:0 },
+      dynamics:{ timeConstantS:0, volumetricEfficiency:0, heatRatioK:0, beltSlipCoeff:0 },
+      cooler:{ effectivenessPercent:0, targetInletTempC:0 },
+      description:""
+    }
+  },
+  "nitrous": {
+    folder: "data/parts/nitrous/",
+    data: { id:"", name:"", shotEquivalentBar:0, heatFractionBoost:0, flowRateKgMin:0, bottleCapacityKg:0, hydrolockAfrThreshold:0 }
+  },
+  "hybrid": {
+    folder: "data/parts/hybrid/",
+    data: { id:"", name:"", maxDeployKw:0, maxHarvestKw:0, batteryCapacityKWh:0, hasMguH:false }
+  },
+  "mod": {
+    folder: "data/mods/",
+    data: {
+      modId:"", name:"", category:"BOTTOM_END", description:"",
+      defaultEffects:{ massDeltaKg:0, rpmMultiplier:1, strengthMultiplier:1, parasiticLossDeltaHp:0 },
+      manufacturerOverrides:{}
+    }
+  },
+  "fuel": {
+    folder: "data/fuels/",
+    data: { id:"", name:"", ronOctane:0, monOctane:0, afrStoich:0, lhvMJPerKg:0, latentHeatKJPerKg:0 }
+  },
+  "drivetrain": {
+    folder: "data/drivetrain/",
+    data: {
+      id:"", name:"", gearRatios:[3.2,2.14,1.61,1.28,1.03,0.84], finalDriveRatio:0,
+      wheelRadiusM:0, vehicleMassKG:0, dragCoefficient:0, frontalAreaM2:0,
+      rollingResistanceCoeff:0, drivetrainEfficiency:0, maxBrakeForceN:0,
+      tireGripCoeff:0, driveWeightFraction:0
+    }
+  },
+  "track": {
+    folder: "data/tracks/",
+    data: { id:"", name:"", segments: [ { durationS:0, throttle01:0, brake01:0, gear:1, gradePercent:0, note:"" } ] }
+  },
+  "scenario": {
+    folder: "data/scenarios/",
+    data: {
+      version:"0.2.0",
+      metadata:{ name:"", created:"", iterations:[ { v:1, date:"", change:"" } ] },
+      config:{}
+    }
+  },
+  "catalog-entry": {
+    folder: "data/catalog/",
+    data: { id:"", name:"", type:"", file:"" }
+  }
+};
+
+/* ---------- State ---------- */
+let currentType = null;
+let currentData = null;
+
+const typeSelect = document.getElementById('type-select');
+const langSelect = document.getElementById('lang-select');
+const formView = document.getElementById('formView');
+const rawJson = document.getElementById('rawJson');
+const status = document.getElementById('status');
+const filenameHint = document.getElementById('filenameHint');
+
+function populateTypeSelect() {
+  const prev = typeSelect.value;
+  typeSelect.innerHTML = '';
+  for (const key in TEMPLATES) {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = t('types')[key];
+    typeSelect.appendChild(opt);
+  }
+  if (prev && TEMPLATES[prev]) typeSelect.value = prev;
+}
+
+function applyStaticI18n() {
+  document.getElementById('brandSub').textContent = t('editorSub');
+  document.getElementById('loadFileBtn').textContent = '📂 ' + t('loadFile');
+  document.getElementById('tabForm').textContent = t('tabForm');
+  document.getElementById('tabRaw').textContent = t('tabRaw');
+  document.getElementById('downloadBtn').textContent = '⬇️ ' + t('download');
+  document.getElementById('copyBtn').textContent = '📋 ' + t('copy');
+  document.getElementById('resetBtn').textContent = '↺ ' + t('reset');
+  document.getElementById('filenameLabel').textContent = t('filenameLabel');
+  document.getElementById('rawHint').textContent = t('rawHint');
+  populateTypeSelect();
+}
+
+langSelect.value = lang;
+langSelect.addEventListener('change', () => {
+  lang = langSelect.value;
+  applyStaticI18n();
+  render();
+});
+
+typeSelect.addEventListener('change', () => loadTemplate(typeSelect.value));
+
+function loadTemplate(key) {
+  currentType = key;
+  currentData = JSON.parse(JSON.stringify(TEMPLATES[key].data));
+  render();
+}
+
+/* ---------- Rendering: rekursiver Formular-Generator ---------- */
+function render() {
+  formView.innerHTML = '';
+  const label = t('types')[currentType] ? t('types')[currentType].split(' (')[0] : currentType;
+  const root = buildObjectCard(currentData, [], label);
+  formView.appendChild(root);
+  syncRaw();
+  updateFilenameHint();
+}
+
+function setAt(path, value) {
+  let obj = currentData;
+  for (let i = 0; i < path.length - 1; i++) obj = obj[path[i]];
+  obj[path[path.length - 1]] = value;
+  syncRaw();
+  updateFilenameHint();
+}
+
+function buildObjectCard(obj, path, label) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const title = document.createElement('div');
+  title.className = 'card-title';
+  title.textContent = label;
+  card.appendChild(title);
+
+  for (const key in obj) {
+    const val = obj[key];
+    const fieldPath = [...path, key];
+    if (val !== null && typeof val === 'object' && !Array.isArray(val)) {
+      card.appendChild(buildObjectCard(val, fieldPath, humanize(key)));
+    } else if (Array.isArray(val)) {
+      card.appendChild(buildArrayField(val, fieldPath, humanize(key)));
+    } else {
+      card.appendChild(buildLeafField(val, fieldPath, humanize(key)));
+    }
+  }
+  return card;
+}
+
+function humanize(key) {
+  return key.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+            .replace(/_/g, ' ')
+            .replace(/^./, c => c.toUpperCase());
+}
+
+function buildLeafField(val, path, label) {
+  const wrap = document.createElement('div');
+  wrap.className = 'field';
+  const lab = document.createElement('label');
+  lab.textContent = label;
+  wrap.appendChild(lab);
+
+  if (typeof val === 'boolean') {
+    const row = document.createElement('div');
+    row.className = 'checkbox-row';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = val;
+    cb.addEventListener('change', () => setAt(path, cb.checked));
+    row.appendChild(cb);
+    wrap.appendChild(row);
+    return wrap;
+  }
+
+  const inp = document.createElement('input');
+  if (typeof val === 'number') {
+    inp.type = 'number';
+    inp.step = 'any';
+    inp.value = val;
+    inp.addEventListener('input', () => setAt(path, inp.value === '' ? 0 : parseFloat(inp.value)));
+  } else {
+    inp.type = 'text';
+    inp.value = val ?? '';
+    inp.addEventListener('input', () => setAt(path, inp.value));
+  }
+  wrap.appendChild(inp);
+  return wrap;
+}
+
+function buildArrayField(arr, path, label) {
+  const wrap = document.createElement('div');
+  wrap.className = 'field';
+  const lab = document.createElement('label');
+  lab.textContent = label;
+  wrap.appendChild(lab);
+
+  const isObjArray = arr.length > 0 && typeof arr[0] === 'object' && arr[0] !== null;
+
+  if (!isObjArray) {
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.value = arr.join(', ');
+    inp.placeholder = t('arrayPlaceholder');
+    inp.addEventListener('input', () => {
+      const parts = inp.value.split(',').map(s => s.trim()).filter(s => s !== '');
+      const parsed = parts.map(s => (isNaN(s) ? s : parseFloat(s)));
+      setAt(path, parsed);
+    });
+    wrap.appendChild(inp);
+    return wrap;
+  }
+
+  const list = document.createElement('div');
+  arr.forEach((item, idx) => {
+    const itemWrap = document.createElement('div');
+    itemWrap.className = 'arr-item';
+    const rmBtn = document.createElement('button');
+    rmBtn.className = 'btn danger small remove-btn';
+    rmBtn.type = 'button';
+    rmBtn.textContent = '✕';
+    rmBtn.addEventListener('click', () => {
+      arr.splice(idx, 1);
+      render();
+    });
+    itemWrap.appendChild(rmBtn);
+    itemWrap.appendChild(buildObjectCard(item, [...path, idx], `${label} #${idx + 1}`));
+    list.appendChild(itemWrap);
+  });
+  wrap.appendChild(list);
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'btn secondary small';
+  addBtn.type = 'button';
+  addBtn.textContent = t('addEntry');
+  addBtn.addEventListener('click', () => {
+    const template = arr.length > 0 ? JSON.parse(JSON.stringify(arr[0])) : {};
+    for (const k in template) template[k] = typeof template[k] === 'number' ? 0 : (typeof template[k] === 'boolean' ? false : '');
+    arr.push(template);
+    render();
+  });
+  wrap.appendChild(addBtn);
+
+  return wrap;
+}
+
+/* ---------- Roh-JSON Sync ---------- */
+function syncRaw() {
+  rawJson.value = JSON.stringify(currentData, null, 2);
+}
+
+function updateFilenameHint() {
+  if (!currentType) { filenameHint.textContent = '—'; return; }
+  const folder = TEMPLATES[currentType].folder;
+  const idVal = currentData.id || currentData.modId || 'unbenannt';
+  filenameHint.textContent = folder + slugify(String(idVal)) + '.json';
+}
+
+function slugify(s) {
+  return s.toLowerCase().trim().replace(/[^a-z0-9-_]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'unnamed';
+}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tab-btn').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    tab.classList.add('active');
+    if (tab.dataset.view === 'form') {
+      document.getElementById('formView').classList.add('active');
+      render();
+    } else {
+      document.getElementById('rawView').classList.add('active');
+      try {
+        currentData = JSON.parse(rawJson.value);
+        status.textContent = '';
+      } catch (e) {
+        status.textContent = t('invalidRaw');
+      }
+      syncRaw();
+    }
+  });
+});
+
+/* ---------- Buttons ---------- */
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  try {
+    if (document.getElementById('rawView').classList.contains('active')) {
+      currentData = JSON.parse(rawJson.value);
+    }
+  } catch (e) {
+    status.textContent = t('downloadFail');
+    return;
+  }
+  const blob = new Blob([JSON.stringify(currentData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const idVal = currentData.id || currentData.modId || 'unbenannt';
+  a.href = url;
+  a.download = slugify(String(idVal)) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  status.textContent = t('downloaded') + a.download;
+});
+
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  try {
+    if (document.getElementById('rawView').classList.contains('active')) {
+      currentData = JSON.parse(rawJson.value);
+    }
+    await navigator.clipboard.writeText(JSON.stringify(currentData, null, 2));
+    status.textContent = t('copied');
+  } catch (e) {
+    status.textContent = t('copyFail');
+  }
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (currentType) loadTemplate(currentType);
+});
+
+document.getElementById('loadFileBtn').addEventListener('click', () => {
+  document.getElementById('fileInput').click();
+});
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      currentData = parsed;
+      if (!currentType) currentType = typeSelect.value;
+      render();
+      status.textContent = t('fileLoaded') + file.name;
+    } catch (err) {
+      status.textContent = t('fileInvalid');
+    }
+  };
+  reader.readAsText(file);
+});
+
+/* ---------- Init ---------- */
+applyStaticI18n();
+loadTemplate(typeSelect.value);
+</script>
+</body>
+</html>
