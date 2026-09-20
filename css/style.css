@@ -190,6 +190,14 @@ input[type="file"] { color: var(--text-dim); font-size: 0.82rem; margin-bottom: 
 }
 .estop-btn:hover { filter: brightness(1.1); }
 
+.ignition-btn {
+  border: none; font-weight: 700; padding: 8px 16px; border-radius: 20px; cursor: pointer;
+  letter-spacing: 0.3px; font-family: var(--font-ui); margin-right: 8px; transition: background 0.15s, color 0.15s;
+}
+.ignition-btn.on { background: var(--safe); color: #04150f; }
+.ignition-btn.off { background: var(--bg-raised); color: var(--text-dim); border: 1px solid var(--border); }
+.ignition-btn:hover { filter: brightness(1.1); }
+
 @media (max-width: 900px) {
   .app-grid { grid-template-columns: 1fr; grid-template-rows: auto 46vh auto 46px; height: auto; }
   .sidebar { border: none; border-bottom: 1px solid var(--border); max-height: 260px; }

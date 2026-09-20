@@ -671,8 +671,13 @@
 
   // ---------------------------------------------------------------- Status bar
   function updateStatusBar(app, result) {
-    qs("#status-state").textContent = app.running ? T("running") : T("stopped");
-    qs("#status-state").className = app.running ? "ok" : "warn";
+    if (!app.ignitionOn) {
+      qs("#status-state").textContent = T("engineOff");
+      qs("#status-state").className = "";
+    } else {
+      qs("#status-state").textContent = app.running ? T("running") : T("stopped");
+      qs("#status-state").className = app.running ? "ok" : "warn";
+    }
     qs("#status-time").textContent = `t=${result.time.toFixed(1)}s | ${T("cyclesLabel")} ${result.cycles.toFixed(0)}`;
     const w = result.weakestLink;
     const wEl = qs("#status-weakest");
@@ -841,6 +846,7 @@
     qs("#tab-launch").textContent = T("tabLaunch");
     qs("#tab-compare").textContent = T("tabCompare");
     qs("#estop").textContent = T("estop");
+    qs("#ignition-btn").textContent = "⏻ " + T("ignitionBtn");
     qs("#undo-btn").title = T("undo");
     qs("#redo-btn").title = T("redo");
     qs("#report-btn").title = T("report");
@@ -876,6 +882,12 @@
     qs("#tab-compare").addEventListener("click", () => setView(app, "compare"));
     wireSetupIO(app);
     wireDynoTestButton(app);
+    qs("#ignition-btn").addEventListener("click", () => {
+      app.ignitionOn = !app.ignitionOn;
+      app.worker.postMessage({ type: "setIgnition", on: app.ignitionOn });
+      qs("#ignition-btn").classList.toggle("on", app.ignitionOn);
+      qs("#ignition-btn").classList.toggle("off", !app.ignitionOn);
+    });
     qs("#view-side-btn").addEventListener("click", () => setSchematicView(app, "side"));
     qs("#view-front-btn").addEventListener("click", () => setSchematicView(app, "front"));
     qs("#view-top-btn").addEventListener("click", () => setSchematicView(app, "top"));
@@ -1265,7 +1277,7 @@
       render: { handle: null, thetaRad: 0 },
       track: { profile: null, player: null }, trackPanelEl: null,
       undo: { stack: [], redoStack: [] },
-      view: "schematic", schematicView: "side", running: true, lastFrameMs: null,
+      view: "schematic", schematicView: "side", running: true, ignitionOn: true, lastFrameMs: null,
       lastResult: null, lastEcmOut: null
     };
     window.OEL_APP = app;

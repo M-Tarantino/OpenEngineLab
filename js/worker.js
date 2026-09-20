@@ -5,6 +5,7 @@ let simState = null;
 let ecmState = null;
 let running = false;
 let lastTickMs = null;
+let ignitionOn = true;
 
 let controls = {
   throttle01: 0.15, ambientC: 20, baroBar: 1.0, boostTargetBar: 0,
@@ -15,6 +16,7 @@ let controls = {
 function buildState(engine, turbo, fuel, extras) {
   simState = OEL.Engine.createState(engine, turbo, fuel, extras || {});
   ecmState = OEL.ECM.createState();
+  if (!ignitionOn) simState.rpm = 0;
 }
 
 function tick() {
@@ -26,17 +28,24 @@ function tick() {
   dt = Math.min(0.05, Math.max(0.001, dt));
 
   const c = controls;
+  const effectiveThrottle = ignitionOn ? c.throttle01 : 0;
   const ecmOut = OEL.ECM.computeCycle(ecmState, simState.engine, simState.turbo, {
-    rpm: simState.rpm, throttle01: c.throttle01, boostBar: simState.boostBar,
-    boostTargetBar: c.boostTargetBar, knockDetected: simState.knockDetected, dt,
-    alsActive: c.alsActive, nitrousArmed: c.nitrousArmed, nitrousBottleKg: simState.nitrousRemainingKg
+    rpm: simState.rpm, throttle01: effectiveThrottle, boostBar: simState.boostBar,
+    boostTargetBar: ignitionOn ? c.boostTargetBar : 0, knockDetected: simState.knockDetected, dt,
+    alsActive: c.alsActive, nitrousArmed: ignitionOn && c.nitrousArmed, nitrousBottleKg: simState.nitrousRemainingKg
   });
   const result = OEL.Engine.step(simState, dt, {
-    throttle01: c.throttle01, ambientC: c.ambientC, baroBar: c.baroBar,
-    boostCommandBar: ecmOut.boostCommandBar, ignitionAdvanceDeg: ecmOut.ignitionAdvanceDeg,
-    cutIgnition: ecmOut.cutIgnition, nitrousActive: ecmOut.nitrousActive,
-    hybridDeployKw: c.hybridDeployKw, drivetrain: c.drivetrain
+    throttle01: effectiveThrottle, ambientC: c.ambientC, baroBar: c.baroBar,
+    boostCommandBar: ignitionOn ? ecmOut.boostCommandBar : 0, ignitionAdvanceDeg: ecmOut.ignitionAdvanceDeg,
+    cutIgnition: !ignitionOn || ecmOut.cutIgnition, nitrousActive: ignitionOn && ecmOut.nitrousActive,
+    hybridDeployKw: ignitionOn ? c.hybridDeployKw : 0, drivetrain: c.drivetrain
   });
+
+  if (!ignitionOn && simState.rpm <= 305) {
+    simState.rpm = 0;
+    result.rpm = 0; result.boostBar = 0; result.cylinderPressureBar = 0;
+    result.powerHp = 0; result.brakeTorqueNm = 0; result.knockDetected = false;
+  }
 
   postMessage({ type: "tick", result, ecmOut, rpm: simState.rpm });
 }
@@ -60,6 +69,12 @@ self.onmessage = function (e) {
       break;
     case "resetFailure":
       if (simState) OEL.Engine.resetFailure(simState);
+      break;
+    case "setIgnition":
+      ignitionOn = !!msg.on;
+      if (ignitionOn && simState) {
+        simState.rpm = Math.max(simState.rpm, simState.engine.idleRPM * 0.35);
+      }
       break;
     case "setDiscipline":
       if (simState) {
