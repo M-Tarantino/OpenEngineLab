@@ -139,9 +139,9 @@ input[type="file"] { color: var(--text-dim); font-size: 0.82rem; margin-bottom: 
 }
 .dyno-test-btn:hover { filter: brightness(1.1); }
 .dyno-test-panel {
-  position: absolute; top: 64px; right: 16px; z-index: 5; width: 340px; max-width: calc(100% - 32px);
+  position: absolute; top: 64px; right: 16px; z-index: 5; width: 440px; max-width: calc(100% - 32px);
   background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4); max-height: calc(100% - 96px); overflow-y: auto;
 }
 .dyno-test-panel h3 { margin: 0 0 12px; font-size: 1.1rem; }
 .dyno-peaks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
@@ -150,6 +150,24 @@ input[type="file"] { color: var(--text-dim); font-size: 0.82rem; margin-bottom: 
   border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px;
 }
 .dyno-peak-tile .live-value { font-size: 0.92rem; }
+
+.schematic-view-toggle {
+  position: absolute; top: 16px; left: 16px; z-index: 5; display: flex; gap: 2px;
+  background: var(--bg-raised); border: 1px solid var(--border); border-radius: 4px; padding: 2px;
+}
+.view-toggle-btn {
+  background: transparent; border: none; color: var(--text-dim); padding: 6px 14px;
+  border-radius: 3px; cursor: pointer; font-family: var(--font-ui); font-size: 0.85rem; font-weight: 600;
+}
+.view-toggle-btn.active { background: var(--safe); color: #04150f; }
+.view-toggle-btn:not(.active):hover { color: var(--text); }
+
+.front-bank-line { stroke: #3A444D; stroke-width: 8; stroke-linecap: round; }
+.front-bore { fill: #1A2128; stroke: var(--safe); stroke-width: 4; transition: stroke 0.15s linear; }
+.front-bore-inner { fill: none; stroke: #4A5560; stroke-width: 1.5; }
+.top-bore { fill: #1A2128; stroke: var(--safe); stroke-width: 4; transition: stroke 0.15s linear; }
+.top-plug { fill: #4A5560; }
+.top-cyl-label { fill: var(--text-dim); font-family: var(--font-data); font-size: 11px; }
 .stat-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border); color: var(--text-dim); }
 .stat-row span:first-child { color: var(--text); }
 

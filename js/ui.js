@@ -546,11 +546,29 @@
   }
 
   function rebuildSchematic(app) {
-    app.render.handle = OEL.Renderer.buildSchematic(qs("#schematic-container"), app.profiles.engine, {
+    const container = qs("#schematic-container");
+    const labels = {
       schematicAlt: T("schematicAlt"), cylinder: T("cylinderLabel"),
-      block: componentLabel("block"), cylinderHead: componentLabel("cylinderHead")
-    });
+      block: componentLabel("block"), cylinderHead: componentLabel("cylinderHead"),
+      frontViewAlt: T("frontViewAlt"), topViewAlt: T("topViewAlt"), bank: T("bankLabel")
+    };
+    const view = app.schematicView || "side";
+    if (view === "front") {
+      app.render.handle = OEL.Renderer.buildSchematicFront(container, app.profiles.engine, labels);
+    } else if (view === "top") {
+      app.render.handle = OEL.Renderer.buildSchematicTop(container, app.profiles.engine, labels);
+    } else {
+      app.render.handle = OEL.Renderer.buildSchematic(container, app.profiles.engine, labels);
+    }
     attachTooltip(app);
+  }
+
+  function setSchematicView(app, view) {
+    app.schematicView = view;
+    for (const btn of document.querySelectorAll(".view-toggle-btn")) {
+      btn.classList.toggle("active", btn.dataset.view === view);
+    }
+    rebuildSchematic(app);
   }
 
   function attachTooltip(app) {
@@ -779,13 +797,18 @@
       });
       const check = OEL.RealismCheck.checkRealism(app.profiles.engine, app.profiles.turbo, benchmark.peak);
       const levelClass = { ok: "ok", warn: "warn", critical: "critical" };
+      const binned = OEL.Benchmark.binSeriesByRpm(benchmark.series, 100);
 
-      let html = `<h3>${T("dynoTestTitle")}</h3><div class="dyno-peaks">` +
+      let html = `<h3>${T("dynoTestTitle")}</h3>` +
+        `<p class="launch-hint">${T("dynoTestExplain")}</p>` +
+        `<div class="dyno-peaks">` +
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpPeakPower")}</span><span class="live-value">${benchmark.peak.powerHp.toFixed(0)} hp @ ${benchmark.peak.powerHpRpm.toFixed(0)} rpm</span></div>` +
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpPeakTorque")}</span><span class="live-value">${benchmark.peak.brakeTorqueNm.toFixed(0)} Nm @ ${benchmark.peak.torqueRpm.toFixed(0)} rpm</span></div>` +
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpOilTempPeak")}</span><span class="live-value">${benchmark.peak.oilTempC.toFixed(0)}°C</span></div>` +
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpWeakestSf")}</span><span class="live-value">${benchmark.peak.weakestSfMin.toFixed(2)}×</span></div>` +
-        `</div><div class="launch-summary">`;
+        `</div>` +
+        `<div id="dyno-chart" class="chart" style="height:220px;margin:12px 0"></div>` +
+        `<div class="launch-summary">`;
       for (const f of check.findings) {
         html += `<div class="launch-alert ${levelClass[f.level]}">${T(f.key).replace("{v}", f.value)}</div>`;
       }
@@ -793,6 +816,22 @@
       panel.innerHTML = html;
       panel.style.display = "block";
       qs("#dyno-test-close").addEventListener("click", () => { panel.style.display = "none"; });
+
+      if (app.dynoChart) app.dynoChart.destroy();
+      app.dynoChart = new uPlot({
+        width: qs("#dyno-chart").clientWidth || 400, height: 200,
+        scales: { hp: {}, nm: {} },
+        series: [
+          { label: T("rpmUnit") },
+          { label: `${T("cmpPeakPower")} (hp)`, stroke: "#3DDC97", width: 2, scale: "hp" },
+          { label: `${T("cmpPeakTorque")} (Nm)`, stroke: "#4A9EFF", width: 2, scale: "nm" }
+        ],
+        axes: [
+          { stroke: "#7C8894", grid: { stroke: "rgba(122,136,148,0.15)" } },
+          { scale: "hp", stroke: "#3DDC97", grid: { stroke: "rgba(122,136,148,0.15)" } },
+          { scale: "nm", side: 1, stroke: "#4A9EFF", grid: { show: false } }
+        ]
+      }, [binned.rpm, binned.powerHp, binned.torqueNm], qs("#dyno-chart"));
     });
   }
 
@@ -809,6 +848,9 @@
     qs("#load-setup-btn").title = T("loadSetup");
     qs("#csv-export-btn").title = T("csvExport");
     qs("#dyno-test-btn").textContent = "▶ " + T("dynoTestBtn");
+    qs("#view-side-btn").textContent = T("viewSide");
+    qs("#view-front-btn").textContent = T("viewFront");
+    qs("#view-top-btn").textContent = T("viewTop");
     const opts = qs("#kennfield-select").options;
     opts[0].textContent = T("kennfieldIgnition"); opts[1].textContent = T("kennfieldFuel");
     qs(".sidebar-right h2").textContent = T("telemetry");
@@ -834,6 +876,9 @@
     qs("#tab-compare").addEventListener("click", () => setView(app, "compare"));
     wireSetupIO(app);
     wireDynoTestButton(app);
+    qs("#view-side-btn").addEventListener("click", () => setSchematicView(app, "side"));
+    qs("#view-front-btn").addEventListener("click", () => setSchematicView(app, "front"));
+    qs("#view-top-btn").addEventListener("click", () => setSchematicView(app, "top"));
     qs("#estop").addEventListener("click", () => {
       app.controls.throttle01 = 0; app.controls.boostTargetBar = 0;
       sendControls(app);
@@ -1127,6 +1172,9 @@
     qs("#kennfield-view").style.display = view === "kennfield" ? "block" : "none";
     qs("#launch-view").style.display = view === "launch" ? "block" : "none";
     qs("#compare-view").style.display = view === "compare" ? "block" : "none";
+    qs("#dyno-test-btn").style.display = view === "schematic" ? "block" : "none";
+    qs("#schematic-view-toggle").style.display = view === "schematic" ? "flex" : "none";
+    if (view !== "schematic") qs("#dyno-test-panel").style.display = "none";
     qs("#tab-schematic").classList.toggle("active", view === "schematic");
     qs("#tab-kennfield").classList.toggle("active", view === "kennfield");
     qs("#tab-launch").classList.toggle("active", view === "launch");
@@ -1142,30 +1190,41 @@
     app.lastFrameMs = nowMs;
     dt = Math.min(0.1, Math.max(0, dt));
 
-    if (app.track.player && app.track.player.playing) {
-      const st = OEL.Track.advance(app.track.player, dt);
-      app.controls.throttle01 = st.throttle01;
-      app.controls.gear = st.gear;
-      app.controls.gradePercent = st.gradePercent;
-      app.controls.brake01 = st.brake01;
-    }
+    try {
+      if (app.track.player && app.track.player.playing) {
+        const st = OEL.Track.advance(app.track.player, dt);
+        app.controls.throttle01 = st.throttle01;
+        app.controls.gear = st.gear;
+        app.controls.gradePercent = st.gradePercent;
+        app.controls.brake01 = st.brake01;
+      }
 
-    if (app.running) sendControls(app);
+      if (app.running) sendControls(app);
 
-    if (app.lastResult) {
-      const result = app.lastResult;
-      app.render.thetaRad = (app.render.thetaRad + (result.rpm * 2 * Math.PI / 60) * dt) % (2 * Math.PI);
-      OEL.Renderer.updateCrankAngle(app.render.handle, app.render.thetaRad);
-      OEL.Renderer.applyStressState(app.render.handle, result.components, {
-        rod: componentLabel("rod"), headBolt: componentLabel("headBolt"), pistonPin: componentLabel("pistonPin"),
-        cylinderHead: componentLabel("cylinderHead"), block: componentLabel("block")
-      });
-      updateCharts(app);
-      updateLiveReadout(app, result);
-      updateStats(app);
-      updateStatusBar(app, result);
-      updateKennfield(app);
-      updateDisciplinePanelsLive(app, result);
+      if (app.lastResult) {
+        const result = app.lastResult;
+        app.render.thetaRad = (app.render.thetaRad + (result.rpm * 2 * Math.PI / 60) * dt) % (2 * Math.PI);
+        const view = app.schematicView || "side";
+        if (view === "side") {
+          OEL.Renderer.updateCrankAngle(app.render.handle, app.render.thetaRad);
+          OEL.Renderer.applyStressState(app.render.handle, result.components, {
+            rod: componentLabel("rod"), headBolt: componentLabel("headBolt"), pistonPin: componentLabel("pistonPin"),
+            cylinderHead: componentLabel("cylinderHead"), block: componentLabel("block")
+          });
+        } else {
+          OEL.Renderer.applyOverallStress(app.render.handle, result.weakestLink);
+        }
+        updateCharts(app);
+        updateLiveReadout(app, result);
+        updateStats(app);
+        updateStatusBar(app, result);
+        updateKennfield(app);
+        updateDisciplinePanelsLive(app, result);
+      }
+    } catch (err) {
+      // A single bad frame must never permanently freeze the whole simulation —
+      // log it for diagnosis and keep the animation loop alive.
+      console.error("renderLoop frame error (recovered):", err);
     }
     requestAnimationFrame((t) => renderLoop(app, t));
   }
@@ -1206,7 +1265,7 @@
       render: { handle: null, thetaRad: 0 },
       track: { profile: null, player: null }, trackPanelEl: null,
       undo: { stack: [], redoStack: [] },
-      view: "schematic", running: true, lastFrameMs: null,
+      view: "schematic", schematicView: "side", running: true, lastFrameMs: null,
       lastResult: null, lastEcmOut: null
     };
     window.OEL_APP = app;

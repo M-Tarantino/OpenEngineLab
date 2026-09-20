@@ -200,7 +200,104 @@
     return info;
   }
 
-  /** Draws the ignition or fuel map onto a canvas, including the live operating point. */
+  /** Front view: looking straight down the crank axis. Shows the V-angle (or a single bore for inline engines) and the crank throw. */
+  function buildSchematicFront(container, profile, labels) {
+    labels = labels || {};
+    container.innerHTML = "";
+    const isSingleBank = profile.configuration === "I";
+    const halfAngleRad = isSingleBank ? 0 : ((profile.vAngleDeg || 0) / 2) * Math.PI / 180;
+    const width = 360, height = 360;
+    const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, class: "engine-svg", role: "img", "aria-label": labels.frontViewAlt || "Engine front view" });
+    container.appendChild(svg);
+
+    const crankX = width / 2, crankY = height - 60;
+    const boreLenPx = 190;
+    const boreR = 34;
+    const groups = { overall: [] };
+
+    const banks = isSingleBank ? [0] : [-1, 1];
+    for (const bank of banks) {
+      const angle = bank * halfAngleRad;
+      const dirX = Math.sin(angle), dirY = -Math.cos(angle);
+      const cx = crankX + dirX * boreLenPx, cy = crankY + dirY * boreLenPx;
+
+      const rod = el("line", { x1: crankX, y1: crankY, x2: cx, y2: cy, class: "front-bank-line" });
+      svg.appendChild(rod);
+
+      const bore = el("circle", { cx, cy, r: boreR, class: "front-bore" });
+      const tip = el("title", {}); tip.textContent = isSingleBank ? (labels.cylinder || "Cylinder") : `${labels.bank || "Bank"} ${bank < 0 ? "A" : "B"}`;
+      bore.appendChild(tip);
+      svg.appendChild(bore);
+      groups.overall.push(bore);
+
+      const innerBore = el("circle", { cx, cy, r: boreR - 10, class: "front-bore-inner" });
+      svg.appendChild(innerBore);
+    }
+
+    const crank = el("circle", { cx: crankX, cy: crankY, r: 22, class: "journal" });
+    svg.appendChild(crank);
+
+    return { svg, groups, mode: "front" };
+  }
+
+  /** Top view: looking down at the deck. Shows cylinder bore layout along the crank axis, one row per bank. */
+  function buildSchematicTop(container, profile, labels) {
+    labels = labels || {};
+    container.innerHTML = "";
+    const cylCount = profile.cylinders;
+    const isSingleBank = profile.configuration === "I";
+    const perBank = isSingleBank ? cylCount : Math.ceil(cylCount / 2);
+    const spacing = 78, boreR = 26, base = 70;
+    const bankGap = isSingleBank ? 0 : 70;
+
+    const width = Math.max(360, base * 2 + (perBank - 1) * spacing);
+    const height = isSingleBank ? 180 : 180 + bankGap;
+    const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, class: "engine-svg", role: "img", "aria-label": labels.topViewAlt || "Engine top view" });
+    container.appendChild(svg);
+
+    const groups = { overall: [] };
+    const centerY = height / 2;
+
+    for (let i = 0; i < cylCount; i++) {
+      const bank = isSingleBank ? 0 : (i % 2 === 0 ? -1 : 1);
+      const posIdx = isSingleBank ? i : Math.floor(i / 2);
+      const cx = base + posIdx * spacing;
+      const cy = isSingleBank ? centerY : centerY + bank * (bankGap / 2);
+
+      const bore = el("circle", { cx, cy, r: boreR, class: "top-bore" });
+      const tip = el("title", {}); tip.textContent = `${labels.cylinder || "Cylinder"} ${i + 1}`;
+      bore.appendChild(tip);
+      svg.appendChild(bore);
+      groups.overall.push(bore);
+
+      const plug = el("circle", { cx, cy, r: 6, class: "top-plug" });
+      svg.appendChild(plug);
+
+      const label = el("text", { x: cx, y: cy + boreR + 16, class: "top-cyl-label", "text-anchor": "middle" });
+      label.textContent = String(i + 1);
+      svg.appendChild(label);
+    }
+
+    return { svg, groups, mode: "top" };
+  }
+
+  /** Applies the current overall weakest-link color to a Front or Top view's bore shapes. */
+  function applyOverallStress(handle, weakestLink) {
+    if (!handle || !handle.groups || !handle.groups.overall) return;
+    const visual = sfToVisual(weakestLink.sf);
+    for (const node of handle.groups.overall) {
+      node.style.stroke = visual.color;
+      if (visual.pulseHz > 0) {
+        node.classList.add("pulse-critical");
+        node.style.setProperty("--pulse-dur", (1 / visual.pulseHz).toFixed(2) + "s");
+      } else {
+        node.classList.remove("pulse-critical");
+        node.style.removeProperty("--pulse-dur");
+      }
+    }
+  }
+
+
   function drawKennfield(canvas, map, rpmAxis, loadAxis, opPoint, unitLabel) {
     const ctx = canvas.getContext("2d");
     const w = canvas.width, h = canvas.height;
@@ -246,5 +343,8 @@
   }
 
   root.OEL = root.OEL || {};
-  root.OEL.Renderer = { buildSchematic, updateCrankAngle, applyStressState, sfToVisual, drawKennfield };
+  root.OEL.Renderer = {
+    buildSchematic, updateCrankAngle, applyStressState, sfToVisual, drawKennfield,
+    buildSchematicFront, buildSchematicTop, applyOverallStress
+  };
 })(typeof window !== "undefined" ? window : global);

@@ -88,5 +88,32 @@
     return { series, peak };
   }
 
-  OEL.Benchmark = { runWotBenchmark };
+  /**
+   * Bins a benchmark series by RPM (averaging power/torque within each bin),
+   * producing a clean, monotonic power/torque-vs-RPM curve suitable for a
+   * dyno-style chart. Raw time-series data oscillates once the rev limiter is
+   * reached, which looks noisy plotted directly against RPM.
+   */
+  function binSeriesByRpm(series, binSizeRpm) {
+    binSizeRpm = binSizeRpm || 100;
+    const bins = {};
+    for (const pt of series) {
+      const bin = Math.round(pt.rpm / binSizeRpm) * binSizeRpm;
+      if (!bins[bin]) bins[bin] = { rpmSum: 0, powerSum: 0, torqueSum: 0, n: 0 };
+      const b = bins[bin];
+      b.rpmSum += pt.rpm; b.powerSum += pt.powerHp; b.torqueSum += pt.brakeTorqueNm; b.n++;
+    }
+    const rpms = Object.keys(bins).map(Number).sort((a, b) => a - b);
+    const rpmOut = [], powerOut = [], torqueOut = [];
+    for (const r of rpms) {
+      const b = bins[r];
+      if (b.powerSum / b.n < 0.5) continue; // skip rev-limiter fuel-cut dead zones
+      rpmOut.push(Math.round(b.rpmSum / b.n));
+      powerOut.push(b.powerSum / b.n);
+      torqueOut.push(b.torqueSum / b.n);
+    }
+    return { rpm: rpmOut, powerHp: powerOut, torqueNm: torqueOut };
+  }
+
+  OEL.Benchmark = { runWotBenchmark, binSeriesByRpm };
 })();
