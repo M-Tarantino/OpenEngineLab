@@ -109,6 +109,13 @@ input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--safe); }
 
 textarea#rawJson { width: 100%; min-height: 340px; font-family: var(--font-data); font-size: 0.82rem; white-space: pre; }
 
+.added-field { position: relative; }
+.added-field > .field > label, .added-field > .card > .card-title { padding-right: 36px; }
+.add-field-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.add-field-row input[type=text] { flex: 1 1 160px; width: auto; min-width: 120px; }
+.add-field-row select.form-input { flex: 0 0 auto; width: auto; }
+.input-error, input[type=text].input-error { border-color: var(--critical) !important; }
+
 .view { display: none; }
 .view.active { display: block; }
 </style>
@@ -164,6 +171,9 @@ const I18N = {
     downloadFail: "⚠ Ungültiges JSON — kann nicht heruntergeladen werden.",
     downloaded: "✅ Heruntergeladen als ", copied: "✅ In Zwischenablage kopiert.",
     copyFail: "⚠ Kopieren fehlgeschlagen.", addEntry: "+ Eintrag hinzufügen",
+    addField: "+ Feld hinzufügen", newFieldName: "Neuer Feldname", removeField: "Feld entfernen",
+    duplicateFieldName: "⚠ Feldname existiert bereits in diesem Objekt.", invalidFieldName: "⚠ Ungültiger Feldname.",
+    typeText: "Text", typeNumber: "Zahl", typeObject: "Objekt", typeArray: "Liste",
     arrayPlaceholder: "Werte durch Komma getrennt",
     types: {
       engine: "Motor (data/engines/)", turbo: "Turbolader (data/parts/turbos/)",
@@ -184,6 +194,9 @@ const I18N = {
     downloadFail: "⚠ Invalid JSON — cannot download.",
     downloaded: "✅ Downloaded as ", copied: "✅ Copied to clipboard.",
     copyFail: "⚠ Copy failed.", addEntry: "+ Add entry",
+    addField: "+ Add field", newFieldName: "New field name", removeField: "Remove field",
+    duplicateFieldName: "⚠ Field name already exists in this object.", invalidFieldName: "⚠ Invalid field name.",
+    typeText: "Text", typeNumber: "Number", typeObject: "Object", typeArray: "List",
     arrayPlaceholder: "Comma-separated values",
     types: {
       engine: "Engine (data/engines/)", turbo: "Turbocharger (data/parts/turbos/)",
@@ -204,6 +217,9 @@ const I18N = {
     downloadFail: "⚠ JSON invalide — téléchargement impossible.",
     downloaded: "✅ Téléchargé sous ", copied: "✅ Copié dans le presse-papiers.",
     copyFail: "⚠ Échec de la copie.", addEntry: "+ Ajouter une entrée",
+    addField: "+ Ajouter un champ", newFieldName: "Nom du nouveau champ", removeField: "Supprimer le champ",
+    duplicateFieldName: "⚠ Ce nom de champ existe déjà dans cet objet.", invalidFieldName: "⚠ Nom de champ invalide.",
+    typeText: "Texte", typeNumber: "Nombre", typeObject: "Objet", typeArray: "Liste",
     arrayPlaceholder: "Valeurs séparées par des virgules",
     types: {
       engine: "Moteur (data/engines/)", turbo: "Turbocompresseur (data/parts/turbos/)",
@@ -224,6 +240,9 @@ const I18N = {
     downloadFail: "⚠ JSON no válido — no se puede descargar.",
     downloaded: "✅ Descargado como ", copied: "✅ Copiado al portapapeles.",
     copyFail: "⚠ Error al copiar.", addEntry: "+ Añadir entrada",
+    addField: "+ Añadir campo", newFieldName: "Nombre del nuevo campo", removeField: "Eliminar campo",
+    duplicateFieldName: "⚠ El nombre del campo ya existe en este objeto.", invalidFieldName: "⚠ Nombre de campo no válido.",
+    typeText: "Texto", typeNumber: "Número", typeObject: "Objeto", typeArray: "Lista",
     arrayPlaceholder: "Valores separados por comas",
     types: {
       engine: "Motor (data/engines/)", turbo: "Turbocompresor (data/parts/turbos/)",
@@ -242,10 +261,7 @@ if (!I18N[lang]) lang = 'de';
 function t(key) { return I18N[lang][key] ?? key; }
 
 /* ---------- Vorlagen (Teile-Typen, sprachneutrale technische Feldnamen) ---------- */
-const TEMPLATES = {
-  "engine": {
-    folder: "data/engines/",
-    data: {
+const ENGINE_TEMPLATE_DATA = {
       id: "", name: "", engineCodes: [""], configuration: "V", vAngleDeg: 60,
       cylinders: 6, firingOrder: [1,4,2,5,3,6],
       baseStock: { boreMm:0, strokeMm:0, compressionRatio:0, maxRpm:0, rotatingMassKg:0, parasiticLossHp:0 },
@@ -253,23 +269,26 @@ const TEMPLATES = {
       materials: {
         connectingRod: { material:"", yieldStrengthMPa:0, crossSectionAreaMM2:0, snCurveExponentB:0, snCurveRefCyclesN0:0 },
         headBolt: { material:"", yieldStrengthMPa:0, crossSectionAreaMM2:0, boltsPerCylinder:0, snCurveExponentB:0, snCurveRefCyclesN0:0 },
-        pistonPin: { material:"", yieldStrengthMPa:0, crossSectionAreaMM2:0, snCurveExponentB:0, snCurveRefCyclesN0:0 }
+        pistonPin: { material:"", yieldStrengthMPa:0, crossSectionAreaMM2:0, snCurveExponentB:0, snCurveRefCyclesN0:0 },
+        cylinderHead: { material:"", yieldStrengthMPa:0, crossSectionAreaMM2:0, snCurveExponentB:0, snCurveRefCyclesN0:0 },
+        block: { material:"", yieldStrengthMPa:0, crossSectionAreaMM2:0, snCurveExponentB:0, snCurveRefCyclesN0:0 }
       },
       thermal: { oilMassKG:0, oilSpecificHeatJPerKgK:0, oilRefTempC:0, oilViscosityEta0:0, oilViscosityAlpha:0, oilViscosityMinSafe:0, frictionCoeff:0, combustionHeatFraction:0, coolingCoeff:0, ambientLossCoeff:0, thermalDerationBaselineC:0, thermalDerationRate:0 },
       dynamics: { rotatingInertiaKgM2:0, frictionTorqueBaseNm:0, frictionTorquePerRPM:0, dynoLoadCoeffNmPerRPM2:0 },
       idleRPM: 700, redlineRPM: 6000, revLimiterRPM: 6200, intercoolerEfficiency: 0.5
-    }
-  },
-  "turbo": {
-    folder: "data/parts/turbos/",
-    data: {
+};
+
+const TURBO_TEMPLATE_DATA = {
       id:"", name:"", type:"Turbocharger",
       compressor:{ inducerMM:0, exducerMM:0, peakEfficiency:0, maxMassFlowKgMin:0 },
       turbine:{ inducerMM:0, exducerMM:0, housingAR:0 },
       limits:{ maxBoostBar:0, maxShaftSpeedRPM:0 },
       responseFactor:0, wastegateType:"external", wastegateSpringBar:0
-    }
-  },
+};
+
+const TEMPLATES = {
+  "engine": { folder: "data/engines/", data: ENGINE_TEMPLATE_DATA },
+  "turbo": { folder: "data/parts/turbos/", data: TURBO_TEMPLATE_DATA },
   "supercharger": {
     folder: "data/parts/turbos/",
     data: {
@@ -292,7 +311,7 @@ const TEMPLATES = {
     folder: "data/mods/",
     data: {
       modId:"", name:"", category:"BOTTOM_END", description:"",
-      defaultEffects:{ massDeltaKg:0, rpmMultiplier:1, strengthMultiplier:1, parasiticLossDeltaHp:0 },
+      defaultEffects:{ massDeltaKg:0, rpmMultiplier:1, strengthMultiplier:1, parasiticLossDeltaHp:0, intercoolerEfficiencyDelta:0 },
       manufacturerOverrides:{}
     }
   },
@@ -317,8 +336,13 @@ const TEMPLATES = {
     folder: "data/scenarios/",
     data: {
       version:"0.2.0",
-      metadata:{ name:"", created:"", iterations:[ { v:1, date:"", change:"" } ] },
-      config:{}
+      metadata:{ name:"", created:"", iterations:[ { v:1, date:"", change:"" } ], currentVersion:1 },
+      config:{
+        engineBase: JSON.parse(JSON.stringify(ENGINE_TEMPLATE_DATA)),
+        turbo: JSON.parse(JSON.stringify(TURBO_TEMPLATE_DATA)),
+        mods:{ active:[], variants:{} },
+        activeFuelId:"", boostTargetBar:0, discipline:"standard"
+      }
     }
   },
   "catalog-entry": {
@@ -330,6 +354,8 @@ const TEMPLATES = {
 /* ---------- State ---------- */
 let currentType = null;
 let currentData = null;
+// JSON-encoded paths of fields the user added through the form; only these get a remove button.
+const addedFieldPaths = new Set();
 
 const typeSelect = document.getElementById('type-select');
 const langSelect = document.getElementById('lang-select');
@@ -375,6 +401,7 @@ typeSelect.addEventListener('change', () => loadTemplate(typeSelect.value));
 function loadTemplate(key) {
   currentType = key;
   currentData = JSON.parse(JSON.stringify(TEMPLATES[key].data));
+  addedFieldPaths.clear();
   render();
 }
 
@@ -407,15 +434,96 @@ function buildObjectCard(obj, path, label) {
   for (const key in obj) {
     const val = obj[key];
     const fieldPath = [...path, key];
+    let child;
     if (val !== null && typeof val === 'object' && !Array.isArray(val)) {
-      card.appendChild(buildObjectCard(val, fieldPath, humanize(key)));
+      child = buildObjectCard(val, fieldPath, humanize(key));
     } else if (Array.isArray(val)) {
-      card.appendChild(buildArrayField(val, fieldPath, humanize(key)));
+      child = buildArrayField(val, fieldPath, humanize(key));
     } else {
-      card.appendChild(buildLeafField(val, fieldPath, humanize(key)));
+      child = buildLeafField(val, fieldPath, humanize(key));
     }
+    if (addedFieldPaths.has(JSON.stringify(fieldPath))) {
+      const holder = document.createElement('div');
+      holder.className = 'added-field';
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'btn danger small remove-btn remove-field-btn';
+      rm.textContent = '✕';
+      rm.title = t('removeField');
+      rm.addEventListener('click', () => {
+        delete obj[key];
+        addedFieldPaths.delete(JSON.stringify(fieldPath));
+        status.textContent = '';
+        render();
+      });
+      holder.appendChild(child);
+      holder.appendChild(rm);
+      child = holder;
+    }
+    card.appendChild(child);
   }
+  card.appendChild(buildAddFieldRow(obj, path));
   return card;
+}
+
+/* Generic "add field" row: lets the user add any new field (text/number/object/list) to ANY object in the form. */
+function buildAddFieldRow(obj, path) {
+  const row = document.createElement('div');
+  row.className = 'add-field-row';
+
+  const nameInp = document.createElement('input');
+  nameInp.type = 'text';
+  nameInp.className = 'add-field-name';
+  nameInp.placeholder = t('newFieldName');
+  nameInp.autocomplete = 'off';
+  nameInp.spellcheck = false;
+
+  const typeSel = document.createElement('select');
+  typeSel.className = 'form-input add-field-type';
+  [['text', 'typeText'], ['number', 'typeNumber'], ['object', 'typeObject'], ['array', 'typeArray']].forEach(([val, key]) => {
+    const o = document.createElement('option');
+    o.value = val;
+    o.textContent = t(key);
+    typeSel.appendChild(o);
+  });
+
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button';
+  addBtn.className = 'btn secondary small add-field-btn';
+  addBtn.textContent = t('addField');
+
+  nameInp.addEventListener('input', () => {
+    nameInp.classList.remove('input-error');
+    status.textContent = '';
+  });
+
+  const submit = () => {
+    const name = nameInp.value.trim();
+    if (name === '' || name === '__proto__') {
+      nameInp.classList.add('input-error');
+      status.textContent = t('invalidFieldName');
+      return;
+    }
+    if (Object.prototype.hasOwnProperty.call(obj, name)) {
+      nameInp.classList.add('input-error');
+      status.textContent = t('duplicateFieldName');
+      return;
+    }
+    const defaults = { text: '', number: 0, object: {}, array: [] };
+    obj[name] = defaults[typeSel.value];
+    addedFieldPaths.add(JSON.stringify([...path, name]));
+    status.textContent = '';
+    render();
+  };
+  addBtn.addEventListener('click', submit);
+  nameInp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); submit(); }
+  });
+
+  row.appendChild(nameInp);
+  row.appendChild(typeSel);
+  row.appendChild(addBtn);
+  return row;
 }
 
 function humanize(key) {
@@ -491,6 +599,7 @@ function buildArrayField(arr, path, label) {
     rmBtn.textContent = '✕';
     rmBtn.addEventListener('click', () => {
       arr.splice(idx, 1);
+      addedFieldPaths.clear(); // indices shifted, stored paths are no longer reliable
       render();
     });
     itemWrap.appendChild(rmBtn);
@@ -600,6 +709,7 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
     try {
       const parsed = JSON.parse(reader.result);
       currentData = parsed;
+      addedFieldPaths.clear();
       if (!currentType) currentType = typeSelect.value;
       render();
       status.textContent = t('fileLoaded') + file.name;

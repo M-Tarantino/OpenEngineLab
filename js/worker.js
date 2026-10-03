@@ -5,7 +5,7 @@ let simState = null;
 let ecmState = null;
 let running = false;
 let lastTickMs = null;
-let ignitionOn = true;
+let ignitionOn = false;
 
 let controls = {
   throttle01: 0.15, ambientC: 20, baroBar: 1.0, boostTargetBar: 0,

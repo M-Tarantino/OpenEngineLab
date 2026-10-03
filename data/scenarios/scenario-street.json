@@ -68,6 +68,20 @@
           "crossSectionAreaMM2": 300,
           "snCurveExponentB": 6.2,
           "snCurveRefCyclesN0": 1200000.0
+        },
+        "cylinderHead": {
+          "material": "Cast Iron (Head)",
+          "yieldStrengthMPa": 340,
+          "crossSectionAreaMM2": 850,
+          "snCurveExponentB": 6.3,
+          "snCurveRefCyclesN0": 1500000.0
+        },
+        "block": {
+          "material": "Cast Iron (Block)",
+          "yieldStrengthMPa": 360,
+          "crossSectionAreaMM2": 2400,
+          "snCurveExponentB": 6.6,
+          "snCurveRefCyclesN0": 1800000.0
         }
       },
       "thermal": {

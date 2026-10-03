@@ -67,6 +67,20 @@
           "crossSectionAreaMM2": 330,
           "snCurveExponentB": 6.8,
           "snCurveRefCyclesN0": 1500000.0
+        },
+        "cylinderHead": {
+          "material": "Cast Aluminum Alloy (Head)",
+          "yieldStrengthMPa": 260,
+          "crossSectionAreaMM2": 800,
+          "snCurveExponentB": 6.0,
+          "snCurveRefCyclesN0": 1200000.0
+        },
+        "block": {
+          "material": "Die-Cast Aluminum w/ Iron Liners (Block)",
+          "yieldStrengthMPa": 280,
+          "crossSectionAreaMM2": 2200,
+          "snCurveExponentB": 6.5,
+          "snCurveRefCyclesN0": 1500000.0
         }
       },
       "thermal": {

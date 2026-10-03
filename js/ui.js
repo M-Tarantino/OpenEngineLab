@@ -586,26 +586,32 @@
 
   // ---------------------------------------------------------------- Charts
   function initCharts(app) {
-    if (app.chartA && app.chartA.destroy) app.chartA.destroy();
-    if (app.chartB && app.chartB.destroy) app.chartB.destroy();
-    const axisOpts = { stroke: "#7C8894", grid: { stroke: "rgba(122,136,148,0.15)" } };
-    app.chartA = new uPlot({
-      width: qs("#chart-a").clientWidth || 300, height: 150,
-      scales: { rpm: {}, boost: {} },
-      series: [{}, { label: T("rpmUnit"), stroke: "#3DDC97", width: 1.5, scale: "rpm" },
-        { label: "Boost (bar)", stroke: "#4A9EFF", width: 1.5, scale: "boost" }],
-      axes: [Object.assign({}, axisOpts), Object.assign({ scale: "rpm" }, axisOpts), Object.assign({ scale: "boost", side: 1 }, axisOpts)]
-    }, [[0], [0], [0]], qs("#chart-a"));
+    try {
+      if (app.chartA && app.chartA.destroy) app.chartA.destroy();
+      if (app.chartB && app.chartB.destroy) app.chartB.destroy();
+      const axisOpts = { stroke: "#7C8894", grid: { stroke: "rgba(122,136,148,0.15)" } };
+      app.chartA = new uPlot({
+        width: qs("#chart-a").clientWidth || 300, height: 150,
+        scales: { rpm: {}, boost: {} },
+        series: [{}, { label: T("rpmUnit"), stroke: "#3DDC97", width: 1.5, scale: "rpm" },
+          { label: "Boost (bar)", stroke: "#4A9EFF", width: 1.5, scale: "boost" }],
+        axes: [Object.assign({}, axisOpts), Object.assign({ scale: "rpm" }, axisOpts), Object.assign({ scale: "boost", side: 1 }, axisOpts)]
+      }, [[0], [0], [0]], qs("#chart-a"));
 
-    app.chartB = new uPlot({
-      width: qs("#chart-b").clientWidth || 300, height: 150,
-      scales: { temp: {}, press: {} },
-      series: [{}, { label: `${T("oilTempLabel")} (°C)`, stroke: "#FFB627", width: 1.5, scale: "temp" },
-        { label: `${T("cylPressureLabel")} (bar)`, stroke: "#FF6B1A", width: 1.5, scale: "press" }],
-      axes: [Object.assign({}, axisOpts), Object.assign({ scale: "temp" }, axisOpts), Object.assign({ scale: "press", side: 1 }, axisOpts)]
-    }, [[0], [0], [0]], qs("#chart-b"));
+      app.chartB = new uPlot({
+        width: qs("#chart-b").clientWidth || 300, height: 150,
+        scales: { temp: {}, press: {} },
+        series: [{}, { label: `${T("oilTempLabel")} (°C)`, stroke: "#FFB627", width: 1.5, scale: "temp" },
+          { label: `${T("cylPressureLabel")} (bar)`, stroke: "#FF6B1A", width: 1.5, scale: "press" }],
+        axes: [Object.assign({}, axisOpts), Object.assign({ scale: "temp" }, axisOpts), Object.assign({ scale: "press", side: 1 }, axisOpts)]
+      }, [[0], [0], [0]], qs("#chart-b"));
+    } catch (err) {
+      console.error("initCharts failed, recovered (live charts will stay blank, rest of the app is unaffected):", err);
+      app.chartA = null; app.chartB = null;
+    }
   }
   function updateCharts(app) {
+    if (!app.chartA || !app.chartB) return;
     const h = app.history;
     if (h.t.length < 2) return;
     app.chartA.setData([h.t, h.rpm, h.boost]);
@@ -715,7 +721,12 @@
 
   // ---------------------------------------------------------------- Worker
   function createWorker(app) {
-    app.worker = new Worker("js/worker.js");
+    try {
+      app.worker = new Worker("js/worker.js");
+    } catch (err) {
+      showWorkerErrorBanner(app, err);
+      throw err;
+    }
     app.worker.onmessage = (e) => {
       if (e.data.type === "tick") {
         app.lastResult = e.data.result;
@@ -723,6 +734,24 @@
         pushHistory(app, e.data.result);
       }
     };
+    app.worker.onerror = (err) => {
+      console.error("Simulation worker error:", err.message, err);
+      showWorkerErrorBanner(app, err);
+    };
+  }
+
+  function showWorkerErrorBanner(app, err) {
+    if (qs("#worker-error-banner")) return;
+    const banner = document.createElement("div");
+    banner.id = "worker-error-banner";
+    banner.className = "worker-error-banner";
+    const isFileProtocol = location.protocol === "file:";
+    banner.innerHTML = `<strong>⚠ Simulation could not start.</strong><br>` +
+      (isFileProtocol
+        ? `You appear to have opened this page directly as a file. Web Workers require a real web server. ` +
+          `Run <code>python3 -m http.server</code> (or any static server) in this folder and open it via <code>http://localhost:&lt;port&gt;/index.html</code> instead.`
+        : `Details: ${err && err.message ? err.message : "unknown error"}. Check the browser console for more information.`);
+    document.body.appendChild(banner);
   }
 
   function sendControls(app) {
@@ -1196,6 +1225,10 @@
   }
 
   // ---------------------------------------------------------------- Render loop
+  function safeCall(fn, ...args) {
+    try { fn(...args); } catch (err) { console.error(`renderLoop step failed (${fn.name || "anonymous"}), recovered:`, err); }
+  }
+
   function renderLoop(app, nowMs) {
     if (app.lastFrameMs == null) app.lastFrameMs = nowMs;
     let dt = (nowMs - app.lastFrameMs) / 1000;
@@ -1218,20 +1251,20 @@
         app.render.thetaRad = (app.render.thetaRad + (result.rpm * 2 * Math.PI / 60) * dt) % (2 * Math.PI);
         const view = app.schematicView || "side";
         if (view === "side") {
-          OEL.Renderer.updateCrankAngle(app.render.handle, app.render.thetaRad);
-          OEL.Renderer.applyStressState(app.render.handle, result.components, {
+          safeCall(OEL.Renderer.updateCrankAngle, app.render.handle, app.render.thetaRad);
+          safeCall(OEL.Renderer.applyStressState, app.render.handle, result.components, {
             rod: componentLabel("rod"), headBolt: componentLabel("headBolt"), pistonPin: componentLabel("pistonPin"),
             cylinderHead: componentLabel("cylinderHead"), block: componentLabel("block")
           });
         } else {
-          OEL.Renderer.applyOverallStress(app.render.handle, result.weakestLink);
+          safeCall(OEL.Renderer.applyOverallStress, app.render.handle, result.weakestLink);
         }
-        updateCharts(app);
-        updateLiveReadout(app, result);
-        updateStats(app);
-        updateStatusBar(app, result);
-        updateKennfield(app);
-        updateDisciplinePanelsLive(app, result);
+        safeCall(updateCharts, app);
+        safeCall(updateLiveReadout, app, result);
+        safeCall(updateStats, app);
+        safeCall(updateStatusBar, app, result);
+        safeCall(updateKennfield, app);
+        safeCall(updateDisciplinePanelsLive, app, result);
       }
     } catch (err) {
       // A single bad frame must never permanently freeze the whole simulation —
@@ -1243,6 +1276,15 @@
 
   // ---------------------------------------------------------------- Init
   async function init() {
+    try {
+      await initApp();
+    } catch (err) {
+      console.error("App initialization failed:", err);
+      showWorkerErrorBanner(null, err);
+    }
+  }
+
+  async function initApp() {
     const [engineCatalog, chargerCatalog, modsCatalog, fuelDb] = await Promise.all([
       fetchJson("data/catalog/engines.json"),
       fetchJson("data/catalog/chargers.json"),
@@ -1277,7 +1319,7 @@
       render: { handle: null, thetaRad: 0 },
       track: { profile: null, player: null }, trackPanelEl: null,
       undo: { stack: [], redoStack: [] },
-      view: "schematic", schematicView: "side", running: true, ignitionOn: true, lastFrameMs: null,
+      view: "schematic", schematicView: "side", running: true, ignitionOn: false, lastFrameMs: null,
       lastResult: null, lastEcmOut: null
     };
     window.OEL_APP = app;
