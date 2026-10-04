@@ -46,18 +46,15 @@
     return { color: rgb(COLOR_CRITICAL), pulseHz: 0.6 + overshoot * 3.4, level: "critical" };
   }
 
-  /** Zuweisung visueller Stress-Zustände unter Einhaltung der SVG-Fill-Regeln */
   function _styleNode(node, visual) {
     if (!node) return;
     
-    // Bohrungen und Outlines dürfen niemals flächig gefüllt werden (Solid Fill Bug Fix)
     if (node.classList.contains("top-bore") || 
         node.classList.contains("front-bore") || 
         node.classList.contains("cylinder-outline")) {
       node.style.stroke = visual.color;
       node.style.fill = "transparent";
     } else {
-      // Kolben, Blöcke und Pins erhalten Fill
       node.style.fill = visual.color;
       node.style.stroke = visual.color;
     }
@@ -71,7 +68,6 @@
     }
   }
 
-  /** Slider-crank kinematics: piston travel from TDC at crank angle theta (rad). */
   function pistonTravelMM(theta, crankRadiusMM, rodLengthMM) {
     const top = crankRadiusMM + rodLengthMM;
     const pos = crankRadiusMM * Math.cos(theta) +
@@ -247,8 +243,8 @@
     container.appendChild(svg);
 
     const crankX = width / 2;
-    const crankY = height - 60;
-    const boreLenPx = 170;
+    const crankY = height - 70;
+    const boreLenPx = 150;
     const boreR = 36;
     const pistonR = 14;
     const groups = { overall: [], rod: [], pistonPin: [], headBolt: [] };
@@ -262,7 +258,7 @@
       const baseX = crankX + dirX * boreLenPx;
       const baseY = crankY + dirY * boreLenPx;
 
-      const crankRod = el("line", { x1: crankX, y1: crankY, x2: baseX, y2: baseY, class: "front-bank-line" });
+      const crankRod = el("line", { x1: crankX, y1: crankY, x2: baseX, y2: baseY, class: "front-bank-line", stroke: "#444", "stroke-dasharray": "3 3" });
       svg.appendChild(crankRod);
 
       const bore = el("circle", { cx: baseX, cy: baseY, r: boreR, class: "front-bore" });
@@ -280,6 +276,18 @@
         if (cylBank !== bank) continue;
 
         const phaseRad = (i * (360 / cylCount)) * Math.PI / 180;
+
+        // Kurbelarm und rotierendes Pleuel
+        const crankArm = el("line", { x1: crankX, y1: crankY, x2: crankX, y2: crankY, class: "front-crank-arm", stroke: "#aaa", "stroke-width": 4 });
+        svg.appendChild(crankArm);
+
+        const rod = el("line", { x1: crankX, y1: crankY, x2: baseX, y2: baseY, class: "conrod-front", stroke: "#888", "stroke-width": 5 });
+        svg.appendChild(rod);
+        groups.rod.push(rod);
+
+        const crankPin = el("circle", { cx: crankX, cy: crankY, r: 5, class: "crank-pin", fill: "#ffb703" });
+        svg.appendChild(crankPin);
+
         const pistonGroup = el("g", { transform: `translate(${baseX},${baseY})` });
         svg.appendChild(pistonGroup);
 
@@ -294,6 +302,7 @@
         cylinders.push({
           index: i,
           bank,
+          bankAngleRad: angle,
           baseX,
           baseY,
           dirX,
@@ -302,6 +311,9 @@
           pistonGroup,
           piston,
           pin,
+          rod,
+          crankArm,
+          crankPin,
           crankX,
           crankY,
           boreLenPx
@@ -309,7 +321,7 @@
       }
     }
 
-    const crank = el("circle", { cx: crankX, cy: crankY, r: 20, class: "journal" });
+    const crank = el("circle", { cx: crankX, cy: crankY, r: 16, class: "journal", fill: "#555" });
     svg.appendChild(crank);
 
     return {
@@ -333,10 +345,10 @@
     const boreR = 30;
     const pistonR = 14;
     const base = 80;
-    const bankGap = isSingleBank ? 0 : 120; // Verbreiterter Abstand gegen Overlapping
+    const bankGap = isSingleBank ? 0 : 120;
 
     const width = Math.max(400, base * 2 + (perBank - 1) * spacing);
-    const height = isSingleBank ? 200 : 300;
+    const height = isSingleBank ? 220 : 320;
     const svg = el("svg", {
       viewBox: `0 0 ${width} ${height}`,
       class: "engine-svg",
@@ -362,9 +374,8 @@
       const posIdx = isSingleBank ? i : Math.floor(i / 2);
       
       const baseCx = base + posIdx * spacing;
-      const baseCy = isSingleBank ? centerY : centerY + bank * (bankGap / 2);
+      const baseCy = isSingleBank ? centerY - 40 : centerY + bank * (bankGap / 2);
 
-      // Zylinderbohrung
       const bore = el("circle", { cx: baseCx, cy: baseCy, r: boreR, class: "top-bore" });
       const tip = el("title", {});
       tip.textContent = `${labels.cylinder || "Cylinder"} ${i + 1}`;
@@ -372,18 +383,18 @@
       svg.appendChild(bore);
       groups.overall.push(bore);
 
-      // Zündkerze logisch vom Zentrum weg spiegeln
       const plugDir = bank === -1 ? -1 : 1; 
       const plugY = isSingleBank ? baseCy - boreR - 5 : baseCy + plugDir * (boreR + 5);
       const plug = el("circle", { cx: baseCx, cy: plugY, r: 5, class: "top-plug", fill: "#ccc" });
       svg.appendChild(plug);
 
-      // Pleuel Kurbelzapfen am jeweiligen Zylinder-CenterX
       const crankJournal = el("circle", { cx: baseCx, cy: centerY, r: 6, class: "journal" });
       svg.appendChild(crankJournal);
 
-      // Pleuelstange (Startet korrekt an der X-Achse des Zylinders statt isoliert am Rand)
-      const rod = el("line", { x1: baseCx, y1: centerY, x2: baseCx, y2: baseCy, class: "conrod-top", stroke: "#888", "stroke-width": 6 });
+      const crankPin = el("circle", { cx: baseCx, cy: centerY, r: 4, class: "top-crank-pin", fill: "#ffb703" });
+      svg.appendChild(crankPin);
+
+      const rod = el("line", { x1: baseCx, y1: centerY, x2: baseCx, y2: baseCy, class: "conrod-top", stroke: "#888", "stroke-width": 5 });
       svg.appendChild(rod);
       groups.rod.push(rod);
 
@@ -399,7 +410,6 @@
       pistonGroup.appendChild(pin);
       groups.pistonPin.push(pin);
 
-      // Label ebenfalls gespiegelt platzieren (Kollisionsfrei)
       const labelY = isSingleBank ? baseCy + boreR + 25 : baseCy + plugDir * (boreR + 25);
       const label = el("text", { x: baseCx, y: labelY, class: "top-cyl-label", "text-anchor": "middle", fill: "#fff", "font-family": "monospace", "font-size": "14px" });
       label.textContent = String(i + 1);
@@ -416,7 +426,8 @@
         pistonGroup,
         piston,
         pin,
-        rod
+        rod,
+        crankPin
       });
     }
 
@@ -433,11 +444,14 @@
   function updateCrankAngle(handle, thetaRad) {
     if (!handle || !handle.cylinders) return;
 
+    const crankR = handle.crankRadiusMM || 1;
+    const rodL = handle.rodLengthMM || 1;
+
     if (handle.mode === "side" || !handle.mode) {
-      const pxPerMM = handle.cylinders[0] ? (handle.cylinders[0].cylLen / (handle.rodLengthMM + handle.crankRadiusMM)) : 1;
+      const pxPerMM = handle.cylinders[0] ? (handle.cylinders[0].cylLen / (rodL + crankR)) : 1;
       for (const c of handle.cylinders) {
         const localTheta = thetaRad + c.phaseRad;
-        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
+        const travelMM = pistonTravelMM(localTheta, crankR, rodL);
         const travelPx = travelMM * pxPerMM;
         
         const headX = c.cx + c.dirX * c.cylLen;
@@ -450,45 +464,80 @@
         c.rod.setAttribute("y2", py);
       }
     } else if (handle.mode === "front") {
-      const maxTravelPx = 30;
+      const totalLenMM = crankR + rodL;
+      const scalePxPerMM = 110 / totalLenMM;
+      const rCrankPx = crankR * scalePxPerMM;
+      const rRodPx = rodL * scalePxPerMM;
+
       for (const c of handle.cylinders) {
-        const localTheta = thetaRad + c.phaseRad;
-        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
-        const maxTravelMM = (handle.crankRadiusMM + handle.rodLengthMM) || 1;
-        const travelFrac = travelMM / maxTravelMM;
-        const travelPx = travelFrac * maxTravelPx;
+        const alpha = thetaRad + c.phaseRad;
+        
+        // Rotierender Kurbelzapfen in Front View
+        const cPinX = c.crankX + rCrankPx * Math.sin(alpha);
+        const cPinY = c.crankY - rCrankPx * Math.cos(alpha);
 
-        const dx = c.baseX - c.crankX;
-        const dy = c.baseY - c.crankY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const dirX = dist > 0 ? dx / dist : 0;
-        const dirY = dist > 0 ? dy / dist : 0;
+        const alphaLocal = alpha - c.bankAngleRad;
 
-        const px = c.baseX - dirX * travelPx;
-        const py = c.baseY - dirY * travelPx;
+        // Kinematische Hubberechnung entlang der Zylinderachse
+        const distPx = rCrankPx * Math.cos(alphaLocal) +
+          Math.sqrt(Math.max(0, rRodPx * rRodPx - Math.pow(rCrankPx * Math.sin(alphaLocal), 2)));
 
-        c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
+        const pistonX = c.crankX + c.dirX * distPx;
+        const pistonY = c.crankY + c.dirY * distPx;
+
+        c.pistonGroup.setAttribute("transform", `translate(${pistonX},${pistonY})`);
+
+        if (c.crankArm) {
+          c.crankArm.setAttribute("x1", c.crankX);
+          c.crankArm.setAttribute("y1", c.crankY);
+          c.crankArm.setAttribute("x2", cPinX);
+          c.crankArm.setAttribute("y2", cPinY);
+        }
+
+        if (c.crankPin) {
+          c.crankPin.setAttribute("cx", cPinX);
+          c.crankPin.setAttribute("cy", cPinY);
+        }
+
+        if (c.rod) {
+          c.rod.setAttribute("x1", cPinX);
+          c.rod.setAttribute("y1", cPinY);
+          c.rod.setAttribute("x2", pistonX);
+          c.rod.setAttribute("y2", pistonY);
+        }
       }
     } else if (handle.mode === "top") {
-      const maxTravelPx = 22;
+      const scalePx = 18;
+      const rCrankPx = 14;
+
       for (const c of handle.cylinders) {
-        const localTheta = thetaRad + c.phaseRad;
-        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
-        const maxTravelMM = (handle.crankRadiusMM + handle.rodLengthMM) || 1;
-        
-        // travelFrac läuft von 0 (TDC) bis 1 (BDC)
-        const travelFrac = travelMM / maxTravelMM; 
-        const travelPx = travelFrac * maxTravelPx;
+        const alpha = thetaRad + c.phaseRad;
 
-        // Kinematische Vektorberechnung (Y-Achsen linear)
-        const dirY = c.bank === 0 ? -1 : c.bank;
-        const py = c.baseCy + dirY * ((maxTravelPx / 2) - travelPx);
+        // Kurbelzapfen oszilliert quer zur Kurbelwelle
+        const cPinY = c.crankY + rCrankPx * Math.sin(alpha);
 
-        c.pistonGroup.setAttribute("transform", `translate(${c.baseCx},${py})`);
-        c.rod.setAttribute("x1", c.crankX);
-        c.rod.setAttribute("y1", c.crankY);
-        c.rod.setAttribute("x2", c.baseCx);
-        c.rod.setAttribute("y2", py);
+        const bankDir = c.bank === 1 ? 1 : -1;
+
+        const travelMM = pistonTravelMM(alpha, crankR, rodL);
+        const maxTravelMM = 2 * crankR;
+        const travelFrac = travelMM / maxTravelMM;
+
+        const maxDistPx = scalePx * 2;
+        const pistonY = c.baseCy - bankDir * ((maxDistPx / 2) - travelFrac * maxDistPx);
+
+        c.pistonGroup.setAttribute("transform", `translate(${c.baseCx},${pistonY})`);
+
+        if (c.crankPin) {
+          c.crankPin.setAttribute("cx", c.baseCx);
+          c.crankPin.setAttribute("cy", cPinY);
+        }
+
+        if (c.rod) {
+          c.rod.setAttribute("x1", c.baseCx);
+          c.rod.setAttribute("y1", cPinY);
+          c.rod.setAttribute("x2", c.baseCx);
+          c.rod.setAttribute("y2", pistonY);
+        }
       }
     }
   }
