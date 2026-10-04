@@ -1,4 +1,3 @@
-
 /* OpenEngineLab :: js/renderer.js — procedural SVG engine + stress heatmap */
 (function (root) {
   "use strict";
@@ -190,13 +189,18 @@
         const travelFrac = travelMM / maxTravelMM;
         const travelPx = travelFrac * maxTravelPx;
         
-        // Direction: from crank towards bore
-        const dirX = (c.baseX - c.crankX) / c.boreLenPx;
-        const dirY = (c.baseY - c.crankY) / c.boreLenPx;
-        const px = c.crankX + dirX * (c.boreLenPx - travelPx);
-        const py = c.crankY + dirY * (c.boreLenPx - travelPx);
+        // Direction: from crank towards bore (normalized)
+        const dx = c.baseX - c.crankX;
+        const dy = c.baseY - c.crankY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dirX = dist > 0 ? dx / dist : 0;
+        const dirY = dist > 0 ? dy / dist : 0;
         
-        c.pistonGroup.setAttribute("transform", `translate(${px - c.baseX},${py - c.baseY})`);
+        // Piston position: start from bore, move towards crank by travel distance
+        const px = c.baseX - dirX * travelPx;
+        const py = c.baseY - dirY * travelPx;
+        
+        c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
       }
     }
     
@@ -210,18 +214,20 @@
         const travelFrac = travelMM / maxTravelMM;
         const travelPx = travelFrac * maxTravelPx;
         
-        // Direction: from crank towards bore
+        // Direction: from crank towards bore (normalized)
         const dx = c.baseCx - c.crankX;
         const dy = c.baseCy - c.crankY;
         const dist = Math.sqrt(dx * dx + dy * dy);
         const dirX = dist > 0 ? dx / dist : 0;
         const dirY = dist > 0 ? dy / dist : 0;
-        const px = c.crankX + dirX * (dist - travelPx);
-        const py = c.crankY + dirY * (dist - travelPx);
         
-        c.pistonGroup.setAttribute("transform", `translate(${px - c.baseCx},${py - c.baseCy})`);
+        // Piston position: start from bore, move towards crank by travel distance
+        const px = c.baseCx - dirX * travelPx;
+        const py = c.baseCy - dirY * travelPx;
         
-        // Rod line follows piston
+        c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
+        
+        // Rod line: from crank to piston
         c.rod.setAttribute("x2", px);
         c.rod.setAttribute("y2", py);
       }
