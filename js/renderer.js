@@ -1,3 +1,4 @@
+
 /* OpenEngineLab :: js/renderer.js — procedural SVG engine + stress heatmap */
 (function (root) {
   "use strict";
@@ -160,18 +161,70 @@
   }
 
   function updateCrankAngle(handle, thetaRad) {
-    const pxPerMM = handle.cylinders[0] ? (handle.cylinders[0].cylLen / (handle.rodLengthMM + handle.crankRadiusMM)) : 1;
-    for (const c of handle.cylinders) {
-      const localTheta = thetaRad + c.phaseRad;
-      const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
-      const travelPx = travelMM * pxPerMM;
-      const headX = c.cx + c.dirX * c.cylLen;
-      const headY = c.crankY + c.dirY * c.cylLen;
-      const px = headX - c.dirX * travelPx;
-      const py = headY - c.dirY * travelPx;
-      c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
-      c.rod.setAttribute("x2", px);
-      c.rod.setAttribute("y2", py);
+    if (!handle || !handle.cylinders) return;
+    
+    // Side View: Pistons move along cylinder axes (diagonal)
+    if (handle.mode === "side" || !handle.mode) {
+      const pxPerMM = handle.cylinders[0] ? (handle.cylinders[0].cylLen / (handle.rodLengthMM + handle.crankRadiusMM)) : 1;
+      for (const c of handle.cylinders) {
+        const localTheta = thetaRad + c.phaseRad;
+        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
+        const travelPx = travelMM * pxPerMM;
+        const headX = c.cx + c.dirX * c.cylLen;
+        const headY = c.crankY + c.dirY * c.cylLen;
+        const px = headX - c.dirX * travelPx;
+        const py = headY - c.dirY * travelPx;
+        c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
+        c.rod.setAttribute("x2", px);
+        c.rod.setAttribute("y2", py);
+      }
+    }
+    
+    // Front View: Pistons move radially from crank centerline towards bore
+    else if (handle.mode === "front") {
+      const maxTravelPx = 30; // Piston stroke in pixels
+      for (const c of handle.cylinders) {
+        const localTheta = thetaRad + c.phaseRad;
+        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
+        const maxTravelMM = handle.crankRadiusMM + handle.rodLengthMM;
+        const travelFrac = travelMM / maxTravelMM;
+        const travelPx = travelFrac * maxTravelPx;
+        
+        // Direction: from crank towards bore
+        const dirX = (c.baseX - c.crankX) / c.boreLenPx;
+        const dirY = (c.baseY - c.crankY) / c.boreLenPx;
+        const px = c.crankX + dirX * (c.boreLenPx - travelPx);
+        const py = c.crankY + dirY * (c.boreLenPx - travelPx);
+        
+        c.pistonGroup.setAttribute("transform", `translate(${px - c.baseX},${py - c.baseY})`);
+      }
+    }
+    
+    // Top View: Pistons move radially from crank towards bores
+    else if (handle.mode === "top") {
+      const maxTravelPx = 25; // Piston stroke in pixels
+      for (const c of handle.cylinders) {
+        const localTheta = thetaRad + c.phaseRad;
+        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
+        const maxTravelMM = handle.crankRadiusMM + handle.rodLengthMM;
+        const travelFrac = travelMM / maxTravelMM;
+        const travelPx = travelFrac * maxTravelPx;
+        
+        // Direction: from crank towards bore
+        const dx = c.baseCx - c.crankX;
+        const dy = c.baseCy - c.crankY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dirX = dist > 0 ? dx / dist : 0;
+        const dirY = dist > 0 ? dy / dist : 0;
+        const px = c.crankX + dirX * (dist - travelPx);
+        const py = c.crankY + dirY * (dist - travelPx);
+        
+        c.pistonGroup.setAttribute("transform", `translate(${px - c.baseCx},${py - c.baseCy})`);
+        
+        // Rod line follows piston
+        c.rod.setAttribute("x2", px);
+        c.rod.setAttribute("y2", py);
+      }
     }
   }
 
@@ -200,93 +253,169 @@
     return info;
   }
 
-  /** Front view: looking straight down the crank axis. Shows the V-angle (or a single bore for inline engines) and the crank throw. */
+  /** Front view: looking straight down the crank axis. Shows the V-angle (or a single bore for inline engines), crank throw, and animated pistons with stress. */
   function buildSchematicFront(container, profile, labels) {
     labels = labels || {};
     container.innerHTML = "";
+    const cylCount = profile.cylinders;
     const isSingleBank = profile.configuration === "I";
     const halfAngleRad = isSingleBank ? 0 : ((profile.vAngleDeg || 0) / 2) * Math.PI / 180;
-    const width = 360, height = 360;
+    const width = 380, height = 380;
     const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, class: "engine-svg", role: "img", "aria-label": labels.frontViewAlt || "Engine front view" });
     container.appendChild(svg);
 
     const crankX = width / 2, crankY = height - 60;
-    const boreLenPx = 190;
-    const boreR = 34;
-    const groups = { overall: [] };
+    const boreLenPx = 170;
+    const boreR = 36;
+    const pistonR = 14;
+    const groups = { overall: [], rod: [], pistonPin: [], headBolt: [] };
+    const cylinders = [];
 
     const banks = isSingleBank ? [0] : [-1, 1];
     for (const bank of banks) {
       const angle = bank * halfAngleRad;
       const dirX = Math.sin(angle), dirY = -Math.cos(angle);
-      const cx = crankX + dirX * boreLenPx, cy = crankY + dirY * boreLenPx;
+      const baseX = crankX + dirX * boreLenPx;
+      const baseY = crankY + dirY * boreLenPx;
 
-      const rod = el("line", { x1: crankX, y1: crankY, x2: cx, y2: cy, class: "front-bank-line" });
-      svg.appendChild(rod);
+      // Static crank rod line
+      const crankRod = el("line", { x1: crankX, y1: crankY, x2: baseX, y2: baseY, class: "front-bank-line" });
+      svg.appendChild(crankRod);
 
-      const bore = el("circle", { cx, cy, r: boreR, class: "front-bore" });
-      const tip = el("title", {}); tip.textContent = isSingleBank ? (labels.cylinder || "Cylinder") : `${labels.bank || "Bank"} ${bank < 0 ? "A" : "B"}`;
+      // Bore circle (cylinder outline)
+      const bore = el("circle", { cx: baseX, cy: baseY, r: boreR, class: "front-bore" });
+      const tip = el("title", {}); 
+      tip.textContent = isSingleBank ? (labels.cylinder || "Cylinder") : `${labels.bank || "Bank"} ${bank < 0 ? "A" : "B"}`;
       bore.appendChild(tip);
       svg.appendChild(bore);
       groups.overall.push(bore);
 
-      const innerBore = el("circle", { cx, cy, r: boreR - 10, class: "front-bore-inner" });
+      // Inner bore shade
+      const innerBore = el("circle", { cx: baseX, cy: baseY, r: boreR - 10, class: "front-bore-inner" });
       svg.appendChild(innerBore);
+
+      // Animated piston for each cylinder in this bank
+      for (let i = 0; i < cylCount; i++) {
+        const cylBank = isSingleBank ? 0 : (i % 2 === 0 ? -1 : 1);
+        if (cylBank !== bank) continue;
+
+        const phaseRad = (i * (360 / cylCount)) * Math.PI / 180;
+        const pistonGroup = el("g", {});
+        svg.appendChild(pistonGroup);
+
+        const piston = el("circle", { cx: baseX, cy: baseY, r: pistonR, class: "piston" });
+        pistonGroup.appendChild(piston);
+        groups.overall.push(piston);
+
+        const pin = el("circle", { cx: baseX, cy: baseY, r: 4, class: "piston-pin" });
+        pistonGroup.appendChild(pin);
+        groups.pistonPin.push(pin);
+
+        cylinders.push({
+          index: i, bank, baseX, baseY, dirX, dirY, phaseRad,
+          pistonGroup, piston, pin, crankX, crankY, boreLenPx
+        });
+      }
     }
 
-    const crank = el("circle", { cx: crankX, cy: crankY, r: 22, class: "journal" });
+    // Central crank journal
+    const crank = el("circle", { cx: crankX, cy: crankY, r: 20, class: "journal" });
     svg.appendChild(crank);
 
-    return { svg, groups, mode: "front" };
+    return { 
+      svg, cylinders, groups, mode: "front",
+      crankRadiusMM: profile.geometry.strokeMM / 2,
+      rodLengthMM: profile.geometry.rodLengthMM
+    };
   }
 
-  /** Top view: looking down at the deck. Shows cylinder bore layout along the crank axis, one row per bank. */
+  /** Top view: looking down at the deck. Shows cylinder bore layout along the crank axis with animated pistons and stress coloring. */
   function buildSchematicTop(container, profile, labels) {
     labels = labels || {};
     container.innerHTML = "";
     const cylCount = profile.cylinders;
     const isSingleBank = profile.configuration === "I";
     const perBank = isSingleBank ? cylCount : Math.ceil(cylCount / 2);
-    const spacing = 78, boreR = 26, base = 70;
-    const bankGap = isSingleBank ? 0 : 70;
+    const spacing = 80, boreR = 28, pistonR = 12, base = 80;
+    const bankGap = isSingleBank ? 0 : 80;
 
-    const width = Math.max(360, base * 2 + (perBank - 1) * spacing);
-    const height = isSingleBank ? 180 : 180 + bankGap;
+    const width = Math.max(380, base * 2 + (perBank - 1) * spacing);
+    const height = isSingleBank ? 200 : 200 + bankGap;
     const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, class: "engine-svg", role: "img", "aria-label": labels.topViewAlt || "Engine top view" });
     container.appendChild(svg);
 
-    const groups = { overall: [] };
+    const groups = { overall: [], rod: [], pistonPin: [], headBolt: [] };
+    const cylinders = [];
     const centerY = height / 2;
+    const crankX = base - 20, crankY = centerY;
+
+    // Draw crank journal at left edge
+    const crankJournal = el("circle", { cx: crankX, cy: crankY, r: 12, class: "journal" });
+    svg.appendChild(crankJournal);
 
     for (let i = 0; i < cylCount; i++) {
       const bank = isSingleBank ? 0 : (i % 2 === 0 ? -1 : 1);
       const posIdx = isSingleBank ? i : Math.floor(i / 2);
-      const cx = base + posIdx * spacing;
-      const cy = isSingleBank ? centerY : centerY + bank * (bankGap / 2);
+      const baseCx = base + posIdx * spacing;
+      const baseCy = isSingleBank ? centerY : centerY + bank * (bankGap / 2);
 
-      const bore = el("circle", { cx, cy, r: boreR, class: "top-bore" });
-      const tip = el("title", {}); tip.textContent = `${labels.cylinder || "Cylinder"} ${i + 1}`;
+      // Static bore outline
+      const bore = el("circle", { cx: baseCx, cy: baseCy, r: boreR, class: "top-bore" });
+      const tip = el("title", {}); 
+      tip.textContent = `${labels.cylinder || "Cylinder"} ${i + 1}`;
       bore.appendChild(tip);
       svg.appendChild(bore);
       groups.overall.push(bore);
 
-      const plug = el("circle", { cx, cy, r: 6, class: "top-plug" });
+      // Spark plug
+      const plug = el("circle", { cx: baseCx, cy: baseCy - boreR - 4, r: 5, class: "top-plug" });
       svg.appendChild(plug);
 
-      const label = el("text", { x: cx, y: cy + boreR + 16, class: "top-cyl-label", "text-anchor": "middle" });
+      // Animated piston (moves radially from crank towards bore)
+      const phaseRad = (i * (360 / cylCount)) * Math.PI / 180;
+      const pistonGroup = el("g", {});
+      svg.appendChild(pistonGroup);
+
+      const piston = el("circle", { cx: baseCx, cy: baseCy, r: pistonR, class: "piston" });
+      pistonGroup.appendChild(piston);
+      groups.overall.push(piston);
+
+      const pin = el("circle", { cx: baseCx, cy: baseCy, r: 3, class: "piston-pin" });
+      pistonGroup.appendChild(pin);
+      groups.pistonPin.push(pin);
+
+      // Rod line (from crank to piston)
+      const rod = el("line", { x1: crankX, y1: crankY, x2: baseCx, y2: baseCy, class: "conrod-top" });
+      svg.appendChild(rod);
+      groups.rod.push(rod);
+
+      // Cylinder label
+      const label = el("text", { x: baseCx, y: baseCy + boreR + 18, class: "top-cyl-label", "text-anchor": "middle" });
       label.textContent = String(i + 1);
       svg.appendChild(label);
+
+      cylinders.push({
+        index: i, bank, baseCx, baseCy, crankX, crankY, phaseRad,
+        pistonGroup, piston, pin, rod, spacing, perBank
+      });
     }
 
-    return { svg, groups, mode: "top" };
+    return { 
+      svg, cylinders, groups, mode: "top",
+      crankRadiusMM: profile.geometry.strokeMM / 2,
+      rodLengthMM: profile.geometry.rodLengthMM
+    };
   }
 
-  /** Applies the current overall weakest-link color to a Front or Top view's bore shapes. */
+  /** Applies stress coloring to all views (Side, Front, Top). Weakest Link colors boreholes/pistons. */
   function applyOverallStress(handle, weakestLink) {
     if (!handle || !handle.groups || !handle.groups.overall) return;
     const visual = sfToVisual(weakestLink.sf);
+    
+    // Color all bore/piston elements with weakest-link color
     for (const node of handle.groups.overall) {
       node.style.stroke = visual.color;
+      node.style.fill = handle.mode === "side" ? undefined : visual.color;
       if (visual.pulseHz > 0) {
         node.classList.add("pulse-critical");
         node.style.setProperty("--pulse-dur", (1 / visual.pulseHz).toFixed(2) + "s");
