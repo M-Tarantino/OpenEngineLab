@@ -1,3 +1,4 @@
+
 /* OpenEngineLab :: js/renderer.js — procedural SVG engine + stress heatmap */
 (function (root) {
   "use strict";
@@ -110,7 +111,7 @@
       }
     }
 
-    const groups = { rod: [], headBolt: [], pistonPin: [], cylinderHead: [], block: [] };
+    const groups = { rod: [], headBolt: [], pistonPin: [], cylinderHead: [], block: [], overall: [] };
 
     for (const b of bankInfo) {
       const blockPoly = el("polygon", {
@@ -191,6 +192,7 @@
       groups.rod.push(rod);
       groups.pistonPin.push(pin);
       groups.headBolt.push(boltA, boltB);
+      groups.overall.push(piston);
     }
 
     return {
@@ -201,95 +203,6 @@
       crankRadiusMM: profile.geometry.strokeMM / 2,
       rodLengthMM: profile.geometry.rodLengthMM
     };
-  }
-
-  function updateCrankAngle(handle, thetaRad) {
-    if (!handle || !handle.cylinders) return;
-
-    if (handle.mode === "side" || !handle.mode) {
-      const pxPerMM = handle.cylinders[0] ? (handle.cylinders[0].cylLen / (handle.rodLengthMM + handle.crankRadiusMM)) : 1;
-      for (const c of handle.cylinders) {
-        const localTheta = thetaRad + c.phaseRad;
-        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
-        const travelPx = travelMM * pxPerMM;
-        const headX = c.cx + c.dirX * c.cylLen;
-        const headY = c.crankY + c.dirY * c.cylLen;
-        const px = headX - c.dirX * travelPx;
-        const py = headY - c.dirY * travelPx;
-        c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
-        c.rod.setAttribute("x2", px);
-        c.rod.setAttribute("y2", py);
-      }
-    } else if (handle.mode === "front") {
-      const maxTravelPx = 30;
-      for (const c of handle.cylinders) {
-        const localTheta = thetaRad + c.phaseRad;
-        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
-        const maxTravelMM = (handle.crankRadiusMM + handle.rodLengthMM) || 1;
-        const travelFrac = travelMM / maxTravelMM;
-        const travelPx = travelFrac * maxTravelPx;
-
-        const dx = c.baseX - c.crankX;
-        const dy = c.baseY - c.crankY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const dirX = dist > 0 ? dx / dist : 0;
-        const dirY = dist > 0 ? dy / dist : 0;
-
-        const px = c.baseX - dirX * travelPx;
-        const py = c.baseY - dirY * travelPx;
-
-        c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
-      }
-    } else if (handle.mode === "top") {
-      const maxTravelPx = 25;
-      for (const c of handle.cylinders) {
-        const localTheta = thetaRad + c.phaseRad;
-        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
-        const maxTravelMM = (handle.crankRadiusMM + handle.rodLengthMM) || 1;
-        const travelFrac = travelMM / maxTravelMM;
-        const travelPx = travelFrac * maxTravelPx;
-
-        const dx = c.baseCx - c.crankX;
-        const dy = c.baseCy - c.crankY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const dirX = dist > 0 ? dx / dist : 0;
-        const dirY = dist > 0 ? dy / dist : 0;
-
-        const px = c.baseCx - dirX * travelPx;
-        const py = c.baseCy - dirY * travelPx;
-
-        c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
-        c.rod.setAttribute("x2", px);
-        c.rod.setAttribute("y2", py);
-      }
-    }
-  }
-
-  function applyStressState(handle, components, labels) {
-    labels = labels || {};
-    const info = {};
-    for (const comp of components) {
-      const visual = sfToVisual(comp.sf);
-      info[comp.id] = visual;
-      const elements = handle.groups[comp.id] || [];
-      const label = labels[comp.id] || comp.id;
-      for (const node of elements) {
-        node.style.fill = visual.color;
-        node.style.stroke = visual.color;
-        if (visual.pulseHz > 0) {
-          node.classList.add("pulse-critical");
-          node.style.setProperty("--pulse-dur", (1 / visual.pulseHz).toFixed(2) + "s");
-        } else {
-          node.classList.remove("pulse-critical");
-          node.style.removeProperty("--pulse-dur");
-        }
-        node.setAttribute(
-          "data-tooltip",
-          `${label}: σ=${comp.stress.toFixed(1)} MPa | SF=${comp.sf.toFixed(2)} | D=${(comp.damage * 100).toFixed(4)}%`
-        );
-      }
-    }
-    return info;
   }
 
   function buildSchematicFront(container, profile, labels) {
@@ -313,7 +226,7 @@
     const boreLenPx = 170;
     const boreR = 36;
     const pistonR = 14;
-    const groups = { overall: [], rod: [], pistonPin: [], headBolt: [] };
+    const groups = { overall: [], rod: [], pistonPin: [], headBolt: [], bore: [] };
     const cylinders = [];
 
     const banks = isSingleBank ? [0] : [-1, 1];
@@ -332,7 +245,7 @@
       tip.textContent = isSingleBank ? (labels.cylinder || "Cylinder") : `${labels.bank || "Bank"} ${bank < 0 ? "A" : "B"}`;
       bore.appendChild(tip);
       svg.appendChild(bore);
-      groups.overall.push(bore);
+      groups.bore.push(bore);
 
       const innerBore = el("circle", { cx: baseX, cy: baseY, r: boreR - 10, class: "front-bore-inner" });
       svg.appendChild(innerBore);
@@ -394,10 +307,10 @@
     const boreR = 28;
     const pistonR = 12;
     const base = 80;
-    const bankGap = isSingleBank ? 0 : 80;
+    const bankGap = isSingleBank ? 0 : 90;
 
     const width = Math.max(380, base * 2 + (perBank - 1) * spacing);
-    const height = isSingleBank ? 200 : 200 + bankGap;
+    const height = isSingleBank ? 220 : 220 + bankGap;
     const svg = el("svg", {
       viewBox: `0 0 ${width} ${height}`,
       class: "engine-svg",
@@ -406,13 +319,14 @@
     });
     container.appendChild(svg);
 
-    const groups = { overall: [], rod: [], pistonPin: [], headBolt: [] };
+    const groups = { overall: [], rod: [], pistonPin: [], headBolt: [], bore: [] };
     const cylinders = [];
     const centerY = height / 2;
-    const crankX = base - 20;
-    const crankY = centerY;
 
-    const crankJournal = el("circle", { cx: crankX, cy: crankY, r: 12, class: "journal" });
+    const crankLine = el("line", { x1: base - 40, y1: centerY, x2: width - base + 40, y2: centerY, class: "crank-axis" });
+    svg.appendChild(crankLine);
+
+    const crankJournal = el("circle", { cx: base - 40, cy: centerY, r: 12, class: "journal" });
     svg.appendChild(crankJournal);
 
     for (let i = 0; i < cylCount; i++) {
@@ -426,10 +340,14 @@
       tip.textContent = `${labels.cylinder || "Cylinder"} ${i + 1}`;
       bore.appendChild(tip);
       svg.appendChild(bore);
-      groups.overall.push(bore);
+      groups.bore.push(bore);
 
-      const plug = el("circle", { cx: baseCx, cy: baseCy - boreR - 4, r: 5, class: "top-plug" });
+      const plug = el("circle", { cx: baseCx, cy: baseCy, r: 4, class: "top-plug" });
       svg.appendChild(plug);
+
+      const rod = el("line", { x1: baseCx, y1: centerY, x2: baseCx, y2: baseCy, class: "conrod-top" });
+      svg.appendChild(rod);
+      groups.rod.push(rod);
 
       const phaseRad = (i * (360 / cylCount)) * Math.PI / 180;
       const pistonGroup = el("g", { transform: `translate(${baseCx},${baseCy})` });
@@ -443,11 +361,8 @@
       pistonGroup.appendChild(pin);
       groups.pistonPin.push(pin);
 
-      const rod = el("line", { x1: crankX, y1: crankY, x2: baseCx, y2: baseCy, class: "conrod-top" });
-      svg.appendChild(rod);
-      groups.rod.push(rod);
-
-      const label = el("text", { x: baseCx, y: baseCy + boreR + 18, class: "top-cyl-label", "text-anchor": "middle" });
+      const labelY = bank === -1 ? (baseCy - boreR - 12) : (baseCy + boreR + 22);
+      const label = el("text", { x: baseCx, y: labelY, class: "top-cyl-label", "text-anchor": "middle" });
       label.textContent = String(i + 1);
       svg.appendChild(label);
 
@@ -456,15 +371,13 @@
         bank,
         baseCx,
         baseCy,
-        crankX,
-        crankY,
+        crankX: baseCx,
+        crankY: centerY,
         phaseRad,
         pistonGroup,
         piston,
         pin,
-        rod,
-        spacing,
-        perBank
+        rod
       });
     }
 
@@ -478,24 +391,119 @@
     };
   }
 
+  function updateCrankAngle(handle, thetaRad) {
+    if (!handle || !handle.cylinders) return;
+
+    if (handle.mode === "side" || !handle.mode) {
+      const pxPerMM = handle.cylinders[0] ? (handle.cylinders[0].cylLen / (handle.rodLengthMM + handle.crankRadiusMM)) : 1;
+      for (const c of handle.cylinders) {
+        const localTheta = thetaRad + c.phaseRad;
+        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
+        const travelPx = travelMM * pxPerMM;
+        const headX = c.cx + c.dirX * c.cylLen;
+        const headY = c.crankY + c.dirY * c.cylLen;
+        const px = headX - c.dirX * travelPx;
+        const py = headY - c.dirY * travelPx;
+        c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
+        c.rod.setAttribute("x2", px);
+        c.rod.setAttribute("y2", py);
+      }
+    } else if (handle.mode === "front") {
+      const maxTravelPx = 30;
+      for (const c of handle.cylinders) {
+        const localTheta = thetaRad + c.phaseRad;
+        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
+        const maxTravelMM = (handle.crankRadiusMM + handle.rodLengthMM) || 1;
+        const travelFrac = travelMM / maxTravelMM;
+        const travelPx = travelFrac * maxTravelPx;
+
+        const dx = c.baseX - c.crankX;
+        const dy = c.baseY - c.crankY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dirX = dist > 0 ? dx / dist : 0;
+        const dirY = dist > 0 ? dy / dist : 0;
+
+        const px = c.baseX - dirX * travelPx;
+        const py = c.baseY - dirY * travelPx;
+
+        c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
+      }
+    } else if (handle.mode === "top") {
+      const maxTravelPx = 18;
+      for (const c of handle.cylinders) {
+        const localTheta = thetaRad + c.phaseRad;
+        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
+        const maxTravelMM = (handle.crankRadiusMM + handle.rodLengthMM) || 1;
+        const travelFrac = travelMM / maxTravelMM;
+        const travelPx = travelFrac * maxTravelPx;
+
+        const dirY = c.bank !== 0 ? c.bank : -1;
+        const px = c.baseCx;
+        const py = c.baseCy - dirY * (travelPx - maxTravelPx / 2);
+
+        c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
+        c.rod.setAttribute("x1", c.baseCx);
+        c.rod.setAttribute("y1", c.crankY);
+        c.rod.setAttribute("x2", px);
+        c.rod.setAttribute("y2", py);
+      }
+    }
+  }
+
+  function applyStressState(handle, components, labels) {
+    labels = labels || {};
+    const info = {};
+    for (const comp of components) {
+      const visual = sfToVisual(comp.sf);
+      info[comp.id] = visual;
+      const elements = handle.groups[comp.id] || [];
+      const label = labels[comp.id] || comp.id;
+      for (const node of elements) {
+        node.style.fill = visual.color;
+        node.style.stroke = visual.color;
+        if (visual.pulseHz > 0) {
+          node.classList.add("pulse-critical");
+          node.style.setProperty("--pulse-dur", (1 / visual.pulseHz).toFixed(2) + "s");
+        } else {
+          node.classList.remove("pulse-critical");
+          node.style.removeProperty("--pulse-dur");
+        }
+        node.setAttribute(
+          "data-tooltip",
+          `${label}: σ=${comp.stress.toFixed(1)} MPa | SF=${comp.sf.toFixed(2)} | D=${(comp.damage * 100).toFixed(4)}%`
+        );
+      }
+    }
+    return info;
+  }
+
   function applyOverallStress(handle, weakestLink) {
-    if (!handle || !handle.groups || !handle.groups.overall) return;
+    if (!handle || !handle.groups) return;
     const visual = sfToVisual(weakestLink.sf);
 
-    for (const node of handle.groups.overall) {
-      node.style.stroke = visual.color;
-      if (handle.mode === "side") {
-        node.style.removeProperty("fill");
-      } else {
-        node.style.fill = visual.color;
+    if (handle.groups.bore) {
+      for (const boreNode of handle.groups.bore) {
+        boreNode.style.stroke = visual.color;
+        boreNode.style.fill = "#141923";
       }
+    }
 
-      if (visual.pulseHz > 0) {
-        node.classList.add("pulse-critical");
-        node.style.setProperty("--pulse-dur", (1 / visual.pulseHz).toFixed(2) + "s");
-      } else {
-        node.classList.remove("pulse-critical");
-        node.style.removeProperty("--pulse-dur");
+    if (handle.groups.overall) {
+      for (const node of handle.groups.overall) {
+        node.style.stroke = visual.color;
+        if (handle.mode === "side") {
+          node.style.removeProperty("fill");
+        } else {
+          node.style.fill = visual.color;
+        }
+
+        if (visual.pulseHz > 0) {
+          node.classList.add("pulse-critical");
+          node.style.setProperty("--pulse-dur", (1 / visual.pulseHz).toFixed(2) + "s");
+        } else {
+          node.classList.remove("pulse-critical");
+          node.style.removeProperty("--pulse-dur");
+        }
       }
     }
   }
