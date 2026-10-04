@@ -131,7 +131,7 @@
       }
     }
 
-    const groups = { rod: [], headBolt: [], pistonPin: [], cylinderHead: [], block: [], overall: [] };
+    const groups = { block: [], cylinderHead: [], piston: [], rod: [], pistonPin: [], headBolt: [], overall: [] };
 
     for (const b of bankInfo) {
       const blockPoly = el("polygon", {
@@ -181,6 +181,7 @@
       const pistonGroup = el("g", { transform: `translate(${headX},${headY})` });
       pistonGroup.appendChild(piston);
       svg.appendChild(pistonGroup);
+      groups.piston.push(piston);
 
       const rod = el("line", { x1: cx, y1: crankY, x2: headX, y2: headY, class: "conrod" });
       svg.appendChild(rod);
@@ -247,8 +248,12 @@
     const boreLenPx = 150;
     const boreR = 36;
     const pistonR = 14;
-    const groups = { overall: [], rod: [], pistonPin: [], headBolt: [] };
+    const groups = { block: [], cylinderHead: [], piston: [], rod: [], pistonPin: [], headBolt: [], overall: [] };
     const cylinders = [];
+
+    const crankcase = el("circle", { cx: crankX, cy: crankY, r: 35, class: "engine-block" });
+    svg.appendChild(crankcase);
+    groups.block.push(crankcase);
 
     const banks = isSingleBank ? [0] : [-1, 1];
     for (const bank of banks) {
@@ -257,6 +262,22 @@
       const dirY = -Math.cos(angle);
       const baseX = crankX + dirX * boreLenPx;
       const baseY = crankY + dirY * boreLenPx;
+
+      const blockLine = el("line", {
+        x1: crankX + dirX * 35,
+        y1: crankY + dirY * 35,
+        x2: crankX + dirX * (boreLenPx - boreR),
+        y2: crankY + dirY * (boreLenPx - boreR),
+        class: "engine-block",
+        "stroke-width": 12,
+        stroke: "#333"
+      });
+      svg.appendChild(blockLine);
+      groups.block.push(blockLine);
+
+      const headCircle = el("circle", { cx: baseX + dirX * 10, cy: baseY + dirY * 10, r: boreR + 6, class: "cylinder-head" });
+      svg.appendChild(headCircle);
+      groups.cylinderHead.push(headCircle);
 
       const crankRod = el("line", { x1: crankX, y1: crankY, x2: baseX, y2: baseY, class: "front-bank-line", stroke: "#444", "stroke-dasharray": "3 3" });
       svg.appendChild(crankRod);
@@ -270,6 +291,14 @@
 
       const innerBore = el("circle", { cx: baseX, cy: baseY, r: boreR - 10, class: "front-bore-inner" });
       svg.appendChild(innerBore);
+
+      const perpX = -dirY;
+      const perpY = dirX;
+      for (const side of [-1, 1]) {
+        const bolt = el("circle", { cx: baseX + side * perpX * (boreR + 2), cy: baseY + side * perpY * (boreR + 2), r: 4, class: "head-bolt" });
+        svg.appendChild(bolt);
+        groups.headBolt.push(bolt);
+      }
 
       for (let i = 0; i < cylCount; i++) {
         const cylBank = isSingleBank ? 0 : (i % 2 === 0 ? -1 : 1);
@@ -292,6 +321,7 @@
 
         const piston = el("circle", { cx: 0, cy: 0, r: pistonR, class: "piston" });
         pistonGroup.appendChild(piston);
+        groups.piston.push(piston);
         groups.overall.push(piston);
 
         const pin = el("circle", { cx: 0, cy: 0, r: 4, class: "piston-pin" });
@@ -356,12 +386,24 @@
     });
     container.appendChild(svg);
 
-    const groups = { overall: [], rod: [], pistonPin: [], headBolt: [] };
+    const groups = { block: [], cylinderHead: [], piston: [], rod: [], pistonPin: [], headBolt: [], overall: [] };
     const cylinders = [];
     const centerY = height / 2;
 
     const crankXStart = base - 40;
     const crankXEnd = base + (perBank - 1) * spacing + 40;
+
+    const blockRect = el("rect", {
+      x: crankXStart - 10,
+      y: isSingleBank ? centerY - 80 : centerY - (bankGap / 2) - 50,
+      width: (crankXEnd - crankXStart) + 20,
+      height: isSingleBank ? 160 : bankGap + 100,
+      rx: 10,
+      class: "engine-block"
+    });
+    svg.appendChild(blockRect);
+    groups.block.push(blockRect);
+
     const crankLine = el("line", { x1: crankXStart, y1: centerY, x2: crankXEnd, y2: centerY, class: "crank-axis", stroke: "#555", "stroke-width": 4 });
     svg.appendChild(crankLine);
 
@@ -375,12 +417,31 @@
       const baseCx = base + posIdx * spacing;
       const baseCy = isSingleBank ? centerY - 40 : centerY + bank * (bankGap / 2);
 
+      const headRect = el("rect", {
+        x: baseCx - boreR - 5,
+        y: baseCy - boreR - 5,
+        width: (boreR * 2) + 10,
+        height: (boreR * 2) + 10,
+        rx: 6,
+        class: "cylinder-head"
+      });
+      svg.appendChild(headRect);
+      groups.cylinderHead.push(headRect);
+
       const bore = el("circle", { cx: baseCx, cy: baseCy, r: boreR, class: "top-bore" });
       const tip = el("title", {});
       tip.textContent = `${labels.cylinder || "Cylinder"} ${i + 1}`;
       bore.appendChild(tip);
       svg.appendChild(bore);
       groups.overall.push(bore);
+
+      for (const dx of [-boreR, boreR]) {
+        for (const dy of [-boreR, boreR]) {
+          const bolt = el("circle", { cx: baseCx + dx, cy: baseCy + dy, r: 3, class: "head-bolt" });
+          svg.appendChild(bolt);
+          groups.headBolt.push(bolt);
+        }
+      }
 
       const plugDir = bank === -1 ? -1 : 1; 
       const plugY = isSingleBank ? baseCy - boreR - 5 : baseCy + plugDir * (boreR + 5);
@@ -403,6 +464,7 @@
 
       const piston = el("circle", { cx: 0, cy: 0, r: pistonR, class: "piston" });
       pistonGroup.appendChild(piston);
+      groups.piston.push(piston);
       groups.overall.push(piston);
 
       const pin = el("circle", { cx: 0, cy: 0, r: 3, class: "piston-pin", fill: "#333" });
@@ -443,7 +505,6 @@
   function updateCrankAngle(handle, thetaRad) {
     if (!handle) return;
 
-    // Rekursive Unterstützung für Arrays von Ansichten
     if (Array.isArray(handle)) {
       for (let i = 0; i < handle.length; i++) {
         updateCrankAngle(handle[i], thetaRad);
@@ -451,10 +512,9 @@
       return;
     }
 
-    // Rekursive Unterstützung für Schlüssel-Wert-Objekte (z.B. { side, front, top })
     if (!handle.cylinders && typeof handle === "object") {
       for (const k in handle) {
-        if (Object.prototype.hasOwnProperty.call(handle, k) && handle[k] && (handle[k].cylinders || Array.isArray(handle[k]))) {
+        if (Object.prototype.hasOwnProperty.call(handle, k) && handle[k]) {
           updateCrankAngle(handle[k], thetaRad);
         }
       }
@@ -558,6 +618,26 @@
   }
 
   function applyStressState(handle, components, labels) {
+    if (!handle) return {};
+
+    if (Array.isArray(handle)) {
+      let lastInfo = {};
+      for (let i = 0; i < handle.length; i++) {
+        lastInfo = applyStressState(handle[i], components, labels);
+      }
+      return lastInfo;
+    }
+
+    if (!handle.groups && typeof handle === "object") {
+      let lastInfo = {};
+      for (const k in handle) {
+        if (Object.prototype.hasOwnProperty.call(handle, k) && handle[k]) {
+          lastInfo = applyStressState(handle[k], components, labels);
+        }
+      }
+      return lastInfo;
+    }
+
     labels = labels || {};
     const info = {};
     for (const comp of components) {
@@ -578,7 +658,25 @@
   }
 
   function applyOverallStress(handle, weakestLink) {
-    if (!handle || !handle.groups || !handle.groups.overall) return;
+    if (!handle) return;
+
+    if (Array.isArray(handle)) {
+      for (let i = 0; i < handle.length; i++) {
+        applyOverallStress(handle[i], weakestLink);
+      }
+      return;
+    }
+
+    if (!handle.groups && typeof handle === "object") {
+      for (const k in handle) {
+        if (Object.prototype.hasOwnProperty.call(handle, k) && handle[k]) {
+          applyOverallStress(handle[k], weakestLink);
+        }
+      }
+      return;
+    }
+
+    if (!handle.groups || !handle.groups.overall) return;
     const visual = sfToVisual(weakestLink.sf);
 
     for (const node of handle.groups.overall) {
