@@ -8,7 +8,6 @@
   const COLOR_CAUTION_HIGH = [255, 138, 30];
   const COLOR_CRITICAL = [255, 46, 46];
 
-  // Helper to create SVG elements with attributes
   function el(tag, attrs) {
     const e = document.createElementNS(SVGNS, tag);
     for (const k in attrs) {
@@ -19,17 +18,14 @@
     return e;
   }
 
-  // Linear interpolation
   function lerp(a, b, t) {
     return a + (b - a) * t;
   }
 
-  // Format RGB array to CSS string
   function rgb(c) {
     return `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
   }
 
-  // Interpolate between two RGB colors
   function lerpRGB(a, b, t) {
     return [
       lerp(a[0], b[0], t),
@@ -38,7 +34,6 @@
     ];
   }
 
-  // Maps safety factor (SF) to visual status and colors
   function sfToVisual(sf) {
     if (sf >= 1.43) {
       return { color: rgb(COLOR_SAFE), pulseHz: 0, level: "safe" };
@@ -51,7 +46,6 @@
     return { color: rgb(COLOR_CRITICAL), pulseHz: 0.6 + overshoot * 3.4, level: "critical" };
   }
 
-  // Applies stress visual styling to SVG nodes
   function _styleNode(node, visual) {
     if (!node) return;
     
@@ -74,7 +68,6 @@
     }
   }
 
-  // Calculates exact piston travel distance from TDC (in mm) using slider-crank kinematics
   function pistonTravelMM(theta, crankRadiusMM, rodLengthMM) {
     const top = crankRadiusMM + rodLengthMM;
     const pos = crankRadiusMM * Math.cos(theta) +
@@ -82,7 +75,6 @@
     return top - pos;
   }
 
-  // Constructs a bank polygon for engine block/head representations
   function bankPolygon(minCx, maxCx, margin, crankY, dirX, dirY, fromFrac, toFrac, cylLen) {
     const y0 = fromFrac * cylLen;
     const y1 = toFrac * cylLen;
@@ -95,7 +87,6 @@
     return [p1, p2, p3, p4].map(p => p.join(",")).join(" ");
   }
 
-  // Builds Side View SVG schematic
   function buildSchematic(container, profile, labels) {
     labels = labels || {};
     container.innerHTML = "";
@@ -230,12 +221,11 @@
       cylinders,
       groups,
       mode: "side",
-      crankRadiusMM: profile.geometry.strokeMM / 2,
-      rodLengthMM: profile.geometry.rodLengthMM
+      crankRadiusMM: (profile.geometry && profile.geometry.strokeMM) ? profile.geometry.strokeMM / 2 : 40,
+      rodLengthMM: (profile.geometry && profile.geometry.rodLengthMM) ? profile.geometry.rodLengthMM : 140
     };
   }
 
-  // Builds Front View SVG schematic
   function buildSchematicFront(container, profile, labels) {
     labels = labels || {};
     container.innerHTML = "";
@@ -287,7 +277,6 @@
 
         const phaseRad = (i * (360 / cylCount)) * Math.PI / 180;
 
-        // Rotating crank arm and connecting rod for Front View
         const crankArm = el("line", { x1: crankX, y1: crankY, x2: crankX, y2: crankY, class: "front-crank-arm", stroke: "#aaa", "stroke-width": 4 });
         svg.appendChild(crankArm);
 
@@ -339,12 +328,11 @@
       cylinders,
       groups,
       mode: "front",
-      crankRadiusMM: profile.geometry.strokeMM / 2,
-      rodLengthMM: profile.geometry.rodLengthMM
+      crankRadiusMM: (profile.geometry && profile.geometry.strokeMM) ? profile.geometry.strokeMM / 2 : 40,
+      rodLengthMM: (profile.geometry && profile.geometry.rodLengthMM) ? profile.geometry.rodLengthMM : 140
     };
   }
 
-  // Builds Top View SVG schematic
   function buildSchematicTop(container, profile, labels) {
     labels = labels || {};
     container.innerHTML = "";
@@ -447,19 +435,38 @@
       cylinders,
       groups,
       mode: "top",
-      crankRadiusMM: profile.geometry.strokeMM / 2,
-      rodLengthMM: profile.geometry.rodLengthMM
+      crankRadiusMM: (profile.geometry && profile.geometry.strokeMM) ? profile.geometry.strokeMM / 2 : 40,
+      rodLengthMM: (profile.geometry && profile.geometry.rodLengthMM) ? profile.geometry.rodLengthMM : 140
     };
   }
 
-  // Dynamically updates crank angle position and piston/conrod transforms across all views
   function updateCrankAngle(handle, thetaRad) {
-    if (!handle || !handle.cylinders) return;
+    if (!handle) return;
 
-    const crankR = handle.crankRadiusMM || 1;
-    const rodL = handle.rodLengthMM || 1;
+    // Rekursive Unterstützung für Arrays von Ansichten
+    if (Array.isArray(handle)) {
+      for (let i = 0; i < handle.length; i++) {
+        updateCrankAngle(handle[i], thetaRad);
+      }
+      return;
+    }
 
-    if (handle.mode === "side" || !handle.mode) {
+    // Rekursive Unterstützung für Schlüssel-Wert-Objekte (z.B. { side, front, top })
+    if (!handle.cylinders && typeof handle === "object") {
+      for (const k in handle) {
+        if (Object.prototype.hasOwnProperty.call(handle, k) && handle[k] && (handle[k].cylinders || Array.isArray(handle[k]))) {
+          updateCrankAngle(handle[k], thetaRad);
+        }
+      }
+      return;
+    }
+
+    if (!handle.cylinders) return;
+
+    const crankR = handle.crankRadiusMM || 40;
+    const rodL = handle.rodLengthMM || 140;
+
+    if (handle.mode === "side") {
       const pxPerMM = handle.cylinders[0] ? (handle.cylinders[0].cylLen / (rodL + crankR)) : 1;
       for (const c of handle.cylinders) {
         const localTheta = thetaRad + c.phaseRad;
@@ -484,13 +491,11 @@
       for (const c of handle.cylinders) {
         const alpha = thetaRad + c.phaseRad;
         
-        // Rotating crankpin position in Front View projection
         const cPinX = c.crankX + rCrankPx * Math.sin(alpha);
         const cPinY = c.crankY - rCrankPx * Math.cos(alpha);
 
         const alphaLocal = alpha - c.bankAngleRad;
 
-        // Kinematic stroke calculation along bank axis
         const distPx = rCrankPx * Math.cos(alphaLocal) +
           Math.sqrt(Math.max(0, rRodPx * rRodPx - Math.pow(rCrankPx * Math.sin(alphaLocal), 2)));
 
@@ -519,23 +524,21 @@
         }
       }
     } else if (handle.mode === "top") {
-      const scalePx = 18;
-      const rCrankPx = 14;
+      const rCrankPx = 16;
 
       for (const c of handle.cylinders) {
         const alpha = thetaRad + c.phaseRad;
 
-        // Crankpin oscillates transversely to crankshaft axis in Top View
         const cPinY = c.crankY + rCrankPx * Math.sin(alpha);
 
-        const bankDir = c.bank === 1 ? 1 : -1;
+        const bankDir = (c.bank === 1) ? 1 : (c.bank === -1 ? -1 : -1);
 
         const travelMM = pistonTravelMM(alpha, crankR, rodL);
         const maxTravelMM = 2 * crankR;
         const travelFrac = travelMM / maxTravelMM;
 
-        const maxDistPx = scalePx * 2;
-        const pistonY = c.baseCy - bankDir * ((maxDistPx / 2) - travelFrac * maxDistPx);
+        const strokePx = 28;
+        const pistonY = c.baseCy + bankDir * ((strokePx / 2) - travelFrac * strokePx);
 
         c.pistonGroup.setAttribute("transform", `translate(${c.baseCx},${pistonY})`);
 
@@ -554,14 +557,13 @@
     }
   }
 
-  // Applies stress styling and tooltips to individual engine components
   function applyStressState(handle, components, labels) {
     labels = labels || {};
     const info = {};
     for (const comp of components) {
       const visual = sfToVisual(comp.sf);
       info[comp.id] = visual;
-      const elements = handle.groups[comp.id] || [];
+      const elements = handle.groups ? handle.groups[comp.id] || [] : [];
       const label = labels[comp.id] || comp.id;
       
       for (const node of elements) {
@@ -575,7 +577,6 @@
     return info;
   }
 
-  // Applies overall stress highlight based on weakest link safety factor
   function applyOverallStress(handle, weakestLink) {
     if (!handle || !handle.groups || !handle.groups.overall) return;
     const visual = sfToVisual(weakestLink.sf);
@@ -585,7 +586,6 @@
     }
   }
 
-  // Renders 2D map/matrix on canvas with current operating point marker
   function drawKennfield(canvas, map, rpmAxis, loadAxis, opPoint, unitLabel) {
     if (!canvas || !map || !map.length || !rpmAxis || !rpmAxis.length || !loadAxis || !loadAxis.length) {
       return;
@@ -633,7 +633,6 @@
     }
   }
 
-  // Interpolates index position on axis
   function interpAxisPos(axis, v) {
     if (!axis || axis.length === 0) return 0.5;
     if (v <= axis[0]) return 0.5;
