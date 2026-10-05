@@ -48,7 +48,7 @@
 
   function _styleNode(node, visual) {
     if (!node) return;
-    
+
     if (node.classList.contains("top-bore") || 
         node.classList.contains("front-bore") || 
         node.classList.contains("cylinder-outline")) {
@@ -58,7 +58,7 @@
       node.style.fill = visual.color;
       node.style.stroke = visual.color;
     }
-    
+
     if (visual.pulseHz > 0) {
       node.classList.add("pulse-critical");
       node.style.setProperty("--pulse-dur", (1 / visual.pulseHz).toFixed(2) + "s");
@@ -369,7 +369,7 @@
     const cylCount = profile.cylinders;
     const isSingleBank = profile.configuration === "I";
     const perBank = isSingleBank ? cylCount : Math.ceil(cylCount / 2);
-    
+
     const spacing = 90;
     const boreR = 30;
     const pistonR = 14;
@@ -413,7 +413,7 @@
     for (let i = 0; i < cylCount; i++) {
       const bank = isSingleBank ? 0 : (i % 2 === 0 ? -1 : 1);
       const posIdx = isSingleBank ? i : Math.floor(i / 2);
-      
+
       const baseCx = base + posIdx * spacing;
       const baseCy = isSingleBank ? centerY - 40 : centerY + bank * (bankGap / 2);
 
@@ -532,12 +532,12 @@
         const localTheta = thetaRad + c.phaseRad;
         const travelMM = pistonTravelMM(localTheta, crankR, rodL);
         const travelPx = travelMM * pxPerMM;
-        
+
         const headX = c.cx + c.dirX * c.cylLen;
         const headY = c.crankY + c.dirY * c.cylLen;
         const px = headX - c.dirX * travelPx;
         const py = headY - c.dirY * travelPx;
-        
+
         c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
         c.rod.setAttribute("x2", px);
         c.rod.setAttribute("y2", py);
@@ -550,7 +550,7 @@
 
       for (const c of handle.cylinders) {
         const alpha = thetaRad + c.phaseRad;
-        
+
         const cPinX = c.crankX + rCrankPx * Math.sin(alpha);
         const cPinY = c.crankY - rCrankPx * Math.cos(alpha);
 
@@ -645,7 +645,7 @@
       info[comp.id] = visual;
       const elements = handle.groups ? handle.groups[comp.id] || [] : [];
       const label = labels[comp.id] || comp.id;
-      
+
       for (const node of elements) {
         _styleNode(node, visual);
         node.setAttribute(
