@@ -10,16 +10,34 @@
 
   function el(tag, attrs) {
     const e = document.createElementNS(SVGNS, tag);
-    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    for (const k in attrs) {
+      if (Object.prototype.hasOwnProperty.call(attrs, k)) {
+        e.setAttribute(k, attrs[k]);
+      }
+    }
     return e;
   }
 
-  function lerp(a, b, t) { return a + (b - a) * t; }
-  function rgb(c) { return `rgb(${c[0]|0},${c[1]|0},${c[2]|0})`; }
-  function lerpRGB(a, b, t) { return [lerp(a[0],b[0],t), lerp(a[1],b[1],t), lerp(a[2],b[2],t)]; }
+  function lerp(a, b, t) {
+    return a + (b - a) * t;
+  }
+
+  function rgb(c) {
+    return `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
+  }
+
+  function lerpRGB(a, b, t) {
+    return [
+      lerp(a[0], b[0], t),
+      lerp(a[1], b[1], t),
+      lerp(a[2], b[2], t)
+    ];
+  }
 
   function sfToVisual(sf) {
-    if (sf >= 1.43) return { color: rgb(COLOR_SAFE), pulseHz: 0, level: "safe" };
+    if (sf >= 1.43) {
+      return { color: rgb(COLOR_SAFE), pulseHz: 0, level: "safe" };
+    }
     if (sf >= 1.0) {
       const t = (1.43 - sf) / 0.43;
       return { color: rgb(lerpRGB(COLOR_CAUTION_LOW, COLOR_CAUTION_HIGH, t)), pulseHz: 0, level: "caution" };
@@ -28,7 +46,28 @@
     return { color: rgb(COLOR_CRITICAL), pulseHz: 0.6 + overshoot * 3.4, level: "critical" };
   }
 
-  /** Slider-crank kinematics: piston travel from TDC at crank angle theta (rad). */
+  function _styleNode(node, visual) {
+    if (!node) return;
+
+    if (node.classList.contains("top-bore") || 
+        node.classList.contains("front-bore") || 
+        node.classList.contains("cylinder-outline")) {
+      node.style.stroke = visual.color;
+      node.style.fill = "transparent";
+    } else {
+      node.style.fill = visual.color;
+      node.style.stroke = visual.color;
+    }
+
+    if (visual.pulseHz > 0) {
+      node.classList.add("pulse-critical");
+      node.style.setProperty("--pulse-dur", (1 / visual.pulseHz).toFixed(2) + "s");
+    } else {
+      node.classList.remove("pulse-critical");
+      node.style.removeProperty("--pulse-dur");
+    }
+  }
+
   function pistonTravelMM(theta, crankRadiusMM, rodLengthMM) {
     const top = crankRadiusMM + rodLengthMM;
     const pos = crankRadiusMM * Math.cos(theta) +
@@ -37,8 +76,10 @@
   }
 
   function bankPolygon(minCx, maxCx, margin, crankY, dirX, dirY, fromFrac, toFrac, cylLen) {
-    const y0 = fromFrac * cylLen, y1 = toFrac * cylLen;
-    const x1 = minCx - margin, x2 = maxCx + margin;
+    const y0 = fromFrac * cylLen;
+    const y1 = toFrac * cylLen;
+    const x1 = minCx - margin;
+    const x2 = maxCx + margin;
     const p1 = [x1 + dirX * y0, crankY + dirY * y0];
     const p2 = [x2 + dirX * y0, crankY + dirY * y0];
     const p3 = [x2 + dirX * y1, crankY + dirY * y1];
@@ -59,21 +100,25 @@
 
     const width = Math.max(420, base * 2 + (perBank - 1) * spacing);
     const height = 420;
-    const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, class: "engine-svg", role: "img", "aria-label": labels.schematicAlt || "Engine schematic" });
+    const svg = el("svg", {
+      viewBox: `0 0 ${width} ${height}`,
+      class: "engine-svg",
+      role: "img",
+      "aria-label": labels.schematicAlt || "Engine schematic"
+    });
     container.appendChild(svg);
 
     const crankY = height - 70;
     const crankAxis = el("line", { x1: 40, y1: crankY, x2: width - 40, y2: crankY, class: "crank-axis" });
     svg.appendChild(crankAxis);
 
-    // First pass: figure out each bank's cylinder-center span, so the block
-    // and cylinder head shapes can be sized to actually enclose their bank.
     const bankCount = isSingleBank ? 1 : 2;
     const bankInfo = [];
     for (let b = 0; b < bankCount; b++) {
       const bank = isSingleBank ? 0 : (b === 0 ? -1 : 1);
       const angle = bank * halfAngleRad;
-      const dirX = Math.sin(angle), dirY = -Math.cos(angle);
+      const dirX = Math.sin(angle);
+      const dirY = -Math.cos(angle);
       const cxs = [];
       for (let i = 0; i < cylCount; i++) {
         const cylBank = isSingleBank ? 0 : (i % 2 === 0 ? -1 : 1);
@@ -81,18 +126,20 @@
         const posIdx = isSingleBank ? i : Math.floor(i / 2);
         cxs.push(base + posIdx * spacing);
       }
-      bankInfo.push({ dirX, dirY, minCx: Math.min(...cxs), maxCx: Math.max(...cxs) });
+      if (cxs.length > 0) {
+        bankInfo.push({ dirX, dirY, minCx: Math.min(...cxs), maxCx: Math.max(...cxs) });
+      }
     }
 
-    const groups = { rod: [], headBolt: [], pistonPin: [], cylinderHead: [], block: [] };
+    const groups = { block: [], cylinderHead: [], piston: [], rod: [], pistonPin: [], headBolt: [], overall: [] };
 
-    // Block and cylinder head shapes, drawn first so pistons/rods layer on top.
     for (const b of bankInfo) {
       const blockPoly = el("polygon", {
         points: bankPolygon(b.minCx, b.maxCx, 40, crankY, b.dirX, b.dirY, 0.04, 0.5, cylLen),
         class: "engine-block"
       });
-      const blockTip = el("title", {}); blockTip.textContent = labels.block || "Engine Block";
+      const blockTip = el("title", {});
+      blockTip.textContent = labels.block || "Engine Block";
       blockPoly.appendChild(blockTip);
       svg.appendChild(blockPoly);
       groups.block.push(blockPoly);
@@ -101,7 +148,8 @@
         points: bankPolygon(b.minCx, b.maxCx, 34, crankY, b.dirX, b.dirY, 0.58, 0.88, cylLen),
         class: "cylinder-head"
       });
-      const headTip = el("title", {}); headTip.textContent = labels.cylinderHead || "Cylinder Head";
+      const headTip = el("title", {});
+      headTip.textContent = labels.cylinderHead || "Cylinder Head";
       headPoly.appendChild(headTip);
       svg.appendChild(headPoly);
       groups.cylinderHead.push(headPoly);
@@ -114,7 +162,8 @@
       const posIdx = isSingleBank ? i : Math.floor(i / 2);
       const cx = base + posIdx * spacing;
       const angle = bank * halfAngleRad;
-      const dirX = Math.sin(angle), dirY = -Math.cos(angle);
+      const dirX = Math.sin(angle);
+      const dirY = -Math.cos(angle);
 
       const headX = cx + dirX * cylLen;
       const headY = crankY + dirY * cylLen;
@@ -123,6 +172,7 @@
         x1: cx, y1: crankY, x2: headX, y2: headY, class: "cylinder-outline"
       });
       svg.appendChild(cylOutline);
+      groups.overall.push(cylOutline);
 
       const journal = el("circle", { cx, cy: crankY, r: 9, class: "journal" });
       svg.appendChild(journal);
@@ -138,184 +188,139 @@
       const pin = el("circle", { r: 5, class: "piston-pin" });
       pistonGroup.appendChild(pin);
 
-      const boltA = el("circle", { cx: headX - 16, cy: headY - dirY * 4, r: 4, class: "head-bolt" });
-      const boltB = el("circle", { cx: headX + 16, cy: headY - dirY * 4, r: 4, class: "head-bolt" });
-      svg.appendChild(boltA); svg.appendChild(boltB);
+      const perpX = -dirY;
+      const perpY = dirX;
+      const boltA = el("circle", { cx: headX - perpX * 16 + dirX * 4, cy: headY - perpY * 16 + dirY * 4, r: 4, class: "head-bolt" });
+      const boltB = el("circle", { cx: headX + perpX * 16 + dirX * 4, cy: headY + perpY * 16 + dirY * 4, r: 4, class: "head-bolt" });
+      svg.appendChild(boltA);
+      svg.appendChild(boltB);
 
       const tip = el("title", {});
       tip.textContent = `${labels.cylinder || "Cylinder"} ${i + 1}`;
       pistonGroup.appendChild(tip);
 
       cylinders.push({
-        index: i, cx, crankY, dirX, dirY, cylLen,
+        index: i,
+        cx,
+        crankY,
+        dirX,
+        dirY,
+        cylLen,
         phaseRad: (i * (360 / cylCount)) * Math.PI / 180,
-        pistonGroup, rod
+        pistonGroup,
+        rod
       });
       groups.rod.push(rod);
       groups.pistonPin.push(pin);
       groups.headBolt.push(boltA, boltB);
+      groups.overall.push(piston);
     }
 
-    return { svg, cylinders, groups, crankRadiusMM: profile.geometry.strokeMM / 2, rodLengthMM: profile.geometry.rodLengthMM };
+    return {
+      svg,
+      cylinders,
+      groups,
+      mode: "side",
+      crankRadiusMM: (profile.geometry && profile.geometry.strokeMM) ? profile.geometry.strokeMM / 2 : 40,
+      rodLengthMM: (profile.geometry && profile.geometry.rodLengthMM) ? profile.geometry.rodLengthMM : 140
+    };
   }
 
-  function updateCrankAngle(handle, thetaRad) {
-    if (!handle || !handle.cylinders) return;
-    
-    // Side View: Pistons move along cylinder axes (diagonal)
-    if (handle.mode === "side" || !handle.mode) {
-      const pxPerMM = handle.cylinders[0] ? (handle.cylinders[0].cylLen / (handle.rodLengthMM + handle.crankRadiusMM)) : 1;
-      for (const c of handle.cylinders) {
-        const localTheta = thetaRad + c.phaseRad;
-        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
-        const travelPx = travelMM * pxPerMM;
-        const headX = c.cx + c.dirX * c.cylLen;
-        const headY = c.crankY + c.dirY * c.cylLen;
-        const px = headX - c.dirX * travelPx;
-        const py = headY - c.dirY * travelPx;
-        c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
-        c.rod.setAttribute("x2", px);
-        c.rod.setAttribute("y2", py);
-      }
-    }
-    
-    // Front View: Pistons move radially from crank centerline towards bore
-    else if (handle.mode === "front") {
-      const maxTravelPx = 30; // Piston stroke in pixels
-      for (const c of handle.cylinders) {
-        const localTheta = thetaRad + c.phaseRad;
-        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
-        const maxTravelMM = handle.crankRadiusMM + handle.rodLengthMM;
-        const travelFrac = travelMM / maxTravelMM;
-        const travelPx = travelFrac * maxTravelPx;
-        
-        // Direction: from crank towards bore (normalized)
-        const dx = c.baseX - c.crankX;
-        const dy = c.baseY - c.crankY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const dirX = dist > 0 ? dx / dist : 0;
-        const dirY = dist > 0 ? dy / dist : 0;
-        
-        // Piston moves towards crank (negative direction) by travel distance
-        // Group is already at (baseX, baseY), so offset relative to that
-        const offsetX = -dirX * travelPx;
-        const offsetY = -dirY * travelPx;
-        
-        c.pistonGroup.setAttribute("transform", `translate(${c.baseX + offsetX},${c.baseY + offsetY})`);
-      }
-    }
-    
-    // Top View: Pistons move radially from crank towards bores
-    else if (handle.mode === "top") {
-      const maxTravelPx = 25; // Piston stroke in pixels
-      for (const c of handle.cylinders) {
-        const localTheta = thetaRad + c.phaseRad;
-        const travelMM = pistonTravelMM(localTheta, handle.crankRadiusMM, handle.rodLengthMM);
-        const maxTravelMM = handle.crankRadiusMM + handle.rodLengthMM;
-        const travelFrac = travelMM / maxTravelMM;
-        const travelPx = travelFrac * maxTravelPx;
-        
-        // Direction: from crank towards bore (normalized)
-        const dx = c.baseCx - c.crankX;
-        const dy = c.baseCy - c.crankY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const dirX = dist > 0 ? dx / dist : 0;
-        const dirY = dist > 0 ? dy / dist : 0;
-        
-        // Piston moves towards crank (negative direction) by travel distance
-        // Group is already at (baseCx, baseCy), so offset relative to that
-        const offsetX = -dirX * travelPx;
-        const offsetY = -dirY * travelPx;
-        
-        c.pistonGroup.setAttribute("transform", `translate(${c.baseCx + offsetX},${c.baseCy + offsetY})`);
-        
-        // Rod line: from crank to piston's current position
-        const px = c.baseCx + offsetX;
-        const py = c.baseCy + offsetY;
-        c.rod.setAttribute("x2", px);
-        c.rod.setAttribute("y2", py);
-      }
-    }
-  }
-
-  function applyStressState(handle, components, labels) {
-    labels = labels || {};
-    const info = {};
-    for (const comp of components) {
-      const visual = sfToVisual(comp.sf);
-      info[comp.id] = visual;
-      const elements = handle.groups[comp.id] || [];
-      const label = labels[comp.id] || comp.id;
-      for (const node of elements) {
-        node.style.fill = visual.color;
-        node.style.stroke = visual.color;
-        if (visual.pulseHz > 0) {
-          node.classList.add("pulse-critical");
-          node.style.setProperty("--pulse-dur", (1 / visual.pulseHz).toFixed(2) + "s");
-        } else {
-          node.classList.remove("pulse-critical");
-          node.style.removeProperty("--pulse-dur");
-        }
-        node.setAttribute("data-tooltip",
-          `${label}: σ=${comp.stress.toFixed(1)} MPa | SF=${comp.sf.toFixed(2)} | D=${(comp.damage * 100).toFixed(4)}%`);
-      }
-    }
-    return info;
-  }
-
-  /** Front view: looking straight down the crank axis. Shows the V-angle (or a single bore for inline engines), crank throw, and animated pistons with stress. */
   function buildSchematicFront(container, profile, labels) {
     labels = labels || {};
     container.innerHTML = "";
     const cylCount = profile.cylinders;
     const isSingleBank = profile.configuration === "I";
     const halfAngleRad = isSingleBank ? 0 : ((profile.vAngleDeg || 0) / 2) * Math.PI / 180;
-    const width = 380, height = 380;
-    const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, class: "engine-svg", role: "img", "aria-label": labels.frontViewAlt || "Engine front view" });
+    const width = 380;
+    const height = 380;
+    const svg = el("svg", {
+      viewBox: `0 0 ${width} ${height}`,
+      class: "engine-svg",
+      role: "img",
+      "aria-label": labels.frontViewAlt || "Engine front view"
+    });
     container.appendChild(svg);
 
-    const crankX = width / 2, crankY = height - 60;
-    const boreLenPx = 170;
+    const crankX = width / 2;
+    const crankY = height - 70;
+    const boreLenPx = 150;
     const boreR = 36;
     const pistonR = 14;
-    const groups = { overall: [], rod: [], pistonPin: [], headBolt: [] };
+    const groups = { block: [], cylinderHead: [], piston: [], rod: [], pistonPin: [], headBolt: [], overall: [] };
     const cylinders = [];
+
+    const crankcase = el("circle", { cx: crankX, cy: crankY, r: 35, class: "engine-block" });
+    svg.appendChild(crankcase);
+    groups.block.push(crankcase);
 
     const banks = isSingleBank ? [0] : [-1, 1];
     for (const bank of banks) {
       const angle = bank * halfAngleRad;
-      const dirX = Math.sin(angle), dirY = -Math.cos(angle);
+      const dirX = Math.sin(angle);
+      const dirY = -Math.cos(angle);
       const baseX = crankX + dirX * boreLenPx;
       const baseY = crankY + dirY * boreLenPx;
 
-      // Static crank rod line
-      const crankRod = el("line", { x1: crankX, y1: crankY, x2: baseX, y2: baseY, class: "front-bank-line" });
+      const blockLine = el("line", {
+        x1: crankX + dirX * 35,
+        y1: crankY + dirY * 35,
+        x2: crankX + dirX * (boreLenPx - boreR),
+        y2: crankY + dirY * (boreLenPx - boreR),
+        class: "engine-block",
+        "stroke-width": 12,
+        stroke: "#333"
+      });
+      svg.appendChild(blockLine);
+      groups.block.push(blockLine);
+
+      const headCircle = el("circle", { cx: baseX + dirX * 10, cy: baseY + dirY * 10, r: boreR + 6, class: "cylinder-head" });
+      svg.appendChild(headCircle);
+      groups.cylinderHead.push(headCircle);
+
+      const crankRod = el("line", { x1: crankX, y1: crankY, x2: baseX, y2: baseY, class: "front-bank-line", stroke: "#444", "stroke-dasharray": "3 3" });
       svg.appendChild(crankRod);
 
-      // Bore circle (cylinder outline)
       const bore = el("circle", { cx: baseX, cy: baseY, r: boreR, class: "front-bore" });
-      const tip = el("title", {}); 
+      const tip = el("title", {});
       tip.textContent = isSingleBank ? (labels.cylinder || "Cylinder") : `${labels.bank || "Bank"} ${bank < 0 ? "A" : "B"}`;
       bore.appendChild(tip);
       svg.appendChild(bore);
       groups.overall.push(bore);
 
-      // Inner bore shade
       const innerBore = el("circle", { cx: baseX, cy: baseY, r: boreR - 10, class: "front-bore-inner" });
       svg.appendChild(innerBore);
 
-      // Animated piston for each cylinder in this bank
+      const perpX = -dirY;
+      const perpY = dirX;
+      for (const side of [-1, 1]) {
+        const bolt = el("circle", { cx: baseX + side * perpX * (boreR + 2), cy: baseY + side * perpY * (boreR + 2), r: 4, class: "head-bolt" });
+        svg.appendChild(bolt);
+        groups.headBolt.push(bolt);
+      }
+
       for (let i = 0; i < cylCount; i++) {
         const cylBank = isSingleBank ? 0 : (i % 2 === 0 ? -1 : 1);
         if (cylBank !== bank) continue;
 
         const phaseRad = (i * (360 / cylCount)) * Math.PI / 180;
+
+        const crankArm = el("line", { x1: crankX, y1: crankY, x2: crankX, y2: crankY, class: "front-crank-arm", stroke: "#aaa", "stroke-width": 4 });
+        svg.appendChild(crankArm);
+
+        const rod = el("line", { x1: crankX, y1: crankY, x2: baseX, y2: baseY, class: "conrod-front", stroke: "#888", "stroke-width": 5 });
+        svg.appendChild(rod);
+        groups.rod.push(rod);
+
+        const crankPin = el("circle", { cx: crankX, cy: crankY, r: 5, class: "crank-pin", fill: "#ffb703" });
+        svg.appendChild(crankPin);
+
         const pistonGroup = el("g", { transform: `translate(${baseX},${baseY})` });
         svg.appendChild(pistonGroup);
 
-        // Piston positioned at (0,0) relative to group — group will be translated
         const piston = el("circle", { cx: 0, cy: 0, r: pistonR, class: "piston" });
         pistonGroup.appendChild(piston);
+        groups.piston.push(piston);
         groups.overall.push(piston);
 
         const pin = el("circle", { cx: 0, cy: 0, r: 4, class: "piston-pin" });
@@ -323,129 +328,382 @@
         groups.pistonPin.push(pin);
 
         cylinders.push({
-          index: i, bank, baseX, baseY, dirX, dirY, phaseRad,
-          pistonGroup, piston, pin, crankX, crankY, boreLenPx
+          index: i,
+          bank,
+          bankAngleRad: angle,
+          baseX,
+          baseY,
+          dirX,
+          dirY,
+          phaseRad,
+          pistonGroup,
+          piston,
+          pin,
+          rod,
+          crankArm,
+          crankPin,
+          crankX,
+          crankY,
+          boreLenPx
         });
       }
     }
 
-    // Central crank journal
-    const crank = el("circle", { cx: crankX, cy: crankY, r: 20, class: "journal" });
+    const crank = el("circle", { cx: crankX, cy: crankY, r: 16, class: "journal", fill: "#555" });
     svg.appendChild(crank);
 
-    return { 
-      svg, cylinders, groups, mode: "front",
-      crankRadiusMM: profile.geometry.strokeMM / 2,
-      rodLengthMM: profile.geometry.rodLengthMM
+    return {
+      svg,
+      cylinders,
+      groups,
+      mode: "front",
+      crankRadiusMM: (profile.geometry && profile.geometry.strokeMM) ? profile.geometry.strokeMM / 2 : 40,
+      rodLengthMM: (profile.geometry && profile.geometry.rodLengthMM) ? profile.geometry.rodLengthMM : 140
     };
   }
 
-  /** Top view: looking down at the deck. Shows cylinder bore layout along the crank axis with animated pistons and stress coloring. */
   function buildSchematicTop(container, profile, labels) {
     labels = labels || {};
     container.innerHTML = "";
     const cylCount = profile.cylinders;
     const isSingleBank = profile.configuration === "I";
     const perBank = isSingleBank ? cylCount : Math.ceil(cylCount / 2);
-    const spacing = 80, boreR = 28, pistonR = 12, base = 80;
-    const bankGap = isSingleBank ? 0 : 80;
 
-    const width = Math.max(380, base * 2 + (perBank - 1) * spacing);
-    const height = isSingleBank ? 200 : 200 + bankGap;
-    const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, class: "engine-svg", role: "img", "aria-label": labels.topViewAlt || "Engine top view" });
+    const spacing = 90;
+    const boreR = 30;
+    const pistonR = 14;
+    const base = 80;
+    const bankGap = isSingleBank ? 0 : 120;
+
+    const width = Math.max(400, base * 2 + (perBank - 1) * spacing);
+    const height = isSingleBank ? 220 : 320;
+    const svg = el("svg", {
+      viewBox: `0 0 ${width} ${height}`,
+      class: "engine-svg",
+      role: "img",
+      "aria-label": labels.topViewAlt || "Engine top view"
+    });
     container.appendChild(svg);
 
-    const groups = { overall: [], rod: [], pistonPin: [], headBolt: [] };
+    const groups = { block: [], cylinderHead: [], piston: [], rod: [], pistonPin: [], headBolt: [], overall: [] };
     const cylinders = [];
     const centerY = height / 2;
-    const crankX = base - 20, crankY = centerY;
 
-    // Draw crank journal at left edge
-    const crankJournal = el("circle", { cx: crankX, cy: crankY, r: 12, class: "journal" });
-    svg.appendChild(crankJournal);
+    const crankXStart = base - 40;
+    const crankXEnd = base + (perBank - 1) * spacing + 40;
+
+    const blockRect = el("rect", {
+      x: crankXStart - 10,
+      y: isSingleBank ? centerY - 80 : centerY - (bankGap / 2) - 50,
+      width: (crankXEnd - crankXStart) + 20,
+      height: isSingleBank ? 160 : bankGap + 100,
+      rx: 10,
+      class: "engine-block"
+    });
+    svg.appendChild(blockRect);
+    groups.block.push(blockRect);
+
+    const crankLine = el("line", { x1: crankXStart, y1: centerY, x2: crankXEnd, y2: centerY, class: "crank-axis", stroke: "#555", "stroke-width": 4 });
+    svg.appendChild(crankLine);
+
+    const crankJournalLeft = el("circle", { cx: crankXStart, cy: centerY, r: 12, class: "journal" });
+    svg.appendChild(crankJournalLeft);
 
     for (let i = 0; i < cylCount; i++) {
       const bank = isSingleBank ? 0 : (i % 2 === 0 ? -1 : 1);
       const posIdx = isSingleBank ? i : Math.floor(i / 2);
-      const baseCx = base + posIdx * spacing;
-      const baseCy = isSingleBank ? centerY : centerY + bank * (bankGap / 2);
 
-      // Static bore outline
+      const baseCx = base + posIdx * spacing;
+      const baseCy = isSingleBank ? centerY - 40 : centerY + bank * (bankGap / 2);
+
+      const headRect = el("rect", {
+        x: baseCx - boreR - 5,
+        y: baseCy - boreR - 5,
+        width: (boreR * 2) + 10,
+        height: (boreR * 2) + 10,
+        rx: 6,
+        class: "cylinder-head"
+      });
+      svg.appendChild(headRect);
+      groups.cylinderHead.push(headRect);
+
       const bore = el("circle", { cx: baseCx, cy: baseCy, r: boreR, class: "top-bore" });
-      const tip = el("title", {}); 
+      const tip = el("title", {});
       tip.textContent = `${labels.cylinder || "Cylinder"} ${i + 1}`;
       bore.appendChild(tip);
       svg.appendChild(bore);
       groups.overall.push(bore);
 
-      // Spark plug
-      const plug = el("circle", { cx: baseCx, cy: baseCy - boreR - 4, r: 5, class: "top-plug" });
+      for (const dx of [-boreR, boreR]) {
+        for (const dy of [-boreR, boreR]) {
+          const bolt = el("circle", { cx: baseCx + dx, cy: baseCy + dy, r: 3, class: "head-bolt" });
+          svg.appendChild(bolt);
+          groups.headBolt.push(bolt);
+        }
+      }
+
+      const plugDir = bank === -1 ? -1 : 1; 
+      const plugY = isSingleBank ? baseCy - boreR - 5 : baseCy + plugDir * (boreR + 5);
+      const plug = el("circle", { cx: baseCx, cy: plugY, r: 5, class: "top-plug", fill: "#ccc" });
       svg.appendChild(plug);
 
-      // Animated piston (moves radially from crank towards bore)
+      const crankJournal = el("circle", { cx: baseCx, cy: centerY, r: 6, class: "journal" });
+      svg.appendChild(crankJournal);
+
+      const crankPin = el("circle", { cx: baseCx, cy: centerY, r: 4, class: "top-crank-pin", fill: "#ffb703" });
+      svg.appendChild(crankPin);
+
+      const rod = el("line", { x1: baseCx, y1: centerY, x2: baseCx, y2: baseCy, class: "conrod-top", stroke: "#888", "stroke-width": 5 });
+      svg.appendChild(rod);
+      groups.rod.push(rod);
+
       const phaseRad = (i * (360 / cylCount)) * Math.PI / 180;
       const pistonGroup = el("g", { transform: `translate(${baseCx},${baseCy})` });
       svg.appendChild(pistonGroup);
 
-      // Piston positioned at (0,0) relative to group — group will be translated
       const piston = el("circle", { cx: 0, cy: 0, r: pistonR, class: "piston" });
       pistonGroup.appendChild(piston);
+      groups.piston.push(piston);
       groups.overall.push(piston);
 
-      const pin = el("circle", { cx: 0, cy: 0, r: 3, class: "piston-pin" });
+      const pin = el("circle", { cx: 0, cy: 0, r: 3, class: "piston-pin", fill: "#333" });
       pistonGroup.appendChild(pin);
       groups.pistonPin.push(pin);
 
-      // Rod line (from crank to piston)
-      const rod = el("line", { x1: crankX, y1: crankY, x2: baseCx, y2: baseCy, class: "conrod-top" });
-      svg.appendChild(rod);
-      groups.rod.push(rod);
-
-      // Cylinder label
-      const label = el("text", { x: baseCx, y: baseCy + boreR + 18, class: "top-cyl-label", "text-anchor": "middle" });
+      const labelY = isSingleBank ? baseCy + boreR + 25 : baseCy + plugDir * (boreR + 25);
+      const label = el("text", { x: baseCx, y: labelY, class: "top-cyl-label", "text-anchor": "middle", fill: "#fff", "font-family": "monospace", "font-size": "14px" });
       label.textContent = String(i + 1);
       svg.appendChild(label);
 
       cylinders.push({
-        index: i, bank, baseCx, baseCy, crankX, crankY, phaseRad,
-        pistonGroup, piston, pin, rod, spacing, perBank
+        index: i,
+        bank,
+        baseCx,
+        baseCy,
+        crankX: baseCx,
+        crankY: centerY,
+        phaseRad,
+        pistonGroup,
+        piston,
+        pin,
+        rod,
+        crankPin
       });
     }
 
-    return { 
-      svg, cylinders, groups, mode: "top",
-      crankRadiusMM: profile.geometry.strokeMM / 2,
-      rodLengthMM: profile.geometry.rodLengthMM
+    return {
+      svg,
+      cylinders,
+      groups,
+      mode: "top",
+      crankRadiusMM: (profile.geometry && profile.geometry.strokeMM) ? profile.geometry.strokeMM / 2 : 40,
+      rodLengthMM: (profile.geometry && profile.geometry.rodLengthMM) ? profile.geometry.rodLengthMM : 140
     };
   }
 
-  /** Applies stress coloring to all views (Side, Front, Top). Weakest Link colors boreholes/pistons. */
-  function applyOverallStress(handle, weakestLink) {
-    if (!handle || !handle.groups || !handle.groups.overall) return;
-    const visual = sfToVisual(weakestLink.sf);
-    
-    // Color all bore/piston elements with weakest-link color
-    for (const node of handle.groups.overall) {
-      node.style.stroke = visual.color;
-      node.style.fill = handle.mode === "side" ? undefined : visual.color;
-      if (visual.pulseHz > 0) {
-        node.classList.add("pulse-critical");
-        node.style.setProperty("--pulse-dur", (1 / visual.pulseHz).toFixed(2) + "s");
-      } else {
-        node.classList.remove("pulse-critical");
-        node.style.removeProperty("--pulse-dur");
+  function updateCrankAngle(handle, thetaRad) {
+    if (!handle) return;
+
+    if (Array.isArray(handle)) {
+      for (let i = 0; i < handle.length; i++) {
+        updateCrankAngle(handle[i], thetaRad);
+      }
+      return;
+    }
+
+    if (!handle.cylinders && typeof handle === "object") {
+      for (const k in handle) {
+        if (Object.prototype.hasOwnProperty.call(handle, k) && handle[k]) {
+          updateCrankAngle(handle[k], thetaRad);
+        }
+      }
+      return;
+    }
+
+    if (!handle.cylinders) return;
+
+    const crankR = handle.crankRadiusMM || 40;
+    const rodL = handle.rodLengthMM || 140;
+
+    if (handle.mode === "side") {
+      const pxPerMM = handle.cylinders[0] ? (handle.cylinders[0].cylLen / (rodL + crankR)) : 1;
+      for (const c of handle.cylinders) {
+        const localTheta = thetaRad + c.phaseRad;
+        const travelMM = pistonTravelMM(localTheta, crankR, rodL);
+        const travelPx = travelMM * pxPerMM;
+
+        const headX = c.cx + c.dirX * c.cylLen;
+        const headY = c.crankY + c.dirY * c.cylLen;
+        const px = headX - c.dirX * travelPx;
+        const py = headY - c.dirY * travelPx;
+
+        c.pistonGroup.setAttribute("transform", `translate(${px},${py})`);
+        c.rod.setAttribute("x2", px);
+        c.rod.setAttribute("y2", py);
+      }
+    } else if (handle.mode === "front") {
+      const totalLenMM = crankR + rodL;
+      const scalePxPerMM = 110 / totalLenMM;
+      const rCrankPx = crankR * scalePxPerMM;
+      const rRodPx = rodL * scalePxPerMM;
+
+      for (const c of handle.cylinders) {
+        const alpha = thetaRad + c.phaseRad;
+
+        const cPinX = c.crankX + rCrankPx * Math.sin(alpha);
+        const cPinY = c.crankY - rCrankPx * Math.cos(alpha);
+
+        const alphaLocal = alpha - c.bankAngleRad;
+
+        const distPx = rCrankPx * Math.cos(alphaLocal) +
+          Math.sqrt(Math.max(0, rRodPx * rRodPx - Math.pow(rCrankPx * Math.sin(alphaLocal), 2)));
+
+        const pistonX = c.crankX + c.dirX * distPx;
+        const pistonY = c.crankY + c.dirY * distPx;
+
+        c.pistonGroup.setAttribute("transform", `translate(${pistonX},${pistonY})`);
+
+        if (c.crankArm) {
+          c.crankArm.setAttribute("x1", c.crankX);
+          c.crankArm.setAttribute("y1", c.crankY);
+          c.crankArm.setAttribute("x2", cPinX);
+          c.crankArm.setAttribute("y2", cPinY);
+        }
+
+        if (c.crankPin) {
+          c.crankPin.setAttribute("cx", cPinX);
+          c.crankPin.setAttribute("cy", cPinY);
+        }
+
+        if (c.rod) {
+          c.rod.setAttribute("x1", cPinX);
+          c.rod.setAttribute("y1", cPinY);
+          c.rod.setAttribute("x2", pistonX);
+          c.rod.setAttribute("y2", pistonY);
+        }
+      }
+    } else if (handle.mode === "top") {
+      const rCrankPx = 16;
+
+      for (const c of handle.cylinders) {
+        const alpha = thetaRad + c.phaseRad;
+
+        const cPinY = c.crankY + rCrankPx * Math.sin(alpha);
+
+        const bankDir = (c.bank === 1) ? 1 : (c.bank === -1 ? -1 : -1);
+
+        const travelMM = pistonTravelMM(alpha, crankR, rodL);
+        const maxTravelMM = 2 * crankR;
+        const travelFrac = travelMM / maxTravelMM;
+
+        const strokePx = 28;
+        const pistonY = c.baseCy + bankDir * ((strokePx / 2) - travelFrac * strokePx);
+
+        c.pistonGroup.setAttribute("transform", `translate(${c.baseCx},${pistonY})`);
+
+        if (c.crankPin) {
+          c.crankPin.setAttribute("cx", c.baseCx);
+          c.crankPin.setAttribute("cy", cPinY);
+        }
+
+        if (c.rod) {
+          c.rod.setAttribute("x1", c.baseCx);
+          c.rod.setAttribute("y1", cPinY);
+          c.rod.setAttribute("x2", c.baseCx);
+          c.rod.setAttribute("y2", pistonY);
+        }
       }
     }
   }
 
+  function applyStressState(handle, components, labels) {
+    if (!handle) return {};
+
+    if (Array.isArray(handle)) {
+      let lastInfo = {};
+      for (let i = 0; i < handle.length; i++) {
+        lastInfo = applyStressState(handle[i], components, labels);
+      }
+      return lastInfo;
+    }
+
+    if (!handle.groups && typeof handle === "object") {
+      let lastInfo = {};
+      for (const k in handle) {
+        if (Object.prototype.hasOwnProperty.call(handle, k) && handle[k]) {
+          lastInfo = applyStressState(handle[k], components, labels);
+        }
+      }
+      return lastInfo;
+    }
+
+    labels = labels || {};
+    const info = {};
+    for (const comp of components) {
+      const visual = sfToVisual(comp.sf);
+      info[comp.id] = visual;
+      const elements = handle.groups ? handle.groups[comp.id] || [] : [];
+      const label = labels[comp.id] || comp.id;
+
+      for (const node of elements) {
+        _styleNode(node, visual);
+        node.setAttribute(
+          "data-tooltip",
+          `${label}: σ=${comp.stress.toFixed(1)} MPa | SF=${comp.sf.toFixed(2)} | D=${(comp.damage * 100).toFixed(4)}%`
+        );
+      }
+    }
+    return info;
+  }
+
+  function applyOverallStress(handle, weakestLink) {
+    if (!handle) return;
+
+    if (Array.isArray(handle)) {
+      for (let i = 0; i < handle.length; i++) {
+        applyOverallStress(handle[i], weakestLink);
+      }
+      return;
+    }
+
+    if (!handle.groups && typeof handle === "object") {
+      for (const k in handle) {
+        if (Object.prototype.hasOwnProperty.call(handle, k) && handle[k]) {
+          applyOverallStress(handle[k], weakestLink);
+        }
+      }
+      return;
+    }
+
+    if (!handle.groups || !handle.groups.overall) return;
+    const visual = sfToVisual(weakestLink.sf);
+
+    for (const node of handle.groups.overall) {
+      _styleNode(node, visual);
+    }
+  }
 
   function drawKennfield(canvas, map, rpmAxis, loadAxis, opPoint, unitLabel) {
+    if (!canvas || !map || !map.length || !rpmAxis || !rpmAxis.length || !loadAxis || !loadAxis.length) {
+      return;
+    }
     const ctx = canvas.getContext("2d");
-    const w = canvas.width, h = canvas.height;
+    const w = canvas.width;
+    const h = canvas.height;
     ctx.clearRect(0, 0, w, h);
-    let min = Infinity, max = -Infinity;
-    for (const row of map) for (const v of row) { if (v < min) min = v; if (v > max) max = v; }
-    const cellW = w / rpmAxis.length, cellH = h / loadAxis.length;
+
+    let min = Infinity;
+    let max = -Infinity;
+    for (const row of map) {
+      for (const v of row) {
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+    }
+
+    const cellW = w / rpmAxis.length;
+    const cellH = h / loadAxis.length;
+
     for (let ly = 0; ly < loadAxis.length; ly++) {
       for (let lx = 0; lx < rpmAxis.length; lx++) {
         const v = map[ly][lx];
@@ -458,6 +716,7 @@
         ctx.fillText(v.toFixed(1), lx * cellW + 3, y + 11);
       }
     }
+
     if (opPoint) {
       const rx = interpAxisPos(rpmAxis, opPoint.rpm) * cellW;
       const ry = h - interpAxisPos(loadAxis, opPoint.load) * cellH;
@@ -472,6 +731,7 @@
   }
 
   function interpAxisPos(axis, v) {
+    if (!axis || axis.length === 0) return 0.5;
     if (v <= axis[0]) return 0.5;
     if (v >= axis[axis.length - 1]) return axis.length - 0.5;
     for (let i = 0; i < axis.length - 1; i++) {
@@ -485,7 +745,13 @@
 
   root.OEL = root.OEL || {};
   root.OEL.Renderer = {
-    buildSchematic, updateCrankAngle, applyStressState, sfToVisual, drawKennfield,
-    buildSchematicFront, buildSchematicTop, applyOverallStress
+    buildSchematic,
+    updateCrankAngle,
+    applyStressState,
+    sfToVisual,
+    drawKennfield,
+    buildSchematicFront,
+    buildSchematicTop,
+    applyOverallStress
   };
 })(typeof window !== "undefined" ? window : global);
