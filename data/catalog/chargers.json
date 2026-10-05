@@ -1,8 +1,28 @@
+
 {
   "entries": [
     { "id": "none-na", "name": "None (Naturally Aspirated)", "type": "none", "file": "data/parts/turbos/none-na.json" },
     { "id": "garrett-g35-900", "name": "Garrett G35-900 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/garrett-g35.json" },
     { "id": "ls-roots-blower", "name": "LS Roots Blower 2.3L (Supercharger)", "type": "supercharger", "file": "data/parts/turbos/ls-roots-blower.json" },
-    { "id": "lysholm-sc-v3", "name": "Lysholm Screw SC V3 (Supercharger)", "type": "supercharger", "file": "data/parts/turbos/lysholm-sc-v3.json" }
+    { "id": "lysholm-sc-v3", "name": "Lysholm Screw SC V3 (Supercharger)", "type": "supercharger", "file": "data/parts/turbos/lysholm-sc-v3.json" },
+    { "id": "g35_1050", "name": "Garrett G35-1050 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g35_1050.json" },
+    { "id": "g40_1150", "name": "Garrett G40-1150 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g40_1150.json" },
+    { "id": "g42_1450", "name": "Garrett G42-1450 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g42_1450.json" },
+    { "id": "g45_1500", "name": "Garrett G45-1500 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g45_1500.json" },
+    { "id": "g_", "name": "Garrett G- (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g_.json" },
+    { "id": "g_series_ii_g25_585", "name": "Garrett G-Series II G25-585 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g_series_ii_g25_585.json" },
+    { "id": "g_series_ii_g25_700", "name": "Garrett G-Series II G25-700 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g_series_ii_g25_700.json" },
+    { "id": "g_series_ii_g30_725", "name": "Garrett G-Series II G30-725 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g_series_ii_g30_725.json" },
+    { "id": "g_series_ii_g30_825", "name": "Garrett G-Series II G30-825 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g_series_ii_g30_825.json" },
+    { "id": "g_series_ii_g35_990", "name": "Garrett G-Series II G35-990 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g_series_ii_g35_990.json" },
+    { "id": "gt2052", "name": "Garrett GT2052 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gt2052.json" },
+    { "id": "gt3071", "name": "Garrett GT3071 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gt3071.json" },
+    { "id": "gt3582", "name": "Garrett GT3582 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gt3582.json" },
+    { "id": "gtx2860", "name": "Garrett GTX2860 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gtx2860.json" },
+    { "id": "gtx3071", "name": "Garrett GTX3071 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gtx3071.json" },
+    { "id": "gtx3576", "name": "Garrett GTX3576 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gtx3576.json" },
+    { "id": "gtx3584", "name": "Garrett GTX3584 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gtx3584.json" },
+    { "id": "gtx4088", "name": "Garrett GTX4088 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gtx4088.json" },
+    { "id": "t4", "name": "Garrett T4 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/t4.json" }
   ]
 }
