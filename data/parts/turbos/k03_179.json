@@ -1,0 +1,33 @@
+{
+  "id": "k03_179",
+  "type": "turbocharger",
+  "name": "K03-179",
+  "series": "K-Series",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "207, 208, DS3 from 2009 EP6 DT/ CDT 140-156 hp 180 hp 5303 988 0426 yes 220 hp 950\u00b0C 980\u00b0C",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 1.5,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.6,
+    "volumetricEfficiency": 0.78,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 56,
+    "features": [
+      "OEM Upgrade Turbo"
+    ]
+  },
+  "description": "K03-179 - K-Series - 207, 208, DS3 from 2009 EP6 DT/ CDT 140-156 hp 180 hp 5303 988 0426 yes 220 hp 950\u00b0C 980\u00b0C"
+}

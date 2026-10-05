@@ -1,0 +1,35 @@
+{
+  "id": "7064",
+  "type": "turbocharger",
+  "name": "7064",
+  "series": "EFR",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "21 EFR 7670 43 S400SX Compressor Maps 63 BorgWarner Turbocharger - Marcus Ericsson",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 2.2,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.35,
+    "volumetricEfficiency": 0.85,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 2,
+    "features": [
+      "EFR Technology",
+      "Forged Milled Compressor Wheel",
+      "Gamma-Ti Turbine"
+    ]
+  },
+  "description": "7064 - EFR - 21 EFR 7670 43 S400SX Compressor Maps 63 BorgWarner Turbocharger - Marcus Ericsson"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "s400sx_e",
+  "type": "turbocharger",
+  "name": "S400SX-E",
+  "series": "S-Series",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "4 The Borg-Warner Trophy\u2122 24 EFR 8474 46 S400SX3",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 1.8,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.55,
+    "volumetricEfficiency": 0.79,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 2,
+    "features": [
+      "Dual Row Ball Bearing Cartridge",
+      "Integrated CRV"
+    ]
+  },
+  "description": "S400SX-E - S-Series - 4 The Borg-Warner Trophy\u2122 24 EFR 8474 46 S400SX3"
+}

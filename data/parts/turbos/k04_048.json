@@ -1,0 +1,33 @@
+{
+  "id": "k04_048",
+  "type": "turbocharger",
+  "name": "K04-048",
+  "series": "K-Series",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "Peugeot, K03-104, K03-120, K03-121",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 1.5,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.6,
+    "volumetricEfficiency": 0.78,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 56,
+    "features": [
+      "OEM Upgrade Turbo"
+    ]
+  },
+  "description": "K04-048 - K-Series - Peugeot, K03-104, K03-120, K03-121"
+}

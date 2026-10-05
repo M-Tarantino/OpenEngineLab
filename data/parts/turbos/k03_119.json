@@ -1,0 +1,33 @@
+{
+  "id": "k03_119",
+  "type": "turbocharger",
+  "name": "K03-119",
+  "series": "K-Series",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "Audi A4 from 2007 1.8 TFSI 120-160 hp 220 hp 5303 988 0106 yes 245 hp 930\u00b0C 950\u00b0C",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 1.5,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.6,
+    "volumetricEfficiency": 0.78,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 56,
+    "features": [
+      "OEM Upgrade Turbo"
+    ]
+  },
+  "description": "K03-119 - K-Series - Audi A4 from 2007 1.8 TFSI 120-160 hp 220 hp 5303 988 0106 yes 245 hp 930\u00b0C 950\u00b0C"
+}

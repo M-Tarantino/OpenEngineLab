@@ -1,0 +1,34 @@
+{
+  "id": "s300",
+  "type": "turbocharger",
+  "name": "S300",
+  "series": "S-Series",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "15 Turbo Frame Dimensions - B1 37 S300SX3 57 K03-2080 (Mini upgrade)",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 1.8,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.55,
+    "volumetricEfficiency": 0.79,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 2,
+    "features": [
+      "Dual Row Ball Bearing Cartridge",
+      "Integrated CRV"
+    ]
+  },
+  "description": "S300 - S-Series - 15 Turbo Frame Dimensions - B1 37 S300SX3 57 K03-2080 (Mini upgrade)"
+}

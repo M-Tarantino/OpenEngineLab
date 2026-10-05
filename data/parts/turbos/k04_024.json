@@ -1,0 +1,33 @@
+{
+  "id": "k04_024",
+  "type": "turbocharger",
+  "name": "K04-024",
+  "series": "K-Series",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "Opel Astra, Zafira from 2005 Z20LER, Z20LEL K04-048 170-200 hp 240 hp 5304 998 0049 yes 290 hp 930\u00b0C",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 1.5,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.6,
+    "volumetricEfficiency": 0.78,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 56,
+    "features": [
+      "OEM Upgrade Turbo"
+    ]
+  },
+  "description": "K04-024 - K-Series - Opel Astra, Zafira from 2005 Z20LER, Z20LEL K04-048 170-200 hp 240 hp 5304 998 0049 yes 290 hp 930\u00b0C"
+}

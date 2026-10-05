@@ -1,0 +1,35 @@
+{
+  "id": "6758",
+  "type": "turbocharger",
+  "name": "6758",
+  "series": "EFR",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "19 EFR 7163 41 S300SX-R 61 K16-2480",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 2.2,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.35,
+    "volumetricEfficiency": 0.85,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 2,
+    "features": [
+      "EFR Technology",
+      "Forged Milled Compressor Wheel",
+      "Gamma-Ti Turbine"
+    ]
+  },
+  "description": "6758 - EFR - 19 EFR 7163 41 S300SX-R 61 K16-2480"
+}
