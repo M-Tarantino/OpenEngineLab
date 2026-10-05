@@ -1,0 +1,47 @@
+{
+  "id": "g40_1150",
+  "type": "turbocharger",
+  "name": "G40-1150",
+  "series": "G-Series",
+  "bearing_type": "Journal",
+  "application": {
+    "hp_range": "500-1150",
+    "displacement_range_l": "3.0-6.5",
+    "wastegate_type": "External",
+    "rotation": "Standard"
+  },
+  "compressor": {
+    "inducer_mm": 68.0,
+    "exducer_mm": 83.0,
+    "trim": 65,
+    "area_ratio": 0.83,
+    "estimated_max_flow_cfm": 688.9
+  },
+  "turbine": {
+    "inducer_mm": 75.0,
+    "exducer_mm": 68.0,
+    "trim": 84,
+    "estimated_max_flow_cfm": 462.4
+  },
+  "limits": {
+    "maxBoostBar": 2.0,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.55,
+    "volumetricEfficiency": 0.79,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "Garrett Performance Catalog Vol 9",
+    "features": [
+      "Garrett Performance Turbo"
+    ]
+  },
+  "description": "G40-1150 - 500-1150 HP, 3.0-6.5L"
+}

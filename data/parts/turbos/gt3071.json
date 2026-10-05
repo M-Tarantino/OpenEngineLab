@@ -1,0 +1,47 @@
+{
+  "id": "gt3071",
+  "type": "turbocharger",
+  "name": "GT3071",
+  "series": "GT Series",
+  "bearing_type": "Journal",
+  "application": {
+    "hp_range": "280-480",
+    "displacement_range_l": "1.5-3.0",
+    "wastegate_type": "External",
+    "rotation": "Standard"
+  },
+  "compressor": {
+    "inducer_mm": 48.0,
+    "exducer_mm": 60.0,
+    "trim": 56,
+    "area_ratio": 0.61,
+    "estimated_max_flow_cfm": 360.0
+  },
+  "turbine": {
+    "inducer_mm": 40.0,
+    "exducer_mm": 46.0,
+    "trim": 75,
+    "estimated_max_flow_cfm": 211.6
+  },
+  "limits": {
+    "maxBoostBar": 2.5,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.55,
+    "volumetricEfficiency": 0.79,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "Garrett Performance Catalog Vol 9",
+    "features": [
+      "Garrett Performance Turbo"
+    ]
+  },
+  "description": "GT3071 - 280-480 HP, 1.5-3.0L"
+}

@@ -1,0 +1,47 @@
+{
+  "id": "gt2052",
+  "type": "turbocharger",
+  "name": "GT2052",
+  "series": "GT Series",
+  "bearing_type": "Journal",
+  "application": {
+    "hp_range": "450-700",
+    "displacement_range_l": "2.0-3.5",
+    "wastegate_type": "External",
+    "rotation": "Standard"
+  },
+  "compressor": {
+    "inducer_mm": 50.0,
+    "exducer_mm": 62.0,
+    "trim": 52,
+    "area_ratio": 0.6,
+    "estimated_max_flow_cfm": 384.4
+  },
+  "turbine": {
+    "inducer_mm": 42.0,
+    "exducer_mm": 48.0,
+    "trim": 76,
+    "estimated_max_flow_cfm": 230.4
+  },
+  "limits": {
+    "maxBoostBar": 2.4,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.55,
+    "volumetricEfficiency": 0.79,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "Garrett Performance Catalog Vol 9",
+    "features": [
+      "Garrett Performance Turbo"
+    ]
+  },
+  "description": "GT2052 - 450-700 HP, 2.0-3.5L"
+}

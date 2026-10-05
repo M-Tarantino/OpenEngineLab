@@ -1,0 +1,47 @@
+{
+  "id": "gtx2860",
+  "type": "turbocharger",
+  "name": "GTX2860",
+  "series": "GTX Gen II",
+  "bearing_type": "Ball Bearing",
+  "application": {
+    "hp_range": "200-475",
+    "displacement_range_l": "0.5-2.5",
+    "wastegate_type": "Internal",
+    "rotation": "Standard"
+  },
+  "compressor": {
+    "inducer_mm": 46.0,
+    "exducer_mm": 57.0,
+    "trim": 57,
+    "area_ratio": 0.64,
+    "estimated_max_flow_cfm": 324.9
+  },
+  "turbine": {
+    "inducer_mm": 38.0,
+    "exducer_mm": 43.0,
+    "trim": 60,
+    "estimated_max_flow_cfm": 184.9
+  },
+  "limits": {
+    "maxBoostBar": 2.5,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.35,
+    "volumetricEfficiency": 0.82,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "Garrett Performance Catalog Vol 9",
+    "features": [
+      "Garrett Performance Turbo"
+    ]
+  },
+  "description": "GTX2860 - 200-475 HP, 0.5-2.5L"
+}
