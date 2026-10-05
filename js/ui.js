@@ -1,4 +1,4 @@
-/* OpenEngineLab :: js/ui.js — state, inputs, worker bridge, discipline modules */
+/* OpenEngineLab :: js/ui.js — state, inputs, worker bridge, discipline modules, map editor & dyno v2 */
 (function () {
   "use strict";
 
@@ -110,11 +110,13 @@
     updateUndoRedoButtons(app);
   }
   function updateUndoRedoButtons(app) {
-    qs("#undo-btn").disabled = app.undo.stack.length === 0;
-    qs("#redo-btn").disabled = app.undo.redoStack.length === 0;
+    const uBtn = qs("#undo-btn");
+    const rBtn = qs("#redo-btn");
+    if (uBtn) uBtn.disabled = app.undo.stack.length === 0;
+    if (rBtn) rBtn.disabled = app.undo.redoStack.length === 0;
   }
 
-  // ---------------------------------------------------------------- Engine catalog & mods (Extension 1)
+  // ---------------------------------------------------------------- Engine catalog & mods
   function ensureBaseStock(engineBase) {
     if (!engineBase.baseStock) {
       engineBase.baseStock = {
@@ -269,6 +271,7 @@
 
   // ---------------------------------------------------------------- Left panel
   function buildLeftPanel(app, root) {
+    if (!root) return;
     root.innerHTML = "";
     const h = ce("h2"); h.textContent = T("inputs"); root.appendChild(h);
 
@@ -547,6 +550,7 @@
 
   function rebuildSchematic(app) {
     const container = qs("#schematic-container");
+    if (!container) return;
     const labels = {
       schematicAlt: T("schematicAlt"), cylinder: T("cylinderLabel"),
       block: componentLabel("block"), cylinderHead: componentLabel("cylinderHead"),
@@ -574,6 +578,7 @@
   function attachTooltip(app) {
     const container = qs("#schematic-container");
     const tip = qs("#tooltip");
+    if (!container || !tip) return;
     container.onmousemove = (e) => {
       const t = e.target.getAttribute && e.target.getAttribute("data-tooltip");
       if (t) {
@@ -589,22 +594,26 @@
     try {
       if (app.chartA && app.chartA.destroy) app.chartA.destroy();
       if (app.chartB && app.chartB.destroy) app.chartB.destroy();
+      const chartAEl = qs("#chart-a");
+      const chartBEl = qs("#chart-b");
+      if (!chartAEl || !chartBEl) return;
+
       const axisOpts = { stroke: "#7C8894", grid: { stroke: "rgba(122,136,148,0.15)" } };
       app.chartA = new uPlot({
-        width: qs("#chart-a").clientWidth || 300, height: 150,
+        width: chartAEl.clientWidth || 300, height: 150,
         scales: { rpm: {}, boost: {} },
         series: [{}, { label: T("rpmUnit"), stroke: "#3DDC97", width: 1.5, scale: "rpm" },
           { label: "Boost (bar)", stroke: "#4A9EFF", width: 1.5, scale: "boost" }],
         axes: [Object.assign({}, axisOpts), Object.assign({ scale: "rpm" }, axisOpts), Object.assign({ scale: "boost", side: 1 }, axisOpts)]
-      }, [[0], [0], [0]], qs("#chart-a"));
+      }, [[0], [0], [0]], chartAEl);
 
       app.chartB = new uPlot({
-        width: qs("#chart-b").clientWidth || 300, height: 150,
+        width: chartBEl.clientWidth || 300, height: 150,
         scales: { temp: {}, press: {} },
         series: [{}, { label: `${T("oilTempLabel")} (°C)`, stroke: "#FFB627", width: 1.5, scale: "temp" },
           { label: `${T("cylPressureLabel")} (bar)`, stroke: "#FF6B1A", width: 1.5, scale: "press" }],
         axes: [Object.assign({}, axisOpts), Object.assign({ scale: "temp" }, axisOpts), Object.assign({ scale: "press", side: 1 }, axisOpts)]
-      }, [[0], [0], [0]], qs("#chart-b"));
+      }, [[0], [0], [0]], chartBEl);
     } catch (err) {
       console.error("initCharts failed, recovered (live charts will stay blank, rest of the app is unaffected):", err);
       app.chartA = null; app.chartB = null;
@@ -618,9 +627,11 @@
     app.chartB.setData([h.t, h.oilTemp, h.cylPressure]);
   }
   function updateLiveReadout(app, result) {
+    const readoutEl = qs("#live-readout");
+    if (!readoutEl) return;
     const afrColor = Math.abs(result.afr - 14.7) > 3 ? "warn" : "";
     const knockClass = result.knockDetected ? "warn" : "";
-    qs("#live-readout").innerHTML = `
+    readoutEl.innerHTML = `
       <div class="live-tile"><span class="live-label">${T("rpmUnit")}</span><span class="live-value">${result.rpm.toFixed(0)}</span></div>
       <div class="live-tile"><span class="live-label">${T("powerLabel")}</span><span class="live-value">${result.powerHp.toFixed(0)} hp</span></div>
       <div class="live-tile"><span class="live-label">${T("torqueLabel")}</span><span class="live-value">${result.brakeTorqueNm.toFixed(0)} Nm</span></div>
@@ -633,9 +644,11 @@
   }
 
   function updateStats(app) {
+    const statsEl = qs("#stats-panel");
+    if (!statsEl) return;
     const h = app.history;
     const rpmS = stats(h.rpm), oilS = stats(h.oilTemp), pS = stats(h.cylPressure);
-    qs("#stats-panel").innerHTML =
+    statsEl.innerHTML =
       row(T("rpmUnit"), rpmS, "") + row(T("oilTempLabel"), oilS, "°C") + row(T("cylPressureLabel"), pS, "bar");
     function row(label, st, unit) {
       return `<div class="stat-row"><span>${label}</span><span>${st.min.toFixed(0)} / ${st.mean.toFixed(0)} / ${st.max.toFixed(0)} ${unit}</span></div>`;
@@ -677,46 +690,105 @@
 
   // ---------------------------------------------------------------- Status bar
   function updateStatusBar(app, result) {
-    if (!app.ignitionOn) {
-      qs("#status-state").textContent = T("engineOff");
-      qs("#status-state").className = "";
-    } else {
-      qs("#status-state").textContent = app.running ? T("running") : T("stopped");
-      qs("#status-state").className = app.running ? "ok" : "warn";
+    const stateEl = qs("#status-state");
+    const timeEl = qs("#status-time");
+    if (stateEl) {
+      if (!app.ignitionOn) {
+        stateEl.textContent = T("engineOff");
+        stateEl.className = "";
+      } else {
+        stateEl.textContent = app.running ? T("running") : T("stopped");
+        stateEl.className = app.running ? "ok" : "warn";
+      }
     }
-    qs("#status-time").textContent = `t=${result.time.toFixed(1)}s | ${T("cyclesLabel")} ${result.cycles.toFixed(0)}`;
+    if (timeEl) {
+      timeEl.textContent = `t=${result.time.toFixed(1)}s | ${T("cyclesLabel")} ${result.cycles.toFixed(0)}`;
+    }
     const w = result.weakestLink;
     const wEl = qs("#status-weakest");
-    wEl.textContent = `${T("weakestLink")}: ${componentLabel(w.id)} @ SF ${w.sf.toFixed(2)}`;
-    wEl.className = w.sf < 1.0 ? "critical" : (w.sf < 1.43 ? "warn" : "ok");
+    if (wEl) {
+      wEl.textContent = `${T("weakestLink")}: ${componentLabel(w.id)} @ SF ${w.sf.toFixed(2)}`;
+      wEl.className = w.sf < 1.0 ? "critical" : (w.sf < 1.43 ? "warn" : "ok");
+    }
     const advisory = qs("#status-advisory");
-    const ecmOut = app.lastEcmOut || {};
-    if (result.knockDetected) { advisory.textContent = T("knockWarning"); advisory.className = "warn"; }
-    else if (!result.oilFilmOK) { advisory.textContent = T("oilFilmWarning"); advisory.className = "critical"; }
-    else if (ecmOut.overrunActive) { advisory.textContent = T("overrunActive"); advisory.className = ""; }
-    else if (ecmOut.alsFiring) { advisory.textContent = T("alsFiring"); advisory.className = "ok"; }
-    else { advisory.textContent = ""; advisory.className = ""; }
+    if (advisory) {
+      const ecmOut = app.lastEcmOut || {};
+      if (result.knockDetected) { advisory.textContent = T("knockWarning"); advisory.className = "warn"; }
+      else if (!result.oilFilmOK) { advisory.textContent = T("oilFilmWarning"); advisory.className = "critical"; }
+      else if (ecmOut.overrunActive) { advisory.textContent = T("overrunActive"); advisory.className = ""; }
+      else if (ecmOut.alsFiring) { advisory.textContent = T("alsFiring"); advisory.className = "ok"; }
+      else { advisory.textContent = ""; advisory.className = ""; }
+    }
 
     const banner = qs("#hydrolock-banner");
-    if (result.hydrolockFailure) {
-      banner.style.display = "flex";
-      banner.querySelector(".hydrolock-text").textContent = T("hydrolockBanner");
-      banner.querySelector("#rebuild-engine-btn").textContent = T("rebuildEngine");
-    } else {
-      banner.style.display = "none";
+    if (banner) {
+      if (result.hydrolockFailure) {
+        banner.style.display = "flex";
+        const txt = banner.querySelector(".hydrolock-text");
+        const btn = banner.querySelector("#rebuild-engine-btn");
+        if (txt) txt.textContent = T("hydrolockBanner");
+        if (btn) btn.textContent = T("rebuildEngine");
+      } else {
+        banner.style.display = "none";
+      }
     }
   }
 
   function updateKennfield(app) {
     if (app.view !== "kennfield" || !app.lastResult || !app.lastEcmOut) return;
     const canvas = qs("#kennfield-canvas");
-    const which = qs("#kennfield-select").value;
+    const select = qs("#kennfield-select");
+    if (!canvas || !select) return;
+    const which = select.value;
     const rpm = app.lastResult.rpm, load = app.lastEcmOut.loadPercent;
     if (which === "ignition") {
       OEL.Renderer.drawKennfield(canvas, OEL.ECM.IGN_MAP, OEL.ECM.IGN_RPM_AXIS, OEL.ECM.IGN_LOAD_AXIS, { rpm, load }, T("kennfieldIgnition"));
     } else {
       OEL.Renderer.drawKennfield(canvas, OEL.ECM.FUEL_MAP, OEL.ECM.FUEL_RPM_AXIS, OEL.ECM.FUEL_LOAD_AXIS, { rpm, load }, T("kennfieldFuel"));
     }
+  }
+
+  // ---------------------------------------------------------------- Interactive Map Editor (kennfeld-editor.js integration)
+  function initKennfeldEditors(app) {
+    if (!window.OEL || !OEL.KennfeldEditor) return;
+    const editorPanel = qs("#kennfeld-editor-panel");
+    if (!editorPanel) return;
+
+    editorPanel.innerHTML = "";
+    
+    // Fuel Map Editor
+    const fuelContainer = ce("div");
+    fuelContainer.id = "fuel-map-editor-container";
+    editorPanel.appendChild(fuelContainer);
+
+    OEL.KennfeldEditor.createEditor(
+      "fuel-map-editor-container",
+      "FUEL",
+      OEL.ECM.FUEL_MAP,
+      OEL.ECM.FUEL_RPM_AXIS,
+      OEL.ECM.FUEL_LOAD_AXIS,
+      (editedMap) => {
+        Object.assign(OEL.ECM.FUEL_MAP, editedMap);
+      },
+      { title: "Fuel Map Editor (VE)" }
+    );
+
+    // Ignition Map Editor
+    const ignContainer = ce("div");
+    ignContainer.id = "ign-map-editor-container";
+    editorPanel.appendChild(ignContainer);
+
+    OEL.KennfeldEditor.createEditor(
+      "ign-map-editor-container",
+      "IGN",
+      OEL.ECM.IGN_MAP,
+      OEL.ECM.IGN_RPM_AXIS,
+      OEL.ECM.IGN_LOAD_AXIS,
+      (editedMap) => {
+        Object.assign(OEL.ECM.IGN_MAP, editedMap);
+      },
+      { title: "Ignition Map Editor (°BTDC)" }
+    );
   }
 
   // ---------------------------------------------------------------- Worker
@@ -807,6 +879,7 @@
 
   function populateDisciplineSelect(app) {
     const sel = qs("#discipline-select");
+    if (!sel) return;
     sel.innerHTML = "";
     for (const id of OEL.Disciplines.list) {
       const cfg = OEL.Disciplines.get(id);
@@ -817,10 +890,37 @@
     sel.onchange = () => setDiscipline(app, sel.value);
   }
 
-  // ---------------------------------------------------------------- Language
+  // ---------------------------------------------------------------- Dyno Integration
+  function wireDynoV2Button(app) {
+    const btnDynoV2 = qs("#btn-dyno-v2");
+    if (!btnDynoV2) return;
+    btnDynoV2.addEventListener("click", () => {
+      const panel = qs("#dyno-v2-panel");
+      if (!panel) return;
+      if (panel.style.display === "none" || !panel.style.display) {
+        panel.style.display = "flex";
+        if (window.OEL && OEL.DynoV2) {
+          const fuel = app.profiles.fuels.find(f => f.id === app.controls.activeFuelId);
+          OEL.DynoV2.createDynoTest(
+            "dyno-v2-panel",
+            app.profiles.engine,
+            app.profiles.turbo,
+            fuel,
+            { title: `Dyno v2 — ${app.profiles.engine.name}` }
+          );
+        }
+      } else {
+        panel.style.display = "none";
+      }
+    });
+  }
+
   function wireDynoTestButton(app) {
-    qs("#dyno-test-btn").addEventListener("click", () => {
+    const dynoBtn = qs("#dyno-test-btn");
+    if (!dynoBtn) return;
+    dynoBtn.addEventListener("click", () => {
       const panel = qs("#dyno-test-panel");
+      if (!panel) return;
       const isOpen = panel.style.display !== "none";
       if (isOpen) { panel.style.display = "none"; return; }
 
@@ -849,47 +949,55 @@
       html += `</div><button id="dyno-test-close" class="icon-btn-text" style="margin-top:10px">${T("close")}</button>`;
       panel.innerHTML = html;
       panel.style.display = "block";
-      qs("#dyno-test-close").addEventListener("click", () => { panel.style.display = "none"; });
+      const closeBtn = qs("#dyno-test-close");
+      if (closeBtn) closeBtn.addEventListener("click", () => { panel.style.display = "none"; });
 
       if (app.dynoChart) app.dynoChart.destroy();
-      app.dynoChart = new uPlot({
-        width: qs("#dyno-chart").clientWidth || 400, height: 200,
-        scales: { hp: {}, nm: {} },
-        series: [
-          { label: T("rpmUnit") },
-          { label: `${T("cmpPeakPower")} (hp)`, stroke: "#3DDC97", width: 2, scale: "hp" },
-          { label: `${T("cmpPeakTorque")} (Nm)`, stroke: "#4A9EFF", width: 2, scale: "nm" }
-        ],
-        axes: [
-          { stroke: "#7C8894", grid: { stroke: "rgba(122,136,148,0.15)" } },
-          { scale: "hp", stroke: "#3DDC97", grid: { stroke: "rgba(122,136,148,0.15)" } },
-          { scale: "nm", side: 1, stroke: "#4A9EFF", grid: { show: false } }
-        ]
-      }, [binned.rpm, binned.powerHp, binned.torqueNm], qs("#dyno-chart"));
+      const dynoChartEl = qs("#dyno-chart");
+      if (dynoChartEl) {
+        app.dynoChart = new uPlot({
+          width: dynoChartEl.clientWidth || 400, height: 200,
+          scales: { hp: {}, nm: {} },
+          series: [
+            { label: T("rpmUnit") },
+            { label: `${T("cmpPeakPower")} (hp)`, stroke: "#3DDC97", width: 2, scale: "hp" },
+            { label: `${T("cmpPeakTorque")} (Nm)`, stroke: "#4A9EFF", width: 2, scale: "nm" }
+          ],
+          axes: [
+            { stroke: "#7C8894", grid: { stroke: "rgba(122,136,148,0.15)" } },
+            { scale: "hp", stroke: "#3DDC97", grid: { stroke: "rgba(122,136,148,0.15)" } },
+            { scale: "nm", side: 1, stroke: "#4A9EFF", grid: { show: false } }
+          ]
+        }, [binned.rpm, binned.powerHp, binned.torqueNm], dynoChartEl);
+      }
     });
   }
 
   function relabelStaticUI(app) {
-    qs("#tab-schematic").textContent = T("tabSchematic");
-    qs("#tab-kennfield").textContent = T("tabKennfield");
-    qs("#tab-launch").textContent = T("tabLaunch");
-    qs("#tab-compare").textContent = T("tabCompare");
-    qs("#estop").textContent = T("estop");
-    qs("#ignition-btn").textContent = "⏻ " + T("ignitionBtn");
-    qs("#undo-btn").title = T("undo");
-    qs("#redo-btn").title = T("redo");
-    qs("#report-btn").title = T("report");
-    qs("#save-setup-btn").title = T("saveSetup");
-    qs("#load-setup-btn").title = T("loadSetup");
-    qs("#csv-export-btn").title = T("csvExport");
-    qs("#dyno-test-btn").textContent = "▶ " + T("dynoTestBtn");
-    qs("#view-side-btn").textContent = T("viewSide");
-    qs("#view-front-btn").textContent = T("viewFront");
-    qs("#view-top-btn").textContent = T("viewTop");
-    const opts = qs("#kennfield-select").options;
-    opts[0].textContent = T("kennfieldIgnition"); opts[1].textContent = T("kennfieldFuel");
-    qs(".sidebar-right h2").textContent = T("telemetry");
-    qs(".sidebar-right h3").textContent = T("stats");
+    const tSchematic = qs("#tab-schematic"); if (tSchematic) tSchematic.textContent = T("tabSchematic");
+    const tKennfield = qs("#tab-kennfield"); if (tKennfield) tKennfield.textContent = T("tabKennfield");
+    const tLaunch = qs("#tab-launch"); if (tLaunch) tLaunch.textContent = T("tabLaunch");
+    const tCompare = qs("#tab-compare"); if (tCompare) tCompare.textContent = T("tabCompare");
+    const estop = qs("#estop"); if (estop) estop.textContent = T("estop");
+    const ignBtn = qs("#ignition-btn"); if (ignBtn) ignBtn.textContent = "⏻ " + T("ignitionBtn");
+    const uBtn = qs("#undo-btn"); if (uBtn) uBtn.title = T("undo");
+    const rBtn = qs("#redo-btn"); if (rBtn) rBtn.title = T("redo");
+    const repBtn = qs("#report-btn"); if (repBtn) repBtn.title = T("report");
+    const saveBtn = qs("#save-setup-btn"); if (saveBtn) saveBtn.title = T("saveSetup");
+    const loadBtn = qs("#load-setup-btn"); if (loadBtn) loadBtn.title = T("loadSetup");
+    const csvBtn = qs("#csv-export-btn"); if (csvBtn) csvBtn.title = T("csvExport");
+    const dynoBtn = qs("#dyno-test-btn"); if (dynoBtn) dynoBtn.textContent = "▶ " + T("dynoTestBtn");
+    const vSide = qs("#view-side-btn"); if (vSide) vSide.textContent = T("viewSide");
+    const vFront = qs("#view-front-btn"); if (vFront) vFront.textContent = T("viewFront");
+    const vTop = qs("#view-top-btn"); if (vTop) vTop.textContent = T("viewTop");
+    
+    const kSel = qs("#kennfield-select");
+    if (kSel && kSel.options && kSel.options.length >= 2) {
+      kSel.options[0].textContent = T("kennfieldIgnition");
+      kSel.options[1].textContent = T("kennfieldFuel");
+    }
+    const sideH2 = qs(".sidebar-right h2"); if (sideH2) sideH2.textContent = T("telemetry");
+    const sideH3 = qs(".sidebar-right h3"); if (sideH3) sideH3.textContent = T("stats");
     populateDisciplineSelect(app);
   }
 
@@ -903,47 +1011,80 @@
     if (app.view === "launch" || app.view === "compare") setView(app, app.view);
   }
 
-  // ---------------------------------------------------------------- Report
+  // ---------------------------------------------------------------- Report & Topbar Wiring
   function wireTopbar(app) {
-    qs("#tab-schematic").addEventListener("click", () => setView(app, "schematic"));
-    qs("#tab-kennfield").addEventListener("click", () => setView(app, "kennfield"));
-    qs("#tab-launch").addEventListener("click", () => setView(app, "launch"));
-    qs("#tab-compare").addEventListener("click", () => setView(app, "compare"));
+    const tSchematic = qs("#tab-schematic"); if (tSchematic) tSchematic.addEventListener("click", () => setView(app, "schematic"));
+    const tKennfield = qs("#tab-kennfield"); if (tKennfield) tKennfield.addEventListener("click", () => setView(app, "kennfield"));
+    const tLaunch = qs("#tab-launch"); if (tLaunch) tLaunch.addEventListener("click", () => setView(app, "launch"));
+    const tCompare = qs("#tab-compare"); if (tCompare) tCompare.addEventListener("click", () => setView(app, "compare"));
+    
     wireSetupIO(app);
     wireDynoTestButton(app);
-    qs("#ignition-btn").addEventListener("click", () => {
-      app.ignitionOn = !app.ignitionOn;
-      app.worker.postMessage({ type: "setIgnition", on: app.ignitionOn });
-      qs("#ignition-btn").classList.toggle("on", app.ignitionOn);
-      qs("#ignition-btn").classList.toggle("off", !app.ignitionOn);
-    });
-    qs("#view-side-btn").addEventListener("click", () => setSchematicView(app, "side"));
-    qs("#view-front-btn").addEventListener("click", () => setSchematicView(app, "front"));
-    qs("#view-top-btn").addEventListener("click", () => setSchematicView(app, "top"));
-    qs("#estop").addEventListener("click", () => {
-      app.controls.throttle01 = 0; app.controls.boostTargetBar = 0;
-      sendControls(app);
-      app.running = false;
-      app.worker.postMessage({ type: "setRunning", running: false });
-      setTimeout(() => {
-        app.running = true;
-        app.worker.postMessage({ type: "setRunning", running: true });
-      }, 600);
-    });
-    qs("#undo-btn").addEventListener("click", () => doUndo(app));
-    qs("#redo-btn").addEventListener("click", () => doRedo(app));
-    qs("#report-btn").addEventListener("click", () => OEL.Report.generate(app));
-    qs("#rebuild-engine-btn").addEventListener("click", () => {
-      app.controls.nitrousArmed = false;
-      app.controls.throttle01 = 0.1;
-      const throttleSlider = qs(".sidebar-left input[type=range]");
-      if (throttleSlider) { throttleSlider.value = 10; throttleSlider.dispatchEvent(new Event("input")); }
-      const nosBtn = [...document.querySelectorAll("#left-panel button")].find(b => b.classList.contains("armed"));
-      if (nosBtn) { nosBtn.classList.remove("armed"); nosBtn.textContent = T("nitrousArm"); }
-      app.worker.postMessage({ type: "resetFailure" });
-    });
-    qs("#lang-select").value = OEL.I18N.current;
-    qs("#lang-select").addEventListener("change", (e) => setLanguage(app, e.target.value));
+    wireDynoV2Button(app);
+
+    const btnKennfeldEditor = qs("#btn-kennfeld-editor");
+    if (btnKennfeldEditor) {
+      btnKennfeldEditor.addEventListener("click", () => {
+        const panel = qs("#kennfeld-editor-panel");
+        if (panel) {
+          const isHidden = panel.style.display === "none" || !panel.style.display;
+          panel.style.display = isHidden ? "flex" : "none";
+          if (isHidden) initKennfeldEditors(app);
+        }
+      });
+    }
+
+    const ignBtn = qs("#ignition-btn");
+    if (ignBtn) {
+      ignBtn.addEventListener("click", () => {
+        app.ignitionOn = !app.ignitionOn;
+        app.worker.postMessage({ type: "setIgnition", on: app.ignitionOn });
+        ignBtn.classList.toggle("on", app.ignitionOn);
+        ignBtn.classList.toggle("off", !app.ignitionOn);
+      });
+    }
+
+    const vSide = qs("#view-side-btn"); if (vSide) vSide.addEventListener("click", () => setSchematicView(app, "side"));
+    const vFront = qs("#view-front-btn"); if (vFront) vFront.addEventListener("click", () => setSchematicView(app, "front"));
+    const vTop = qs("#view-top-btn"); if (vTop) vTop.addEventListener("click", () => setSchematicView(app, "top"));
+
+    const estop = qs("#estop");
+    if (estop) {
+      estop.addEventListener("click", () => {
+        app.controls.throttle01 = 0; app.controls.boostTargetBar = 0;
+        sendControls(app);
+        app.running = false;
+        app.worker.postMessage({ type: "setRunning", running: false });
+        setTimeout(() => {
+          app.running = true;
+          app.worker.postMessage({ type: "setRunning", running: true });
+        }, 600);
+      });
+    }
+
+    const uBtn = qs("#undo-btn"); if (uBtn) uBtn.addEventListener("click", () => doUndo(app));
+    const rBtn = qs("#redo-btn"); if (rBtn) rBtn.addEventListener("click", () => doRedo(app));
+    const repBtn = qs("#report-btn"); if (repBtn) repBtn.addEventListener("click", () => OEL.Report.generate(app));
+    
+    const rebuildBtn = qs("#rebuild-engine-btn");
+    if (rebuildBtn) {
+      rebuildBtn.addEventListener("click", () => {
+        app.controls.nitrousArmed = false;
+        app.controls.throttle01 = 0.1;
+        const throttleSlider = qs(".sidebar-left input[type=range]");
+        if (throttleSlider) { throttleSlider.value = 10; throttleSlider.dispatchEvent(new Event("input")); }
+        const nosBtn = [...document.querySelectorAll("#left-panel button")].find(b => b.classList.contains("armed"));
+        if (nosBtn) { nosBtn.classList.remove("armed"); nosBtn.textContent = T("nitrousArm"); }
+        app.worker.postMessage({ type: "resetFailure" });
+      });
+    }
+
+    const langSel = qs("#lang-select");
+    if (langSel) {
+      langSel.value = OEL.I18N.current;
+      langSel.addEventListener("change", (e) => setLanguage(app, e.target.value));
+    }
+
     document.addEventListener("keydown", (e) => {
       if (!(e.ctrlKey || e.metaKey)) return;
       if (e.key === "z" && !e.shiftKey) { e.preventDefault(); doUndo(app); }
@@ -951,7 +1092,7 @@
     });
   }
 
-  // ---------------------------------------------------------------- Launch Simulation (v2 extension)
+  // ---------------------------------------------------------------- Launch Simulation
   async function runLaunchSimulation(app) {
     const dt = 0.02;
     const durationS = 3.0;
@@ -990,6 +1131,7 @@
 
   function buildLaunchView(app) {
     const root = qs("#launch-view");
+    if (!root) return;
     root.innerHTML = `
       <div class="launch-panel">
         <h3>${T("launchTitle")}</h3>
@@ -999,49 +1141,56 @@
         <div id="launch-chart" class="chart" style="height:260px;margin-top:12px"></div>
       </div>`;
 
-    qs("#launch-run-btn").addEventListener("click", async () => {
-      qs("#launch-run-btn").disabled = true;
-      const { series, hydrolockAtS, wheelspinStartS, wheelspinEndS, wheelspinOngoing } = await runLaunchSimulation(app);
-      qs("#launch-run-btn").disabled = false;
+    const runBtn = qs("#launch-run-btn");
+    if (runBtn) {
+      runBtn.addEventListener("click", async () => {
+        runBtn.disabled = true;
+        const { series, hydrolockAtS, wheelspinStartS, wheelspinEndS, wheelspinOngoing } = await runLaunchSimulation(app);
+        runBtn.disabled = false;
 
-      const summaryEl = qs("#launch-summary");
-      let html = "";
-      if (hydrolockAtS !== null) {
-        html += `<div class="launch-alert critical">${T("launchHydrolockRisk")} t=${hydrolockAtS.toFixed(2)}s</div>`;
-      } else {
-        html += `<div class="launch-alert ok">${T("launchNoHydrolock")}</div>`;
-      }
-      if (wheelspinStartS === null) {
-        html += `<div class="launch-alert ok">${T("launchNoWheelspin")}</div>`;
-      } else if (wheelspinOngoing) {
-        html += `<div class="launch-alert warn">${T("launchWheelspinOngoing")}</div>`;
-      } else {
-        html += `<div class="launch-alert warn">${T("launchWheelspinUntil")} t=${wheelspinEndS.toFixed(2)}s</div>`;
-      }
-      summaryEl.innerHTML = html;
+        const summaryEl = qs("#launch-summary");
+        let html = "";
+        if (hydrolockAtS !== null) {
+          html += `<div class="launch-alert critical">${T("launchHydrolockRisk")} t=${hydrolockAtS.toFixed(2)}s</div>`;
+        } else {
+          html += `<div class="launch-alert ok">${T("launchNoHydrolock")}</div>`;
+        }
+        if (wheelspinStartS === null) {
+          html += `<div class="launch-alert ok">${T("launchNoWheelspin")}</div>`;
+        } else if (wheelspinOngoing) {
+          html += `<div class="launch-alert warn">${T("launchWheelspinOngoing")}</div>`;
+        } else {
+          html += `<div class="launch-alert warn">${T("launchWheelspinUntil")} t=${wheelspinEndS.toFixed(2)}s</div>`;
+        }
+        if (summaryEl) summaryEl.innerHTML = html;
 
-      if (app.launchChart) app.launchChart.destroy();
-      app.launchChart = new uPlot({
-        width: qs("#launch-chart").clientWidth || 500, height: 240,
-        scales: { rpm: {}, other: {} },
-        series: [
-          {},
-          { label: T("rpmUnit"), stroke: "#3DDC97", width: 1.5, scale: "rpm" },
-          { label: `${T("boostTarget")} (bar)`, stroke: "#4A9EFF", width: 1.5, scale: "other" },
-          { label: `${T("speedLabel")} (km/h)`, stroke: "#FFB627", width: 1.5, scale: "other" }
-        ],
-        axes: [
-          { stroke: "#7C8894", grid: { stroke: "rgba(122,136,148,0.15)" } },
-          { scale: "rpm", stroke: "#7C8894", grid: { stroke: "rgba(122,136,148,0.15)" } },
-          { scale: "other", side: 1, stroke: "#7C8894", grid: { stroke: "rgba(122,136,148,0.15)" } }
-        ]
-      }, [series.t, series.rpm, series.boost, series.speedKmh], qs("#launch-chart"));
-    });
+        if (app.launchChart) app.launchChart.destroy();
+        const launchChartEl = qs("#launch-chart");
+        if (launchChartEl) {
+          app.launchChart = new uPlot({
+            width: launchChartEl.clientWidth || 500, height: 240,
+            scales: { rpm: {}, other: {} },
+            series: [
+              {},
+              { label: T("rpmUnit"), stroke: "#3DDC97", width: 1.5, scale: "rpm" },
+              { label: `${T("boostTarget")} (bar)`, stroke: "#4A9EFF", width: 1.5, scale: "other" },
+              { label: `${T("speedLabel")} (km/h)`, stroke: "#FFB627", width: 1.5, scale: "other" }
+            ],
+            axes: [
+              { stroke: "#7C8894", grid: { stroke: "rgba(122,136,148,0.15)" } },
+              { scale: "rpm", stroke: "#7C8894", grid: { stroke: "rgba(122,136,148,0.15)" } },
+              { scale: "other", side: 1, stroke: "#7C8894", grid: { stroke: "rgba(122,136,148,0.15)" } }
+            ]
+          }, [series.t, series.rpm, series.boost, series.speedKmh], launchChartEl);
+        }
+      });
+    }
   }
 
-  // ---------------------------------------------------------------- Comparison Mode (v2 extension)
+  // ---------------------------------------------------------------- Comparison Mode
   function buildCompareView(app) {
     const root = qs("#compare-view");
+    if (!root) return;
     root.innerHTML = `
       <div class="compare-panel">
         <h3>${T("realismTitle")}</h3>
@@ -1067,25 +1216,33 @@
         <div id="compare-result"></div>
       </div>`;
 
-    qs("#realism-run-btn").addEventListener("click", () => {
-      const fuel = app.profiles.fuels.find(f => f.id === app.controls.activeFuelId);
-      const benchmark = OEL.Benchmark.runWotBenchmark({
-        engine: app.profiles.engine, turbo: app.profiles.turbo, fuel,
-        extras: {}, boostTargetBar: app.controls.boostTargetBar
+    const realismBtn = qs("#realism-run-btn");
+    if (realismBtn) {
+      realismBtn.addEventListener("click", () => {
+        const fuel = app.profiles.fuels.find(f => f.id === app.controls.activeFuelId);
+        const benchmark = OEL.Benchmark.runWotBenchmark({
+          engine: app.profiles.engine, turbo: app.profiles.turbo, fuel,
+          extras: {}, boostTargetBar: app.controls.boostTargetBar
+        });
+        const check = OEL.RealismCheck.checkRealism(app.profiles.engine, app.profiles.turbo, benchmark.peak);
+        const levelClass = { ok: "ok", warn: "warn", critical: "critical" };
+        let html = "";
+        for (const f of check.findings) {
+          html += `<div class="launch-alert ${levelClass[f.level]}">${T(f.key).replace("{v}", f.value)}</div>`;
+        }
+        const resultEl = qs("#realism-result");
+        if (resultEl) resultEl.innerHTML = html;
       });
-      const check = OEL.RealismCheck.checkRealism(app.profiles.engine, app.profiles.turbo, benchmark.peak);
-      const levelClass = { ok: "ok", warn: "warn", critical: "critical" };
-      let html = "";
-      for (const f of check.findings) {
-        html += `<div class="launch-alert ${levelClass[f.level]}">${T(f.key).replace("{v}", f.value)}</div>`;
-      }
-      qs("#realism-result").innerHTML = html;
-    });
+    }
 
     let setupA = null, setupB = null;
-    function updateRunEnabled() { qs("#compare-run-btn").disabled = !(setupA && setupB); }
+    function updateRunEnabled() {
+      const cmpRunBtn = qs("#compare-run-btn");
+      if (cmpRunBtn) cmpRunBtn.disabled = !(setupA && setupB);
+    }
 
     function readSetupFile(input, onLoaded, nameElId) {
+      if (!input) return;
       input.addEventListener("change", () => {
         const file = input.files[0];
         if (!file) return;
@@ -1094,10 +1251,12 @@
           try {
             const parsed = OEL.SetupIO.parseSetup(reader.result);
             onLoaded(parsed);
-            qs(nameElId).textContent = parsed.metadata.name + " (v" + parsed.metadata.currentVersion + ")";
+            const nameEl = qs(nameElId);
+            if (nameEl) nameEl.textContent = parsed.metadata.name + " (v" + parsed.metadata.currentVersion + ")";
             updateRunEnabled();
           } catch (e) {
-            qs(nameElId).textContent = T("compareInvalidFile");
+            const nameEl = qs(nameElId);
+            if (nameEl) nameEl.textContent = T("compareInvalidFile");
           }
         };
         reader.readAsText(file);
@@ -1106,12 +1265,15 @@
     readSetupFile(qs("#compare-file-a"), (p) => { setupA = p; }, "#compare-name-a");
     readSetupFile(qs("#compare-file-b"), (p) => { setupB = p; }, "#compare-name-b");
 
-    qs("#compare-run-btn").addEventListener("click", () => {
-      const fuelsById = {};
-      app.profiles.fuels.forEach(f => { fuelsById[f.id] = f; });
-      const cmp = OEL.Comparison.compareSetups(setupA, setupB, fuelsById);
-      renderComparisonTable(cmp);
-    });
+    const cmpRunBtn = qs("#compare-run-btn");
+    if (cmpRunBtn) {
+      cmpRunBtn.addEventListener("click", () => {
+        const fuelsById = {};
+        app.profiles.fuels.forEach(f => { fuelsById[f.id] = f; });
+        const cmp = OEL.Comparison.compareSetups(setupA, setupB, fuelsById);
+        renderComparisonTable(cmp);
+      });
+    }
 
     function renderComparisonTable(cmp) {
       let html = `<table class="compare-table"><thead><tr><th>${T("compareParameter")}</th>` +
@@ -1123,11 +1285,12 @@
           `<td>${sign}${row.diff.toFixed(2)} ${row.unit} ${row.direction === "better" ? "✓" : row.direction === "worse" ? "⚠" : ""}</td></tr>`;
       }
       html += "</tbody></table>";
-      qs("#compare-result").innerHTML = html;
+      const cmpRes = qs("#compare-result");
+      if (cmpRes) cmpRes.innerHTML = html;
     }
   }
 
-  // ---------------------------------------------------------------- Setup Save/Load (v2 extension)
+  // ---------------------------------------------------------------- Setup Save/Load
   function applyLoadedSetup(app, data) {
     pushUndo(app);
     app.profiles.engineBase = data.config.engineBase;
@@ -1172,56 +1335,73 @@
   }
 
   function wireSetupIO(app) {
-    qs("#save-setup-btn").addEventListener("click", () => {
-      const change = window.prompt(T("saveSetupPrompt"), "");
-      if (change === null) return;
-      const setup = OEL.SetupIO.downloadSetup(app, change || T("saveSetupDefaultChange"));
-      flashAdvisory(app, `${T("saveSetupSaved")} v${setup.metadata.currentVersion}`);
-    });
-    qs("#load-setup-btn").addEventListener("click", () => qs("#load-setup-input").click());
-    qs("#load-setup-input").addEventListener("change", () => {
-      const file = qs("#load-setup-input").files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async () => {
-        try {
-          const data = OEL.SetupIO.parseSetup(reader.result);
-          applyLoadedSetup(app, data);
-          flashAdvisory(app, `${T("loadSetupLoaded")}: ${data.metadata.name} (v${data.metadata.currentVersion})`);
-        } catch (e) {
-          flashAdvisory(app, T("loadSetupInvalid"));
-        }
-      };
-      reader.readAsText(file);
-      qs("#load-setup-input").value = "";
-    });
-    qs("#csv-export-btn").addEventListener("click", () => exportHistoryCsv(app));
+    const saveBtn = qs("#save-setup-btn");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", () => {
+        const change = window.prompt(T("saveSetupPrompt"), "");
+        if (change === null) return;
+        const setup = OEL.SetupIO.downloadSetup(app, change || T("saveSetupDefaultChange"));
+        flashAdvisory(app, `${T("saveSetupSaved")} v${setup.metadata.currentVersion}`);
+      });
+    }
+
+    const loadBtn = qs("#load-setup-btn");
+    const loadInput = qs("#load-setup-input");
+    if (loadBtn && loadInput) {
+      loadBtn.addEventListener("click", () => loadInput.click());
+      loadInput.addEventListener("change", () => {
+        const file = loadInput.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const data = OEL.SetupIO.parseSetup(reader.result);
+            applyLoadedSetup(app, data);
+            flashAdvisory(app, `${T("loadSetupLoaded")}: ${data.metadata.name} (v${data.metadata.currentVersion})`);
+          } catch (e) {
+            flashAdvisory(app, T("loadSetupInvalid"));
+          }
+        };
+        reader.readAsText(file);
+        loadInput.value = "";
+      });
+    }
+
+    const csvBtn = qs("#csv-export-btn");
+    if (csvBtn) csvBtn.addEventListener("click", () => exportHistoryCsv(app));
   }
 
   let advisoryTimeout = null;
   function flashAdvisory(app, text) {
     const el = qs("#status-flash");
+    if (!el) return;
     clearTimeout(advisoryTimeout);
     el.textContent = text;
     advisoryTimeout = setTimeout(() => { if (el.textContent === text) el.textContent = ""; }, 3500);
   }
 
-
   function setView(app, view) {
     app.view = view;
-    qs("#schematic-container").style.display = view === "schematic" ? "block" : "none";
-    qs("#kennfield-view").style.display = view === "kennfield" ? "block" : "none";
-    qs("#launch-view").style.display = view === "launch" ? "block" : "none";
-    qs("#compare-view").style.display = view === "compare" ? "block" : "none";
-    qs("#dyno-test-btn").style.display = view === "schematic" ? "block" : "none";
-    qs("#schematic-view-toggle").style.display = view === "schematic" ? "flex" : "none";
-    if (view !== "schematic") qs("#dyno-test-panel").style.display = "none";
-    qs("#tab-schematic").classList.toggle("active", view === "schematic");
-    qs("#tab-kennfield").classList.toggle("active", view === "kennfield");
-    qs("#tab-launch").classList.toggle("active", view === "launch");
-    qs("#tab-compare").classList.toggle("active", view === "compare");
+    const schematicContainer = qs("#schematic-container"); if (schematicContainer) schematicContainer.style.display = view === "schematic" ? "block" : "none";
+    const kennfieldView = qs("#kennfield-view"); if (kennfieldView) kennfieldView.style.display = view === "kennfield" ? "block" : "none";
+    const launchView = qs("#launch-view"); if (launchView) launchView.style.display = view === "launch" ? "block" : "none";
+    const compareView = qs("#compare-view"); if (compareView) compareView.style.display = view === "compare" ? "block" : "none";
+    
+    const dynoTestBtn = qs("#dyno-test-btn"); if (dynoTestBtn) dynoTestBtn.style.display = view === "schematic" ? "block" : "none";
+    const schematicViewToggle = qs("#schematic-view-toggle"); if (schematicViewToggle) schematicViewToggle.style.display = view === "schematic" ? "flex" : "none";
+    if (view !== "schematic") {
+      const dynoTestPanel = qs("#dyno-test-panel");
+      if (dynoTestPanel) dynoTestPanel.style.display = "none";
+    }
+
+    const tSchematic = qs("#tab-schematic"); if (tSchematic) tSchematic.classList.toggle("active", view === "schematic");
+    const tKennfield = qs("#tab-kennfield"); if (tKennfield) tKennfield.classList.toggle("active", view === "kennfield");
+    const tLaunch = qs("#tab-launch"); if (tLaunch) tLaunch.classList.toggle("active", view === "launch");
+    const tCompare = qs("#tab-compare"); if (tCompare) tCompare.classList.toggle("active", view === "compare");
+
     if (view === "launch" && !app.launchViewBuilt) { buildLaunchView(app); app.launchViewBuilt = true; }
     if (view === "compare" && !app.compareViewBuilt) { buildCompareView(app); app.compareViewBuilt = true; }
+    if (view === "kennfield") { initKennfeldEditors(app); }
   }
 
   // ---------------------------------------------------------------- Render loop
@@ -1267,8 +1447,6 @@
         safeCall(updateDisciplinePanelsLive, app, result);
       }
     } catch (err) {
-      // A single bad frame must never permanently freeze the whole simulation —
-      // log it for diagnosis and keep the animation loop alive.
       console.error("renderLoop frame error (recovered):", err);
     }
     requestAnimationFrame((t) => renderLoop(app, t));
