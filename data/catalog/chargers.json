@@ -1,28 +1,433 @@
-
 {
+  "version": "1.0",
+  "description": "OpenEngineLab Turbocharger Catalog - BorgWarner Only",
+  "last_updated": "2026-10-05",
   "entries": [
-    { "id": "none-na", "name": "None (Naturally Aspirated)", "type": "none", "file": "data/parts/turbos/none-na.json" },
-    { "id": "garrett-g35-900", "name": "Garrett G35-900 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/garrett-g35.json" },
-    { "id": "ls-roots-blower", "name": "LS Roots Blower 2.3L (Supercharger)", "type": "supercharger", "file": "data/parts/turbos/ls-roots-blower.json" },
-    { "id": "lysholm-sc-v3", "name": "Lysholm Screw SC V3 (Supercharger)", "type": "supercharger", "file": "data/parts/turbos/lysholm-sc-v3.json" },
-    { "id": "g35_1050", "name": "Garrett G35-1050 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g35_1050.json" },
-    { "id": "g40_1150", "name": "Garrett G40-1150 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g40_1150.json" },
-    { "id": "g42_1450", "name": "Garrett G42-1450 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g42_1450.json" },
-    { "id": "g45_1500", "name": "Garrett G45-1500 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g45_1500.json" },
-    { "id": "g_", "name": "Garrett G- (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g_.json" },
-    { "id": "g_series_ii_g25_585", "name": "Garrett G-Series II G25-585 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g_series_ii_g25_585.json" },
-    { "id": "g_series_ii_g25_700", "name": "Garrett G-Series II G25-700 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g_series_ii_g25_700.json" },
-    { "id": "g_series_ii_g30_725", "name": "Garrett G-Series II G30-725 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g_series_ii_g30_725.json" },
-    { "id": "g_series_ii_g30_825", "name": "Garrett G-Series II G30-825 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g_series_ii_g30_825.json" },
-    { "id": "g_series_ii_g35_990", "name": "Garrett G-Series II G35-990 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/g_series_ii_g35_990.json" },
-    { "id": "gt2052", "name": "Garrett GT2052 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gt2052.json" },
-    { "id": "gt3071", "name": "Garrett GT3071 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gt3071.json" },
-    { "id": "gt3582", "name": "Garrett GT3582 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gt3582.json" },
-    { "id": "gtx2860", "name": "Garrett GTX2860 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gtx2860.json" },
-    { "id": "gtx3071", "name": "Garrett GTX3071 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gtx3071.json" },
-    { "id": "gtx3576", "name": "Garrett GTX3576 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gtx3576.json" },
-    { "id": "gtx3584", "name": "Garrett GTX3584 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gtx3584.json" },
-    { "id": "gtx4088", "name": "Garrett GTX4088 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/gtx4088.json" },
-    { "id": "t4", "name": "Garrett T4 (Turbocharger)", "type": "turbocharger", "file": "data/parts/turbos/t4.json" }
+    {
+      "id": "6258",
+      "name": "BorgWarner 6258 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/6258.json"
+    },
+    {
+      "id": "6758",
+      "name": "BorgWarner 6758 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/6758.json"
+    },
+    {
+      "id": "7064",
+      "name": "BorgWarner 7064 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/7064.json"
+    },
+    {
+      "id": "7163",
+      "name": "BorgWarner 7163 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/7163.json"
+    },
+    {
+      "id": "7670",
+      "name": "BorgWarner 7670 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/7670.json"
+    },
+    {
+      "id": "8370",
+      "name": "BorgWarner 8370 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/8370.json"
+    },
+    {
+      "id": "8374",
+      "name": "BorgWarner 8374 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/8374.json"
+    },
+    {
+      "id": "8474",
+      "name": "BorgWarner 8474 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/8474.json"
+    },
+    {
+      "id": "9174",
+      "name": "BorgWarner 9174 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/9174.json"
+    },
+    {
+      "id": "9180",
+      "name": "BorgWarner 9180 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/9180.json"
+    },
+    {
+      "id": "9274",
+      "name": "BorgWarner 9274 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/9274.json"
+    },
+    {
+      "id": "9280",
+      "name": "BorgWarner 9280 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/9280.json"
+    },
+    {
+      "id": "airwerks",
+      "name": "BorgWarner Airwerks (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/airwerks.json"
+    },
+    {
+      "id": "k03",
+      "name": "BorgWarner K03 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03.json"
+    },
+    {
+      "id": "k03_005",
+      "name": "BorgWarner K03-005 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_005.json"
+    },
+    {
+      "id": "k03_011",
+      "name": "BorgWarner K03-011 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_011.json"
+    },
+    {
+      "id": "k03_013",
+      "name": "BorgWarner K03-013 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_013.json"
+    },
+    {
+      "id": "k03_016",
+      "name": "BorgWarner K03-016 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_016.json"
+    },
+    {
+      "id": "k03_017",
+      "name": "BorgWarner K03-017 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_017.json"
+    },
+    {
+      "id": "k03_022",
+      "name": "BorgWarner K03-022 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_022.json"
+    },
+    {
+      "id": "k03_025",
+      "name": "BorgWarner K03-025 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_025.json"
+    },
+    {
+      "id": "k03_026",
+      "name": "BorgWarner K03-026 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_026.json"
+    },
+    {
+      "id": "k03_029",
+      "name": "BorgWarner K03-029 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_029.json"
+    },
+    {
+      "id": "k03_044",
+      "name": "BorgWarner K03-044 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_044.json"
+    },
+    {
+      "id": "k03_045",
+      "name": "BorgWarner K03-045 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_045.json"
+    },
+    {
+      "id": "k03_049",
+      "name": "BorgWarner K03-049 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_049.json"
+    },
+    {
+      "id": "k03_086",
+      "name": "BorgWarner K03-086 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_086.json"
+    },
+    {
+      "id": "k03_104",
+      "name": "BorgWarner K03-104 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_104.json"
+    },
+    {
+      "id": "k03_105",
+      "name": "BorgWarner K03-105 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_105.json"
+    },
+    {
+      "id": "k03_118",
+      "name": "BorgWarner K03-118 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_118.json"
+    },
+    {
+      "id": "k03_119",
+      "name": "BorgWarner K03-119 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_119.json"
+    },
+    {
+      "id": "k03_120",
+      "name": "BorgWarner K03-120 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_120.json"
+    },
+    {
+      "id": "k03_121",
+      "name": "BorgWarner K03-121 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_121.json"
+    },
+    {
+      "id": "k03_141",
+      "name": "BorgWarner K03-141 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_141.json"
+    },
+    {
+      "id": "k03_163",
+      "name": "BorgWarner K03-163 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_163.json"
+    },
+    {
+      "id": "k03_179",
+      "name": "BorgWarner K03-179 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_179.json"
+    },
+    {
+      "id": "k03_181",
+      "name": "BorgWarner K03-181 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_181.json"
+    },
+    {
+      "id": "k03_2080",
+      "name": "BorgWarner K03-2080 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_2080.json"
+    },
+    {
+      "id": "k03_217",
+      "name": "BorgWarner K03-217 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_217.json"
+    },
+    {
+      "id": "k03_243",
+      "name": "BorgWarner K03-243 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k03_243.json"
+    },
+    {
+      "id": "k04",
+      "name": "BorgWarner K04 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k04.json"
+    },
+    {
+      "id": "k04_0060",
+      "name": "BorgWarner K04-0060 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k04_0060.json"
+    },
+    {
+      "id": "k04_0061",
+      "name": "BorgWarner K04-0061 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k04_0061.json"
+    },
+    {
+      "id": "k04_024",
+      "name": "BorgWarner K04-024 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k04_024.json"
+    },
+    {
+      "id": "k04_033",
+      "name": "BorgWarner K04-033 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k04_033.json"
+    },
+    {
+      "id": "k04_048",
+      "name": "BorgWarner K04-048 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k04_048.json"
+    },
+    {
+      "id": "k04_064",
+      "name": "BorgWarner K04-064 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k04_064.json"
+    },
+    {
+      "id": "k04_130",
+      "name": "BorgWarner K04-130 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k04_130.json"
+    },
+    {
+      "id": "k04_2075",
+      "name": "BorgWarner K04-2075 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k04_2075.json"
+    },
+    {
+      "id": "k04_2283",
+      "name": "BorgWarner K04-2283 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k04_2283.json"
+    },
+    {
+      "id": "k16",
+      "name": "BorgWarner K16 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k16.json"
+    },
+    {
+      "id": "k16_2480",
+      "name": "BorgWarner K16-2480 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k16_2480.json"
+    },
+    {
+      "id": "k16_6726",
+      "name": "BorgWarner K16-6726 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k16_6726.json"
+    },
+    {
+      "id": "k16_6727",
+      "name": "BorgWarner K16-6727 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k16_6727.json"
+    },
+    {
+      "id": "k16_6735",
+      "name": "BorgWarner K16-6735 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k16_6735.json"
+    },
+    {
+      "id": "k16_6736",
+      "name": "BorgWarner K16-6736 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k16_6736.json"
+    },
+    {
+      "id": "k80",
+      "name": "BorgWarner K80 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/k80.json"
+    },
+    {
+      "id": "s200sx",
+      "name": "BorgWarner S200SX (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s200sx.json"
+    },
+    {
+      "id": "s200sx_e",
+      "name": "BorgWarner S200SX-E (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s200sx_e.json"
+    },
+    {
+      "id": "s200sx_r",
+      "name": "BorgWarner S200SX-R (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s200sx_r.json"
+    },
+    {
+      "id": "s300",
+      "name": "BorgWarner S300 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s300.json"
+    },
+    {
+      "id": "s300sx3",
+      "name": "BorgWarner S300SX3 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s300sx3.json"
+    },
+    {
+      "id": "s300sx_e",
+      "name": "BorgWarner S300SX-E (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s300sx_e.json"
+    },
+    {
+      "id": "s300sx_r",
+      "name": "BorgWarner S300SX-R (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s300sx_r.json"
+    },
+    {
+      "id": "s400sx",
+      "name": "BorgWarner S400SX (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s400sx.json"
+    },
+    {
+      "id": "s400sx3",
+      "name": "BorgWarner S400SX3 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s400sx3.json"
+    },
+    {
+      "id": "s400sx4",
+      "name": "BorgWarner S400SX4 (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s400sx4.json"
+    },
+    {
+      "id": "s400sx_e",
+      "name": "BorgWarner S400SX-E (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s400sx_e.json"
+    },
+    {
+      "id": "s410sx",
+      "name": "BorgWarner S410SX (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s410sx.json"
+    },
+    {
+      "id": "s500sx",
+      "name": "BorgWarner S500SX (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s500sx.json"
+    },
+    {
+      "id": "s500sx_e",
+      "name": "BorgWarner S500SX-E (Turbocharger)",
+      "type": "turbocharger",
+      "file": "data/parts/turbos/s500sx_e.json"
+    }
   ]
 }
