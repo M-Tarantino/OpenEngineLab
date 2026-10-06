@@ -1,293 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>OpenEngineLab — Motorsport Engine Physics Simulator</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/uplot/1.6.24/uplot.iife.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uplot/1.6.24/uplot.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenEngineLab — Engine Physics Simulator</title>
+<link rel="stylesheet" href="https://unpkg.com/uplot@1.6.24/dist/uPlot.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- Topbar with controls -->
-  <div class="topbar">
-    <div class="topbar-left">
-      <h1 class="topbar-title">OpenEngineLab</h1>
-    </div>
-    <div class="topbar-center">
-      <button id="btn-save" title="Save Setup (.oel file)" style="margin-right: 8px;">💾 Save</button>
-      <button id="btn-load" title="Load Setup (.oel file)" style="margin-right: 8px;">📂 Load</button>
-      <button id="btn-export-csv" title="Export simulation data as CSV" style="margin-right: 8px;">📊 Export</button>
-      <button id="btn-map-editor" title="Edit Fuel & Ignition Maps" style="margin-right: 8px;">⚙ MAPS</button>
-      <button id="btn-dyno-engine" title="Advanced Dyno Test with Real-Time Thermodynamics">🔥 DYNO v2</button>
-    </div>
-    <div class="topbar-right">
-      <button id="btn-compare" title="Compare two setups">⚔ Compare</button>
-      <button id="btn-launch" title="Launch Simulation">🚀 Launch</button>
-    </div>
-  </div>
-
-  <!-- Main content area -->
-  <div class="main-container">
-    <!-- Left panel: Input controls -->
-    <div id="left-panel" class="panel">
-      <div class="panel-header">Configuration</div>
-      
-      <!-- Scenario presets -->
-      <div class="section">
-        <h3>Quick Start</h3>
-        <button id="preset-launch" style="width: 100%; margin-bottom: 4px;">Launch (Aggressive)</button>
-        <button id="preset-trackday" style="width: 100%; margin-bottom: 4px;">Track Day (Safe)</button>
-        <button id="preset-street" style="width: 100%;">Street (Stock)</button>
-      </div>
-
-      <!-- Base Engine -->
-      <div class="section">
-        <label>Base Engine</label>
-        <select id="select-engine">
-          <option value="vr38dett">Nissan VR38DETT (3.8L Twin-Turbo)</option>
-          <option value="chrysler-3.8-v6-ohv">Chrysler 3.8L V6 OHV</option>
-          <option value="ford-kent-1-6">Ford Kent 1.6L</option>
-          <option value="honda-d15">Honda D15</option>
-          <option value="honda-d16">Honda D16</option>
-          <option value="toyota-3k">Toyota 3K</option>
-          <option value="toyota-4k">Toyota 4K</option>
-          <option value="toyota-5k">Toyota 5K</option>
-          <option value="toyota-7k">Toyota 7K</option>
-          <option value="vw-ea827-1-8">VW EA827 1.8L</option>
-          <option value="vw-ea827-2-0">VW EA827 2.0L</option>
-        </select>
-      </div>
-
-      <!-- Forced Induction -->
-      <div class="section">
-        <label>Forced Induction</label>
-        <select id="select-turbo">
-          <option value="none-na">None (N/A)</option>
-          <option value="garrett-g35">Garrett G35-900 (Turbo)</option>
-          <option value="ls-roots-blower">LS Roots Blower (SC)</option>
-          <option value="lysholm-sc-v3">Lysholm Screw SC V3 (SC)</option>
-        </select>
-      </div>
-
-      <!-- Geometry -->
-      <div class="section">
-        <h3>Geometry</h3>
-        <label>Bore (mm)
-          <input id="input-bore" type="number" step="0.1" value="95.5">
-        </label>
-        <label>Stroke (mm)
-          <input id="input-stroke" type="number" step="0.1" value="88.4">
-        </label>
-        <label>Compression Ratio
-          <input id="input-compression" type="number" step="0.1" value="8.5">
-        </label>
-      </div>
-
-      <!-- Modifications -->
-      <div class="section">
-        <h3>Modifications</h3>
-        <div id="mods-list" style="max-height: 150px; overflow-y: auto;"></div>
-      </div>
-
-      <!-- Transient Controls -->
-      <div class="section">
-        <h3>Transient</h3>
-        <label>Throttle
-          <input id="slider-throttle" type="range" min="0" max="1" step="0.01" value="0">
-        </label>
-        <span id="display-throttle">0%</span>
-        <label>Ambient Temp (°C)
-          <input id="input-ambient" type="number" step="1" value="25">
-        </label>
-        <label>Boost Target (bar)
-          <input id="slider-boost" type="range" min="0" max="2.5" step="0.1" value="1.0">
-        </label>
-        <span id="display-boost">1.0 bar</span>
-      </div>
-
-      <!-- Fuel -->
-      <div class="section">
-        <label>Fuel</label>
-        <select id="select-fuel">
-          <option value="regular-95">Regular 95 RON</option>
-          <option value="super-98">Super Plus 98 RON</option>
-          <option value="racing-100">Racing 100 RON</option>
-          <option value="e85">E85 (Ethanol Mix)</option>
-        </select>
-      </div>
-
-      <!-- Import -->
-      <div class="section">
-        <button id="btn-import" style="width: 100%;">📥 Import JSON</button>
-      </div>
-    </div>
-
-    <!-- Center panel: Visualization -->
-    <div id="center-panel" class="panel">
-      <div class="panel-header">Visualization</div>
-      
-      <!-- Dyno Test Button -->
-      <div style="margin-bottom: 16px;">
-        <button id="btn-dyno-test" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #FF6B35, #ff8c5a); border: none; color: white; font-weight: bold; border-radius: 4px; cursor: pointer;">
-          🔥 Dyno Test — WOT Pull (Click for Results)
-        </button>
-      </div>
-
-      <!-- Engine Schematic Tabs -->
-      <div id="schematic-tabs" style="display: flex; gap: 8px; margin-bottom: 12px;">
-        <button class="tab-btn active" data-tab="side">Side View</button>
-        <button class="tab-btn" data-tab="front">Front View</button>
-        <button class="tab-btn" data-tab="top">Top View</button>
-      </div>
-
-      <!-- SVG Schematic Container -->
-      <svg id="engine-schematic" width="100%" height="300" style="border: 1px solid #444; border-radius: 4px; background: #000;"></svg>
-
-      <!-- Live Charts -->
-      <div id="live-charts" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
-        <div style="border: 1px solid #444; border-radius: 4px; padding: 8px; background: #0a0a0a;">
-          <div style="font-size: 11px; color: #aaa; margin-bottom: 4px;">Power/Torque</div>
-          <div id="chart-power-torque" style="height: 200px;"></div>
-        </div>
-        <div style="border: 1px solid #444; border-radius: 4px; padding: 8px; background: #0a0a0a;">
-          <div style="font-size: 11px; color: #aaa; margin-bottom: 4px;">Oil Temp / Boost</div>
-          <div id="chart-thermal" style="height: 200px;"></div>
-        </div>
-      </div>
-
-      <!-- Fuel Map Heatmap -->
-      <div style="margin-top: 16px; border: 1px solid #444; border-radius: 4px; padding: 8px; background: #0a0a0a;">
-        <div style="font-size: 11px; color: #aaa; margin-bottom: 4px;">Fuel Map (Live Operating Point)</div>
-        <canvas id="fuel-map-canvas" width="400" height="200" style="border: 1px solid #333; border-radius: 4px; max-width: 100%; height: auto;"></canvas>
-      </div>
-
-      <!-- Map Editor Panel (hidden by default) -->
-      <div id="map-editor-panel" style="display: none; flex: 1; overflow-y: auto; flex-direction: column; margin-top: 16px; border-top: 1px solid #444; padding-top: 16px;"></div>
-
-      <!-- Dyno Engine Panel (hidden by default) -->
-      <div id="dyno-engine-panel" style="display: none; flex: 1; overflow-y: auto; flex-direction: column; margin-top: 16px; border-top: 1px solid #444; padding-top: 16px;"></div>
-    </div>
-
-    <!-- Right panel: Telemetry -->
-    <div id="right-panel" class="panel">
-      <div class="panel-header">Telemetry & Status</div>
-      
-      <!-- Live Readout -->
-      <div class="section">
-        <h3>Live Readout</h3>
-        <div class="readout-grid">
-          <div class="readout-item">
-            <div class="readout-label">RPM</div>
-            <div class="readout-value" id="display-rpm">800</div>
-          </div>
-          <div class="readout-item">
-            <div class="readout-label">Power</div>
-            <div class="readout-value" id="display-power">0</div>
-            <div class="readout-unit">hp</div>
-          </div>
-          <div class="readout-item">
-            <div class="readout-label">Torque</div>
-            <div class="readout-value" id="display-torque">0</div>
-            <div class="readout-unit">Nm</div>
-          </div>
-          <div class="readout-item">
-            <div class="readout-label">Boost</div>
-            <div class="readout-value" id="display-current-boost">0.0</div>
-            <div class="readout-unit">bar</div>
-          </div>
-          <div class="readout-item">
-            <div class="readout-label">AFR</div>
-            <div class="readout-value" id="display-afr">14.7</div>
-          </div>
-          <div class="readout-item">
-            <div class="readout-label">Oil Temp</div>
-            <div class="readout-value" id="display-oil-temp">20</div>
-            <div class="readout-unit">°C</div>
-          </div>
-          <div class="readout-item">
-            <div class="readout-label">Cyl Press</div>
-            <div class="readout-value" id="display-cyl-pressure">0</div>
-            <div class="readout-unit">bar</div>
-          </div>
-          <div class="readout-item">
-            <div class="readout-label">Knock Margin</div>
-            <div class="readout-value" id="display-knock-margin">+100</div>
-            <div class="readout-unit">%</div>
-          </div>
-          <div class="readout-item">
-            <div class="readout-label">Weakest Link SF</div>
-            <div class="readout-value" id="display-sf">∞</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Statistics -->
-      <div class="section">
-        <h3>Statistics (Rolling History)</h3>
-        <div class="readout-grid" style="font-size: 11px;">
-          <div>
-            <div style="color: #aaa;">Min RPM</div>
-            <div id="stat-min-rpm" style="color: #3ddc84; font-weight: bold;">800</div>
-          </div>
-          <div>
-            <div style="color: #aaa;">Max RPM</div>
-            <div id="stat-max-rpm" style="color: #FF6B35; font-weight: bold;">800</div>
-          </div>
-          <div>
-            <div style="color: #aaa;">Avg Oil Temp</div>
-            <div id="stat-avg-oil" style="color: #3ddc84; font-weight: bold;">20°C</div>
-          </div>
-          <div>
-            <div style="color: #aaa;">Max Cyl Press</div>
-            <div id="stat-max-cyl" style="color: #FF6B35; font-weight: bold;">0 bar</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Status Bar -->
-      <div class="section" style="background: #0a0a0a; padding: 12px; border-radius: 4px; border: 1px solid #333;">
-        <div style="display: flex; gap: 8px; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-size: 11px; color: #aaa;">Engine Status</div>
-            <div id="status-message" style="color: #3ddc84; font-weight: bold; font-size: 13px;">Idle</div>
-          </div>
-          <button id="btn-ignition" style="padding: 8px 16px; background: #FF6B35; border: none; color: #000; font-weight: bold; border-radius: 4px; cursor: pointer;">⏻ START</button>
-          <button id="btn-estop" style="padding: 8px 12px; background: #c41e3a; border: none; color: #fff; font-weight: bold; border-radius: 4px; cursor: pointer;">E-STOP</button>
-        </div>
-      </div>
-
-      <!-- Advisories -->
-      <div class="section" id="advisories-section" style="display: none;">
-        <h3>⚠ Advisories</h3>
-        <div id="advisories-list" style="font-size: 11px; color: #c41e3a;"></div>
-      </div>
+<header class="topbar">
+  <div class="brand">Open<span>Engine</span>Lab</div>
+  <div class="topbar-controls">
+    <select id="discipline-select" class="topbar-select" aria-label="Discipline"></select>
+    <select id="lang-select" class="topbar-select" aria-label="Language">
+      <option value="de">DE</option><option value="en">EN</option>
+      <option value="fr">FR</option><option value="es">ES</option>
+    </select>
+    <button id="undo-btn" class="icon-btn" title="Undo">↶</button>
+    <button id="redo-btn" class="icon-btn" title="Redo">↷</button>
+    <button id="save-setup-btn" class="icon-btn-text" title="Save Setup (.oel)">💾</button>
+    <button id="load-setup-btn" class="icon-btn-text" title="Load Setup (.oel)">📂</button>
+    <input type="file" id="load-setup-input" accept=".oel,application/json" style="display:none">
+    <button id="csv-export-btn" class="icon-btn-text" title="Export CSV">📊</button>
+    <button id="report-btn" class="icon-btn-text" title="Report">📄</button>
+    <button id="maps-editor-btn" class="icon-btn-text" title="Maps Editor">🗺️ Maps-Editor</button>
+    <button id="dyno-engine-btn" class="icon-btn-text" title="Live Dyno Test (time-based WOT run)">🔥 Dyno v2</button>
+    <div class="tabs" role="tablist">
+      <button id="tab-schematic" class="tab-btn active" role="tab" aria-selected="true">Schematic</button>
+      <button id="tab-kennfield" class="tab-btn" role="tab" aria-selected="false">Fuel Map</button>
+      <button id="tab-launch" class="tab-btn" role="tab" aria-selected="false">Launch</button>
+      <button id="tab-compare" class="tab-btn" role="tab" aria-selected="false">Compare</button>
     </div>
   </div>
+</header>
 
-  <!-- Hidden file input for import -->
-  <input type="file" id="hidden-import-input" style="display: none;" accept=".json,.oel">
+<main class="app-grid">
+  <aside id="left-panel" class="sidebar sidebar-left" aria-label="Input panel"></aside>
 
-  <!-- Scripts -->
-  <script src="js/engine.js"></script>
-  <script src="js/ecm.js"></script>
-  <script src="js/mods.js"></script>
-  <script src="js/benchmark.js"></script>
-  <script src="js/comparison.js"></script>
-  <script src="js/realism-check.js"></script>
-  <script src="js/disciplines.js"></script>
-  <script src="js/track.js"></script>
-  <script src="js/setup-io.js"></script>
-  <script src="js/report.js"></script>
-  <script src="js/i18n.js"></script>
-  <script src="js/renderer.js"></script>
-  <script src="js/worker.js"></script>
-  
-  <!-- New Features -->
-  <script src="js/map-editor.js"></script>
-  <script src="js/dyno-engine.js"></script>
-  
-  <!-- Main UI -->
-  <script src="js/ui.js"></script>
+  <section class="viewport">
+    <div id="schematic-container" class="schematic-container" aria-label="Engine schematic"></div>
+    <button id="dyno-test-btn" class="dyno-test-btn" title="Run a standardized wide-open-throttle dyno pull">▶ Dyno Test</button>
+    <div id="schematic-view-toggle" class="schematic-view-toggle">
+      <button id="view-side-btn" class="view-toggle-btn active" data-view="side">Side</button>
+      <button id="view-front-btn" class="view-toggle-btn" data-view="front">Front</button>
+      <button id="view-top-btn" class="view-toggle-btn" data-view="top">Top</button>
+    </div>
+    <div id="dyno-test-panel" class="dyno-test-panel" style="display:none"></div>
+    <div id="map-editor-panel" class="tool-panel" style="display:none"></div>
+    <div id="dyno-engine-panel" class="tool-panel" style="display:none"></div>
+    <div id="kennfield-view" class="kennfield-view" style="display:none">
+      <div class="kennfield-toolbar">
+        <label for="kennfield-select">Fuel Map</label>
+        <select id="kennfield-select">
+          <option value="ignition">Ignition Timing (° BTDC)</option>
+          <option value="fuel">Fuel Quantity (mg/cycle)</option>
+        </select>
+      </div>
+      <canvas id="kennfield-canvas" width="640" height="360"></canvas>
+    </div>
+    <div id="launch-view" class="launch-view" style="display:none"></div>
+    <div id="compare-view" class="compare-view" style="display:none"></div>
+    <div id="tooltip" class="tooltip" role="tooltip"></div>
+    <div id="hydrolock-banner" class="hydrolock-banner" style="display:none">
+      <div class="hydrolock-text"></div>
+      <button id="rebuild-engine-btn" class="rebuild-btn"></button>
+    </div>
+  </section>
+
+  <aside class="sidebar sidebar-right" aria-label="Live data">
+    <h2>Telemetry</h2>
+    <div id="live-readout" class="live-readout"></div>
+    <div id="chart-a" class="chart"></div>
+    <div id="chart-b" class="chart"></div>
+    <h3>Statistics (min / avg / max)</h3>
+    <div id="stats-panel" class="stats-panel"></div>
+  </aside>
+
+  <footer class="status-bar">
+    <span id="status-state" class="ok">RUNNING</span>
+    <span id="status-time">t=0.0s</span>
+    <span id="status-weakest" class="ok">Weakest Link: —</span>
+    <span id="status-drivetrain" class="drivetrain-status"></span>
+    <span id="status-advisory" class="advisory"></span>
+    <span id="status-flash" class="flash-msg"></span>
+    <button id="ignition-btn" class="ignition-btn off" title="Start/stop the engine">⏻ START/STOP</button>
+    <button id="estop" class="estop-btn" title="Emergency stop: immediate reset to a safe state">E-STOP</button>
+  </footer>
+</main>
+
+<script src="https://unpkg.com/uplot@1.6.24/dist/uPlot.iife.min.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/ecm.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/track.js"></script>
+<script src="js/disciplines.js"></script>
+<script src="js/report.js"></script>
+<script src="js/mods.js"></script>
+<script src="js/benchmark.js"></script>
+<script src="js/setup-io.js"></script>
+<script src="js/comparison.js"></script>
+<script src="js/realism-check.js"></script>
+<script src="js/map-editor.js"></script>
+<script src="js/dyno-engine.js"></script>
+<script src="js/ui.js"></script>
 </body>
 </html>
