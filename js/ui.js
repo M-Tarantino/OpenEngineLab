@@ -1,4 +1,3 @@
-
 /* OpenEngineLab :: js/ui.js — state, inputs, worker bridge, discipline modules, map editor & dyno v2 */
 (function () {
   "use strict";
@@ -7,6 +6,8 @@
   const T = (k, v) => OEL.I18N.t(k, v);
   const COMP_KEYS = { rod: "compRod", headBolt: "compHeadBolt", pistonPin: "compPistonPin", cylinderHead: "compCylinderHead", block: "compBlock" };
   const componentLabel = (id) => T(COMP_KEYS[id] || id);
+  // Safety factors explode when the load is near zero (engine off/idle); cap the displayed value
+  const formatSf = (sf) => (Number.isFinite(sf) && sf <= 99 ? sf.toFixed(2) : ">99");
 
   function qs(sel, root) { return (root || document).querySelector(sel); }
   function ce(tag, cls) { const e = document.createElement(tag); if (cls) e.className = cls; return e; }
@@ -602,7 +603,7 @@
       const axisOpts = { stroke: "#7C8894", grid: { stroke: "rgba(122,136,148,0.15)" } };
       app.chartA = new uPlot({
         width: chartAEl.clientWidth || 300, height: 150,
-        scales: { rpm: {}, boost: {} },
+        scales: { x: { time: false }, rpm: {}, boost: {} },
         series: [{}, { label: T("rpmUnit"), stroke: "#3DDC97", width: 1.5, scale: "rpm" },
           { label: "Boost (bar)", stroke: "#4A9EFF", width: 1.5, scale: "boost" }],
         axes: [Object.assign({}, axisOpts), Object.assign({ scale: "rpm" }, axisOpts), Object.assign({ scale: "boost", side: 1 }, axisOpts)]
@@ -610,7 +611,7 @@
 
       app.chartB = new uPlot({
         width: chartBEl.clientWidth || 300, height: 150,
-        scales: { temp: {}, press: {} },
+        scales: { x: { time: false }, temp: {}, press: {} },
         series: [{}, { label: `${T("oilTempLabel")} (°C)`, stroke: "#FFB627", width: 1.5, scale: "temp" },
           { label: `${T("cylPressureLabel")} (bar)`, stroke: "#FF6B1A", width: 1.5, scale: "press" }],
         axes: [Object.assign({}, axisOpts), Object.assign({ scale: "temp" }, axisOpts), Object.assign({ scale: "press", side: 1 }, axisOpts)]
@@ -640,7 +641,7 @@
       <div class="live-tile"><span class="live-label">${T("afrLabel")}</span><span class="live-value ${afrColor}">${result.afr.toFixed(1)}</span></div>
       <div class="live-tile"><span class="live-label">${T("oilTempLabel")}</span><span class="live-value">${result.oilTempC.toFixed(0)}°C</span></div>
       <div class="live-tile"><span class="live-label">${T("cylPressureLabel")}</span><span class="live-value ${knockClass}">${result.cylinderPressureBar.toFixed(1)} bar</span></div>
-      <div class="live-tile"><span class="live-label">${T("weakestLink")}</span><span class="live-value ${result.weakestLink.sf < 1.2 ? "warn" : ""}">${componentLabel(result.weakestLink.id)} ${result.weakestLink.sf.toFixed(2)}×</span></div>
+      <div class="live-tile"><span class="live-label">${T("weakestLink")}</span><span class="live-value ${result.weakestLink.sf < 1.2 ? "warn" : ""}">${componentLabel(result.weakestLink.id)} ${formatSf(result.weakestLink.sf)}×</span></div>
     `;
   }
 
@@ -708,7 +709,7 @@
     const w = result.weakestLink;
     const wEl = qs("#status-weakest");
     if (wEl) {
-      wEl.textContent = `${T("weakestLink")}: ${componentLabel(w.id)} @ SF ${w.sf.toFixed(2)}`;
+      wEl.textContent = `${T("weakestLink")}: ${componentLabel(w.id)} @ SF ${formatSf(w.sf)}`;
       wEl.className = w.sf < 1.0 ? "critical" : (w.sf < 1.43 ? "warn" : "ok");
     }
     const advisory = qs("#status-advisory");
@@ -991,7 +992,7 @@
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpPeakPower")}</span><span class="live-value">${benchmark.peak.powerHp.toFixed(0)} hp @ ${benchmark.peak.powerHpRpm.toFixed(0)} rpm</span></div>` +
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpPeakTorque")}</span><span class="live-value">${benchmark.peak.brakeTorqueNm.toFixed(0)} Nm @ ${benchmark.peak.torqueRpm.toFixed(0)} rpm</span></div>` +
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpOilTempPeak")}</span><span class="live-value">${benchmark.peak.oilTempC.toFixed(0)}°C</span></div>` +
-        `<div class="dyno-peak-tile"><span class="live-label">${T("cmpWeakestSf")}</span><span class="live-value">${benchmark.peak.weakestSfMin.toFixed(2)}×</span></div>` +
+        `<div class="dyno-peak-tile"><span class="live-label">${T("cmpWeakestSf")}</span><span class="live-value">${formatSf(benchmark.peak.weakestSfMin)}×</span></div>` +
         `</div>` +
         `<div id="dyno-chart" class="chart" style="height:220px;margin:12px 0"></div>` +
         `<div class="launch-summary">`;
@@ -1009,7 +1010,7 @@
       if (dynoChartEl) {
         app.dynoChart = new uPlot({
           width: dynoChartEl.clientWidth || 400, height: 200,
-          scales: { hp: {}, nm: {} },
+          scales: { x: { time: false }, hp: {}, nm: {} },
           series: [
             { label: T("rpmUnit") },
             { label: `${T("cmpPeakPower")} (hp)`, stroke: "#3DDC97", width: 2, scale: "hp" },
@@ -1210,7 +1211,7 @@
         if (launchChartEl) {
           app.launchChart = new uPlot({
             width: launchChartEl.clientWidth || 500, height: 240,
-            scales: { rpm: {}, other: {} },
+            scales: { x: { time: false }, rpm: {}, other: {} },
             series: [
               {},
               { label: T("rpmUnit"), stroke: "#3DDC97", width: 1.5, scale: "rpm" },
