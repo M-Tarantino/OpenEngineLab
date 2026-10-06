@@ -1,3 +1,4 @@
+
 /* OpenEngineLab :: js/ui.js — state, inputs, worker bridge, discipline modules, map editor & dyno v2 */
 (function () {
   "use strict";
@@ -960,7 +961,7 @@
           app.profiles.engine,
           app.profiles.turbo,
           fuel,
-          { title: `Dyno v2 — ${app.profiles.engine.name}` }
+          { title: `Dyno v2 — ${app.profiles.engine.name}`, boostTargetBar: app.controls.boostTargetBar }
         );
       });
     });
