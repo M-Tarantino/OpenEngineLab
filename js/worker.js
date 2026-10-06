@@ -89,6 +89,18 @@ self.onmessage = function (e) {
       if (msg.target === "geometry") Object.assign(simState.engine.geometry, msg.data);
       else if (msg.target === "fuel") simState.fuel = msg.data;
       break;
+    case "setMap": {
+      // Overwrite the worker-side ECU map in place so edits made in the UI reach the simulation
+      const target = msg.map === "FUEL" ? OEL.ECM.FUEL_MAP : msg.map === "IGN" ? OEL.ECM.IGN_MAP : null;
+      if (!target || !Array.isArray(msg.data)) break;
+      for (let r = 0; r < target.length && r < msg.data.length; r++) {
+        for (let c = 0; c < target[r].length && c < msg.data[r].length; c++) {
+          const v = Number(msg.data[r][c]);
+          if (Number.isFinite(v)) target[r][c] = v;
+        }
+      }
+      break;
+    }
     case "importProfile":
       if (!simState) break;
       if (msg.kind === "engine") buildState(msg.data, simState.turbo, simState.fuel, extrasOf(simState));
