@@ -1,0 +1,18 @@
+/* OpenEngineLab :: css/tools.css — overlay panels for Map Editor and Dyno v2 (independent of style.css) */
+.tool-panel {
+  position: absolute; inset: 0; z-index: 30;
+  display: none; flex-direction: column; gap: 12px;
+  padding: 16px; overflow-y: auto;
+  background: var(--bg-void, #0A0D10);
+}
+.tool-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border, #262F37);
+}
+.tool-panel-header h2 { margin: 0; }
+.tool-panel-body { display: flex; flex-direction: column; gap: 16px; }
+
+/* Phones: panels cover the whole screen so headers are never clipped by the short viewport */
+@media (max-width: 900px) {
+  .tool-panel { position: fixed; inset: 0; z-index: 1000; }
+}
