@@ -31,6 +31,7 @@
       isPaused: false,
       startTime: 0,
       elapsedSeconds: 0,
+      boostTargetBar: (Number.isFinite(labels.boostTargetBar) && labels.boostTargetBar > 0) ? labels.boostTargetBar : 1.0,
       timeScale: 1.0, // 1.0 = realtime, 10.0 = 10x speed
       dt: 0.01, // 10ms sim steps
       maxDuration: 20, // seconds
@@ -215,6 +216,9 @@
     dyno.canvas.style.border = "1px solid #333";
     dyno.canvas.style.borderRadius = "4px";
     dyno.canvas.style.backgroundColor = "#000";
+    dyno.canvas.style.width = "100%";
+    dyno.canvas.style.height = "auto";
+    dyno.canvas.style.aspectRatio = "2 / 1";
     dyno.container.appendChild(dyno.canvas);
 
     // Results section
@@ -239,6 +243,8 @@
     dyno.knockDetected = false;
     dyno.hydrolockDetected = false;
     dyno.elapsedSeconds = 0;
+    dyno.stepAccumulator = 0;
+    dyno.knockSince = null;
     
     dyno.isRunning = true;
     dyno.isPaused = false;
@@ -258,81 +264,93 @@
 
     if (!dyno.isPaused) {
       const now = performance.now();
-      const realDt = (now - dyno.startTime) / 1000;
+      // Clamp real frame time so a background tab cannot trigger a huge catch-up burst
+      const realDt = Math.min((now - dyno.startTime) / 1000, 0.1);
       dyno.startTime = now;
-      dyno.elapsedSeconds += realDt * dyno.timeScale;
+      dyno.stepAccumulator += realDt * dyno.timeScale;
 
-      const ecmOut = OEL.ECM.computeCycle(dyno.ecm, dyno.engine, dyno.turbo, {
-        rpm: dyno.state.rpm,
-        throttle01: 1.0,
-        boostBar: dyno.state.boostBar,
-        boostTargetBar: 2.0,
-        knockDetected: dyno.state.knockDetected,
-        dt: dyno.dt
-      });
-
-      const result = OEL.Engine.step(dyno.state, dyno.dt, {
-        throttle01: 1.0,
-        ambientC: 25,
-        baroBar: 1.0,
-        boostCommandBar: ecmOut.boostCommandBar,
-        ignitionAdvanceDeg: ecmOut.ignitionAdvanceDeg,
-        cutIgnition: ecmOut.cutIgnition,
-        nitrousActive: false,
-        hybridDeployKw: 0,
-        drivetrain: null
-      });
-
-      dyno.history.push({
-        t: dyno.elapsedSeconds,
-        rpm: dyno.state.rpm,
-        power: result.powerHp,
-        torque: result.brakeTorqueNm,
-        boost: dyno.state.boostBar,
-        oilTemp: dyno.state.oilTempC,
-        cylinderPressure: result.cylinderPressureBar,
-        knockMargin: result.knockMarginPercent,
-        weakestLinkSf: result.weakestLink.sf
-      });
-
-      dyno.peakPower = Math.max(dyno.peakPower, result.powerHp);
-      dyno.peakTorque = Math.max(dyno.peakTorque, result.brakeTorqueNm);
-      dyno.peakOilTemp = Math.max(dyno.peakOilTemp, dyno.state.oilTempC);
-      dyno.peakCylinderPressure = Math.max(dyno.peakCylinderPressure, result.cylinderPressureBar);
-      dyno.knockMarginMin = Math.min(dyno.knockMarginMin, result.knockMarginPercent);
-      
-      if (dyno.state.knockDetected) dyno.knockDetected = true;
-      if (dyno.state.hydrolockFailure) dyno.hydrolockDetected = true;
-
-      _updateDynoStatus(dyno);
-      _drawDynoChart(dyno);
-
-      // Stop conditions
       const maxRpm = dyno.engine.revLimiterRPM || 7100;
-      if (dyno.state.rpm >= maxRpm) {
-        _stopDyno(dyno);
-        return;
-      }
+      let finished = false;
+      let steps = 0;
 
-      if (dyno.elapsedSeconds > dyno.maxDuration) {
-        _stopDyno(dyno);
-        return;
-      }
+      while (dyno.stepAccumulator >= dyno.dt && steps < 2000 && !finished) {
+        dyno.stepAccumulator -= dyno.dt;
+        steps++;
+        dyno.elapsedSeconds += dyno.dt;
 
-      if (dyno.knockDetected || dyno.hydrolockDetected) {
-        if (dyno.elapsedSeconds > 1.5) {
-          _stopDyno(dyno);
-          return;
+        const ecmOut = OEL.ECM.computeCycle(dyno.ecm, dyno.engine, dyno.turbo, {
+          rpm: dyno.state.rpm,
+          throttle01: 1.0,
+          boostBar: dyno.state.boostBar,
+          boostTargetBar: dyno.boostTargetBar,
+          knockDetected: dyno.state.knockDetected,
+          dt: dyno.dt
+        });
+
+        const result = OEL.Engine.step(dyno.state, dyno.dt, {
+          throttle01: 1.0,
+          ambientC: 25,
+          baroBar: 1.0,
+          boostCommandBar: ecmOut.boostCommandBar,
+          ignitionAdvanceDeg: ecmOut.ignitionAdvanceDeg,
+          cutIgnition: ecmOut.cutIgnition,
+          nitrousActive: false,
+          hybridDeployKw: 0,
+          drivetrain: null
+        });
+
+        // Knock margin is derived the same way as in the standard benchmark
+        const knockMarginPercent = result.knockLimitBar > 0
+          ? ((result.knockLimitBar - result.cylinderPressureBar) / result.knockLimitBar) * 100
+          : 0;
+        const sf = result.weakestLink && Number.isFinite(result.weakestLink.sf) ? result.weakestLink.sf : 99;
+
+        dyno.history.push({
+          t: dyno.elapsedSeconds,
+          rpm: dyno.state.rpm,
+          power: result.powerHp,
+          torque: result.brakeTorqueNm,
+          boost: dyno.state.boostBar,
+          oilTemp: dyno.state.oilTempC,
+          cylinderPressure: result.cylinderPressureBar,
+          knockMargin: knockMarginPercent,
+          weakestLinkSf: sf
+        });
+
+        dyno.peakPower = Math.max(dyno.peakPower, result.powerHp);
+        dyno.peakTorque = Math.max(dyno.peakTorque, result.brakeTorqueNm);
+        dyno.peakOilTemp = Math.max(dyno.peakOilTemp, dyno.state.oilTempC);
+        dyno.peakCylinderPressure = Math.max(dyno.peakCylinderPressure, result.cylinderPressureBar);
+        dyno.knockMarginMin = Math.min(dyno.knockMarginMin, knockMarginPercent);
+
+        if (dyno.state.knockDetected) {
+          if (dyno.knockSince == null) dyno.knockSince = dyno.elapsedSeconds;
+          dyno.knockDetected = true;
+        } else {
+          dyno.knockSince = null;
         }
+        if (dyno.state.hydrolockFailure) dyno.hydrolockDetected = true;
+
+        // Stop conditions: rev limiter, time limit, 0.5 s of sustained knock, hydrolock, structural failure
+        if (dyno.state.rpm >= maxRpm) finished = true;
+        else if (dyno.elapsedSeconds > dyno.maxDuration) finished = true;
+        else if (dyno.knockSince != null && dyno.elapsedSeconds - dyno.knockSince > 0.5) finished = true;
+        else if (dyno.hydrolockDetected) finished = true;
+        else if (sf < 1.0) finished = true;
       }
 
-      if (result.weakestLink.sf < 1.0) {
+      if (dyno.history.length > 0) {
+        _updateDynoStatus(dyno);
+        _drawDynoChart(dyno);
+      }
+
+      if (finished) {
         _stopDyno(dyno);
         return;
       }
     }
 
-    requestAnimationFrame(() => _runDynoLoop(dyno));
+    dyno.rafId = requestAnimationFrame(() => _runDynoLoop(dyno));
   }
 
   function _updateDynoStatus(dyno) {
@@ -347,7 +365,7 @@
       { label: "Boost", value: latest.boost.toFixed(2) + " bar" },
       { label: "Oil Temp", value: latest.oilTemp.toFixed(1) + "°C" },
       { label: "Cyl Press", value: latest.cylinderPressure.toFixed(1) + " bar" },
-      { label: "Knock Margin", value: latest.knockMargin.toFixed(1) + "%" },
+      { label: "Knock Margin", value: (Number.isFinite(latest.knockMargin) ? latest.knockMargin.toFixed(1) : "—") + "%" },
       { label: "SF", value: latest.weakestLinkSf.toFixed(2) + "×", color: latest.weakestLinkSf < 1.0 ? "#c41e3a" : "#3ddc84" }
     ];
 
@@ -454,6 +472,7 @@
 
   function _stopDyno(dyno) {
     dyno.isRunning = false;
+    if (dyno.rafId != null) { cancelAnimationFrame(dyno.rafId); dyno.rafId = null; }
 
     document.getElementById("dyno-start-btn").disabled = false;
     document.getElementById("dyno-pause-btn").disabled = true;
