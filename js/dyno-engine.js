@@ -34,7 +34,14 @@
       boostTargetBar: (Number.isFinite(labels.boostTargetBar) && labels.boostTargetBar > 0) ? labels.boostTargetBar : 1.0,
       timeScale: 1.0, // 1.0 = realtime, 10.0 = 10x speed
       dt: 0.01, // 10ms sim steps
-      maxDuration: 20, // seconds
+      maxDuration: 20, // seconds (safety limit)
+      // Controlled rpm sweep (inertia-dyno style): rpm is prescribed, torque/power are measured at each point
+      sweepRateRpmPerS: (Number.isFinite(labels.sweepRateRpmPerS) && labels.sweepRateRpmPerS > 0) ? labels.sweepRateRpmPerS : 500,
+      sweepStartRpm: Math.max(1500, Math.ceil(((engine && engine.idleRPM) || 800) * 1.5 / 100) * 100),
+      // Knock is recorded and reported; it only aborts the sweep when explicitly requested via labels.stopOnKnock
+      stopOnKnock: labels.stopOnKnock === true,
+      peakPowerRpm: 0,
+      peakTorqueRpm: 0,
       
       // Data recording
       history: [],
@@ -233,10 +240,13 @@
   function _startDyno(dyno) {
     dyno.state = OEL.Engine.createState(dyno.engine, dyno.turbo, dyno.fuel, {});
     dyno.ecm = OEL.ECM.createState();
+    dyno.state.rpm = dyno.sweepStartRpm;
     
     dyno.history = [];
     dyno.peakPower = 0;
     dyno.peakTorque = 0;
+    dyno.peakPowerRpm = 0;
+    dyno.peakTorqueRpm = 0;
     dyno.peakOilTemp = 0;
     dyno.peakCylinderPressure = 0;
     dyno.knockMarginMin = 999;
@@ -276,6 +286,9 @@
       while (dyno.stepAccumulator >= dyno.dt && steps < 2000 && !finished) {
         dyno.stepAccumulator -= dyno.dt;
         steps++;
+        // Prescribed engine speed for this step; the engine model still computes torque, power and thermals
+        const targetRpm = Math.min(maxRpm, dyno.sweepStartRpm + dyno.sweepRateRpmPerS * dyno.elapsedSeconds);
+        dyno.state.rpm = targetRpm;
         dyno.elapsedSeconds += dyno.dt;
 
         const ecmOut = OEL.ECM.computeCycle(dyno.ecm, dyno.engine, dyno.turbo, {
@@ -307,7 +320,7 @@
 
         dyno.history.push({
           t: dyno.elapsedSeconds,
-          rpm: dyno.state.rpm,
+          rpm: result.rpm,
           power: result.powerHp,
           torque: result.brakeTorqueNm,
           boost: dyno.state.boostBar,
@@ -317,8 +330,8 @@
           weakestLinkSf: sf
         });
 
-        dyno.peakPower = Math.max(dyno.peakPower, result.powerHp);
-        dyno.peakTorque = Math.max(dyno.peakTorque, result.brakeTorqueNm);
+        if (result.powerHp > dyno.peakPower) { dyno.peakPower = result.powerHp; dyno.peakPowerRpm = result.rpm; }
+        if (result.brakeTorqueNm > dyno.peakTorque) { dyno.peakTorque = result.brakeTorqueNm; dyno.peakTorqueRpm = result.rpm; }
         dyno.peakOilTemp = Math.max(dyno.peakOilTemp, dyno.state.oilTempC);
         dyno.peakCylinderPressure = Math.max(dyno.peakCylinderPressure, result.cylinderPressureBar);
         dyno.knockMarginMin = Math.min(dyno.knockMarginMin, knockMarginPercent);
@@ -331,10 +344,10 @@
         }
         if (dyno.state.hydrolockFailure) dyno.hydrolockDetected = true;
 
-        // Stop conditions: rev limiter, time limit, 0.5 s of sustained knock, hydrolock, structural failure
-        if (dyno.state.rpm >= maxRpm) finished = true;
+        // Stop conditions: sweep reached the rev limiter, time limit, optional sustained knock (0.5 s), hydrolock, structural failure
+        if (targetRpm >= maxRpm) finished = true;
         else if (dyno.elapsedSeconds > dyno.maxDuration) finished = true;
-        else if (dyno.knockSince != null && dyno.elapsedSeconds - dyno.knockSince > 0.5) finished = true;
+        else if (dyno.stopOnKnock && dyno.knockSince != null && dyno.elapsedSeconds - dyno.knockSince > 0.5) finished = true;
         else if (dyno.hydrolockDetected) finished = true;
         else if (sf < 1.0) finished = true;
       }
@@ -353,6 +366,11 @@
     dyno.rafId = requestAnimationFrame(() => _runDynoLoop(dyno));
   }
 
+  // Safety factors explode toward infinity when the load is near zero; show a capped value instead
+  function _fmtSf(sf) {
+    return Number.isFinite(sf) && sf <= 99 ? sf.toFixed(2) : ">99";
+  }
+
   function _updateDynoStatus(dyno) {
     const latest = dyno.history[dyno.history.length - 1];
     if (!latest) return;
@@ -366,7 +384,7 @@
       { label: "Oil Temp", value: latest.oilTemp.toFixed(1) + "°C" },
       { label: "Cyl Press", value: latest.cylinderPressure.toFixed(1) + " bar" },
       { label: "Knock Margin", value: (Number.isFinite(latest.knockMargin) ? latest.knockMargin.toFixed(1) : "—") + "%" },
-      { label: "SF", value: latest.weakestLinkSf.toFixed(2) + "×", color: latest.weakestLinkSf < 1.0 ? "#c41e3a" : "#3ddc84" }
+      { label: "SF", value: _fmtSf(latest.weakestLinkSf) + "×", color: latest.weakestLinkSf < 1.0 ? "#c41e3a" : "#3ddc84" }
     ];
 
     dyno.statusDiv.innerHTML = statusItems.map(item => {
@@ -376,98 +394,107 @@
     }).join("");
   }
 
+  // Rounds a maximum up so that `divisions` equal grid steps land on "nice" numbers
+  function _niceCeil(value, divisions) {
+    if (!(value > 0)) return divisions;
+    const raw = value / divisions;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const norm = raw / mag;
+    const steps = [1, 1.5, 2, 2.5, 3, 4, 5, 8, 10];
+    let step = 10;
+    for (let i = 0; i < steps.length; i++) {
+      if (norm <= steps[i]) { step = steps[i]; break; }
+    }
+    return step * mag * divisions;
+  }
+
   function _drawDynoChart(dyno) {
     const canvas = dyno.canvas;
     const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (dyno.history.length < 2) return;
-
     const w = canvas.width;
     const h = canvas.height;
-    const margin = 40;
-    const graphW = w - margin * 2;
-    const graphH = h - margin * 2;
+    ctx.clearRect(0, 0, w, h);
+    if (dyno.history.length < 2) return;
 
-    // Background grid
-    ctx.strokeStyle = "#222";
+    const mL = 56, mR = 56, mT = 28, mB = 44;
+    const gW = w - mL - mR;
+    const gH = h - mT - mB;
+    const DIV = 5;
+
+    const xMin = dyno.sweepStartRpm;
+    const xMax = Math.max(xMin + 1, dyno.engine.revLimiterRPM || 7100);
+
+    let peakP = 0;
+    let peakT = 0;
+    for (let i = 0; i < dyno.history.length; i++) {
+      if (dyno.history[i].power > peakP) peakP = dyno.history[i].power;
+      if (dyno.history[i].torque > peakT) peakT = dyno.history[i].torque;
+    }
+    // Each quantity has its own axis; both share the same 5 grid lines
+    const pMax = _niceCeil(peakP, DIV);
+    const tMax = _niceCeil(peakT, DIV);
+
+    const xOf = (rpm) => mL + ((rpm - xMin) / (xMax - xMin)) * gW;
+    const yOf = (v, vMax) => mT + gH - (v / vMax) * gH;
+
+    ctx.font = "11px monospace";
     ctx.lineWidth = 0.5;
-    for (let i = 0; i <= 10; i++) {
-      const x = margin + (i / 10) * graphW;
-      const y = margin + (i / 10) * graphH;
-      ctx.beginPath();
-      ctx.moveTo(x, margin);
-      ctx.lineTo(x, margin + graphH);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(margin, y);
-      ctx.lineTo(margin + graphW, y);
-      ctx.stroke();
+
+    // Horizontal grid with both y-axis labels
+    for (let i = 0; i <= DIV; i++) {
+      const y = mT + gH - (i / DIV) * gH;
+      ctx.strokeStyle = "#222";
+      ctx.beginPath(); ctx.moveTo(mL, y); ctx.lineTo(mL + gW, y); ctx.stroke();
+      ctx.fillStyle = "#FF6B35"; ctx.textAlign = "right";
+      ctx.fillText(String(Math.round((pMax * i) / DIV)), mL - 6, y + 4);
+      ctx.fillStyle = "#3ddc84"; ctx.textAlign = "left";
+      ctx.fillText(String(Math.round((tMax * i) / DIV)), mL + gW + 6, y + 4);
+    }
+
+    // Vertical grid with rpm labels
+    const xStep = (xMax - xMin) > 4000 ? 1000 : 500;
+    ctx.textAlign = "center";
+    for (let r = Math.ceil(xMin / xStep) * xStep; r <= xMax; r += xStep) {
+      const x = xOf(r);
+      ctx.strokeStyle = "#222";
+      ctx.beginPath(); ctx.moveTo(x, mT); ctx.lineTo(x, mT + gH); ctx.stroke();
+      ctx.fillStyle = "#aaa";
+      ctx.fillText(String(r), x, mT + gH + 16);
     }
 
     // Axes
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(margin, margin);
-    ctx.lineTo(margin, margin + graphH);
-    ctx.lineTo(margin + graphW, margin + graphH);
+    ctx.moveTo(mL, mT);
+    ctx.lineTo(mL, mT + gH);
+    ctx.lineTo(mL + gW, mT + gH);
+    ctx.lineTo(mL + gW, mT);
     ctx.stroke();
 
-    // Axis labels
-    ctx.fillStyle = "#aaa";
-    ctx.font = "11px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText("Time (s)", margin + graphW / 2, h - 8);
-    ctx.save();
-    ctx.translate(12, margin + graphH / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.fillText("Power (hp)", 0, 0);
-    ctx.restore();
+    // Curves over engine speed
+    const plotCurve = (key, vMax, color) => {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < dyno.history.length; i++) {
+        const pt = dyno.history[i];
+        const x = xOf(pt.rpm);
+        const y = yOf(pt[key], vMax);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    };
+    plotCurve("power", pMax, "#FF6B35");
+    plotCurve("torque", tMax, "#3ddc84");
 
-    // Find max power for scaling
-    let maxPower = Math.max(...dyno.history.map(h => h.power)) * 1.1;
-    let maxTime = dyno.history[dyno.history.length - 1].t;
-
-    // Draw power curve
-    ctx.strokeStyle = "#FF6B35";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let i = 0; i < dyno.history.length; i++) {
-      const point = dyno.history[i];
-      const x = margin + (point.t / maxTime) * graphW;
-      const y = margin + graphH - (point.power / maxPower) * graphH;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    // Draw torque curve
-    ctx.strokeStyle = "#3ddc84";
-    ctx.lineWidth = 2;
-    let maxTorque = Math.max(...dyno.history.map(h => h.torque)) * 1.1;
-    ctx.beginPath();
-    for (let i = 0; i < dyno.history.length; i++) {
-      const point = dyno.history[i];
-      const x = margin + (point.t / maxTime) * graphW;
-      const y = margin + graphH - (point.torque / maxTorque) * graphH;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    // Legend
-    ctx.fillStyle = "#FF6B35";
-    ctx.fillRect(w - 140, 12, 8, 8);
-    ctx.fillStyle = "#fff";
-    ctx.font = "11px monospace";
-    ctx.textAlign = "left";
-    ctx.fillText("Power (hp)", w - 128, 18);
-
-    ctx.fillStyle = "#3ddc84";
-    ctx.fillRect(w - 140, 28, 8, 8);
-    ctx.fillStyle = "#fff";
-    ctx.fillText("Torque (Nm)", w - 128, 34);
+    // Axis titles
+    ctx.fillStyle = "#FF6B35"; ctx.textAlign = "left";
+    ctx.fillText("Power (hp)", mL, 16);
+    ctx.fillStyle = "#3ddc84"; ctx.textAlign = "right";
+    ctx.fillText("Torque (Nm)", mL + gW, 16);
+    ctx.fillStyle = "#aaa"; ctx.textAlign = "center";
+    ctx.fillText("Engine speed (rpm)", mL + gW / 2, h - 6);
   }
 
   function _stopDyno(dyno) {
@@ -494,8 +521,8 @@
 
     const resultItems = [
       { label: "Duration", value: dyno.elapsedSeconds.toFixed(2) + "s" },
-      { label: "Peak Power", value: dyno.peakPower.toFixed(0) + " hp" },
-      { label: "Peak Torque", value: dyno.peakTorque.toFixed(0) + " Nm" },
+      { label: "Peak Power", value: dyno.peakPower.toFixed(0) + " hp @ " + Math.round(dyno.peakPowerRpm) + " rpm" },
+      { label: "Peak Torque", value: dyno.peakTorque.toFixed(0) + " Nm @ " + Math.round(dyno.peakTorqueRpm) + " rpm" },
       { label: "Peak Oil Temp", value: dyno.peakOilTemp.toFixed(1) + "°C" },
       { label: "Peak Cyl Pressure", value: dyno.peakCylinderPressure.toFixed(1) + " bar" },
       { label: "Knock Margin Min", value: dyno.knockMarginMin.toFixed(1) + "%" },
