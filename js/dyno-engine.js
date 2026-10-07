@@ -1,15 +1,16 @@
-/* OpenEngineLab :: js/dyno-engine.js — Advanced Dyno Test with Real-Time Thermodynamics */
+/* OpenEngineLab :: js/dyno-engine.js — live Dyno v2: renders the shared sweep core from OEL.Benchmark in real time */
 (function (root) {
   "use strict";
 
   /**
-   * DynoEngine: Realistic wide-open-throttle pull simulation
-   * - Time-based simulation (not static peak values)
-   * - Real thermodynamics: oil temp, chamber temp, cylinder pressure evolution
-   * - Live graphical recording with pause/resume
-   * - Automatic stop on knock or critical conditions
-   * - Configurable speed (realtime or fast-forward up to 10×)
-   * - Peak detection and results display
+   * DynoEngine: live view of the standardized WOT sweep.
+   * - Steps the exact same core as the Dyno Test, Comparison Mode and Realism Check
+   *   (OEL.Benchmark.createSweepRun), so identical setups give identical numbers
+   * - Controlled rpm sweep after a full-throttle spool-up hold
+   * - Live power/torque-vs-rpm chart with independent axes, pause/resume, 1x/5x/10x speed
+   * - Peak detection, knock/hydrolock/structural reporting after the run
+   *
+   * labels: { title, showHeader, boostTargetBar, ambientC, baroBar, sweepRateRpmPerS, drivelineLossPct, onDrivelineLossChange }
    */
 
   function createDynoTest(containerDivId, engine, turbo, fuel, labels) {
@@ -25,34 +26,14 @@
       turbo,
       fuel,
       labels,
-      state: null,
-      ecm: null,
+      run: null,
       isRunning: false,
       isPaused: false,
-      startTime: 0,
-      elapsedSeconds: 0,
-      boostTargetBar: (Number.isFinite(labels.boostTargetBar) && labels.boostTargetBar > 0) ? labels.boostTargetBar : 1.0,
+      lastFrameTime: 0,
+      stepAccumulator: 0,
       timeScale: 1.0, // 1.0 = realtime, 10.0 = 10x speed
-      dt: 0.01, // 10ms sim steps
-      maxDuration: 20, // seconds (safety limit)
-      // Controlled rpm sweep (inertia-dyno style): rpm is prescribed, torque/power are measured at each point
-      sweepRateRpmPerS: (Number.isFinite(labels.sweepRateRpmPerS) && labels.sweepRateRpmPerS > 0) ? labels.sweepRateRpmPerS : 500,
-      sweepStartRpm: Math.max(1500, Math.ceil(((engine && engine.idleRPM) || 800) * 1.5 / 100) * 100),
-      // Knock is recorded and reported; it only aborts the sweep when explicitly requested via labels.stopOnKnock
-      stopOnKnock: labels.stopOnKnock === true,
-      peakPowerRpm: 0,
-      peakTorqueRpm: 0,
-      
-      // Data recording
-      history: [],
-      peakPower: 0,
-      peakTorque: 0,
-      peakOilTemp: 0,
-      peakCylinderPressure: 0,
-      knockMarginMin: 999,
-      knockDetected: false,
-      hydrolockDetected: false,
-      
+      rafId: null,
+
       // UI
       container,
       canvas: null,
@@ -76,7 +57,7 @@
     dyno.container.style.color = "#fff";
     dyno.container.style.fontFamily = "JetBrains Mono, monospace";
 
-    // Title + Close
+    // Title + Close (optional: the host panel may provide its own)
     const header = document.createElement("div");
     header.style.display = "flex";
     header.style.justifyContent = "space-between";
@@ -102,11 +83,11 @@
     closeBtn.style.cursor = "pointer";
     closeBtn.style.fontSize = "18px";
     closeBtn.onclick = () => {
-      _stopDyno(dyno);
+      if (dyno.isRunning) _stopDyno(dyno);
       dyno.container.style.display = "none";
     };
     header.appendChild(closeBtn);
-    dyno.container.appendChild(header);
+    if (dyno.labels.showHeader !== false) dyno.container.appendChild(header);
 
     // Controls
     dyno.controlsDiv = document.createElement("div");
@@ -201,6 +182,36 @@
     };
     dyno.controlsDiv.appendChild(speedSelect);
 
+    // Driveline loss (crank power -> wheel power); applied when the next run starts
+    const lossLabel = document.createElement("span");
+    lossLabel.textContent = "Driveline loss (%): ";
+    lossLabel.style.color = "#aaa";
+    lossLabel.style.fontSize = "12px";
+    dyno.controlsDiv.appendChild(lossLabel);
+
+    const lossInput = document.createElement("input");
+    lossInput.id = "dyno-loss-input";
+    lossInput.type = "number";
+    lossInput.min = "0";
+    lossInput.max = "60";
+    lossInput.step = "1";
+    lossInput.value = String(Number.isFinite(dyno.labels.drivelineLossPct) ? dyno.labels.drivelineLossPct : OEL.Benchmark.DEFAULT_DRIVELINE_LOSS_PCT);
+    lossInput.style.width = "64px";
+    lossInput.style.padding = "4px 8px";
+    lossInput.style.border = "1px solid #555";
+    lossInput.style.borderRadius = "4px";
+    lossInput.style.backgroundColor = "#222";
+    lossInput.style.color = "#fff";
+    lossInput.style.fontSize = "12px";
+    lossInput.onchange = () => {
+      const v = Math.min(60, Math.max(0, parseFloat(lossInput.value)));
+      const pct = Number.isFinite(v) ? v : OEL.Benchmark.DEFAULT_DRIVELINE_LOSS_PCT;
+      lossInput.value = String(pct);
+      dyno.labels.drivelineLossPct = pct;
+      if (typeof dyno.labels.onDrivelineLossChange === "function") dyno.labels.onDrivelineLossChange(pct);
+    };
+    dyno.controlsDiv.appendChild(lossInput);
+
     dyno.container.appendChild(dyno.controlsDiv);
 
     // Status readout
@@ -238,126 +249,62 @@
   }
 
   function _startDyno(dyno) {
-    dyno.state = OEL.Engine.createState(dyno.engine, dyno.turbo, dyno.fuel, {});
-    dyno.ecm = OEL.ECM.createState();
-    dyno.state.rpm = dyno.sweepStartRpm;
-    
-    dyno.history = [];
-    dyno.peakPower = 0;
-    dyno.peakTorque = 0;
-    dyno.peakPowerRpm = 0;
-    dyno.peakTorqueRpm = 0;
-    dyno.peakOilTemp = 0;
-    dyno.peakCylinderPressure = 0;
-    dyno.knockMarginMin = 999;
-    dyno.knockDetected = false;
-    dyno.hydrolockDetected = false;
-    dyno.elapsedSeconds = 0;
+    // Same setup object shape as every other benchmark call site
+    dyno.run = OEL.Benchmark.createSweepRun({
+      engine: dyno.engine,
+      turbo: dyno.turbo,
+      fuel: dyno.fuel,
+      extras: {},
+      boostTargetBar: dyno.labels.boostTargetBar,
+      ambientC: dyno.labels.ambientC,
+      baroBar: dyno.labels.baroBar,
+      sweepRateRpmPerS: dyno.labels.sweepRateRpmPerS,
+      drivelineLossPct: dyno.labels.drivelineLossPct
+    });
+
     dyno.stepAccumulator = 0;
-    dyno.knockSince = null;
-    
+    dyno.lastFrameTime = performance.now();
     dyno.isRunning = true;
     dyno.isPaused = false;
-    dyno.startTime = performance.now();
 
     document.getElementById("dyno-start-btn").disabled = true;
     document.getElementById("dyno-pause-btn").disabled = false;
     document.getElementById("dyno-stop-btn").disabled = false;
     document.getElementById("dyno-speed-select").disabled = false;
-    document.getElementById("dyno-speed-select").value = dyno.timeScale;
+    document.getElementById("dyno-loss-input").disabled = true;
 
-    _runDynoLoop(dyno);
+    dyno.chartsDiv.style.display = "none";
+    dyno.chartsDiv.innerHTML = "";
+    dyno.canvas.getContext("2d").clearRect(0, 0, dyno.canvas.width, dyno.canvas.height);
+
+    dyno.rafId = requestAnimationFrame(() => _runDynoLoop(dyno));
   }
 
   function _runDynoLoop(dyno) {
     if (!dyno.isRunning) return;
+    const run = dyno.run;
+    const now = performance.now();
 
-    if (!dyno.isPaused) {
-      const now = performance.now();
+    if (dyno.isPaused) {
+      // Keep the frame clock current so resuming does not trigger a catch-up burst
+      dyno.lastFrameTime = now;
+    } else {
       // Clamp real frame time so a background tab cannot trigger a huge catch-up burst
-      const realDt = Math.min((now - dyno.startTime) / 1000, 0.1);
-      dyno.startTime = now;
+      const realDt = Math.min((now - dyno.lastFrameTime) / 1000, 0.1);
+      dyno.lastFrameTime = now;
       dyno.stepAccumulator += realDt * dyno.timeScale;
 
-      const maxRpm = dyno.engine.revLimiterRPM || 7100;
-      let finished = false;
       let steps = 0;
-
-      while (dyno.stepAccumulator >= dyno.dt && steps < 2000 && !finished) {
-        dyno.stepAccumulator -= dyno.dt;
+      while (dyno.stepAccumulator >= run.config.dt && steps < 2000 && !run.done) {
+        dyno.stepAccumulator -= run.config.dt;
+        run.step();
         steps++;
-        // Prescribed engine speed for this step; the engine model still computes torque, power and thermals
-        const targetRpm = Math.min(maxRpm, dyno.sweepStartRpm + dyno.sweepRateRpmPerS * dyno.elapsedSeconds);
-        dyno.state.rpm = targetRpm;
-        dyno.elapsedSeconds += dyno.dt;
-
-        const ecmOut = OEL.ECM.computeCycle(dyno.ecm, dyno.engine, dyno.turbo, {
-          rpm: dyno.state.rpm,
-          throttle01: 1.0,
-          boostBar: dyno.state.boostBar,
-          boostTargetBar: dyno.boostTargetBar,
-          knockDetected: dyno.state.knockDetected,
-          dt: dyno.dt
-        });
-
-        const result = OEL.Engine.step(dyno.state, dyno.dt, {
-          throttle01: 1.0,
-          ambientC: 25,
-          baroBar: 1.0,
-          boostCommandBar: ecmOut.boostCommandBar,
-          ignitionAdvanceDeg: ecmOut.ignitionAdvanceDeg,
-          cutIgnition: ecmOut.cutIgnition,
-          nitrousActive: false,
-          hybridDeployKw: 0,
-          drivetrain: null
-        });
-
-        // Knock margin is derived the same way as in the standard benchmark
-        const knockMarginPercent = result.knockLimitBar > 0
-          ? ((result.knockLimitBar - result.cylinderPressureBar) / result.knockLimitBar) * 100
-          : 0;
-        const sf = result.weakestLink && Number.isFinite(result.weakestLink.sf) ? result.weakestLink.sf : 99;
-
-        dyno.history.push({
-          t: dyno.elapsedSeconds,
-          rpm: result.rpm,
-          power: result.powerHp,
-          torque: result.brakeTorqueNm,
-          boost: dyno.state.boostBar,
-          oilTemp: dyno.state.oilTempC,
-          cylinderPressure: result.cylinderPressureBar,
-          knockMargin: knockMarginPercent,
-          weakestLinkSf: sf
-        });
-
-        if (result.powerHp > dyno.peakPower) { dyno.peakPower = result.powerHp; dyno.peakPowerRpm = result.rpm; }
-        if (result.brakeTorqueNm > dyno.peakTorque) { dyno.peakTorque = result.brakeTorqueNm; dyno.peakTorqueRpm = result.rpm; }
-        dyno.peakOilTemp = Math.max(dyno.peakOilTemp, dyno.state.oilTempC);
-        dyno.peakCylinderPressure = Math.max(dyno.peakCylinderPressure, result.cylinderPressureBar);
-        dyno.knockMarginMin = Math.min(dyno.knockMarginMin, knockMarginPercent);
-
-        if (dyno.state.knockDetected) {
-          if (dyno.knockSince == null) dyno.knockSince = dyno.elapsedSeconds;
-          dyno.knockDetected = true;
-        } else {
-          dyno.knockSince = null;
-        }
-        if (dyno.state.hydrolockFailure) dyno.hydrolockDetected = true;
-
-        // Stop conditions: sweep reached the rev limiter, time limit, optional sustained knock (0.5 s), hydrolock, structural failure
-        if (targetRpm >= maxRpm) finished = true;
-        else if (dyno.elapsedSeconds > dyno.maxDuration) finished = true;
-        else if (dyno.stopOnKnock && dyno.knockSince != null && dyno.elapsedSeconds - dyno.knockSince > 0.5) finished = true;
-        else if (dyno.hydrolockDetected) finished = true;
-        else if (sf < 1.0) finished = true;
       }
 
-      if (dyno.history.length > 0) {
-        _updateDynoStatus(dyno);
-        _drawDynoChart(dyno);
-      }
+      if (run.latest) _updateDynoStatus(dyno);
+      _drawDynoChart(dyno);
 
-      if (finished) {
+      if (run.done) {
         _stopDyno(dyno);
         return;
       }
@@ -372,19 +319,23 @@
   }
 
   function _updateDynoStatus(dyno) {
-    const latest = dyno.history[dyno.history.length - 1];
-    if (!latest) return;
+    const run = dyno.run;
+    const s = run.latest;
+    if (!s) return;
 
     const statusItems = [
-      { label: "Time", value: latest.t.toFixed(2) + "s" },
-      { label: "RPM", value: Math.round(latest.rpm) },
-      { label: "Power", value: latest.power.toFixed(0) + " hp" },
-      { label: "Torque", value: latest.torque.toFixed(0) + " Nm" },
-      { label: "Boost", value: latest.boost.toFixed(2) + " bar" },
-      { label: "Oil Temp", value: latest.oilTemp.toFixed(1) + "°C" },
-      { label: "Cyl Press", value: latest.cylinderPressure.toFixed(1) + " bar" },
-      { label: "Knock Margin", value: (Number.isFinite(latest.knockMargin) ? latest.knockMargin.toFixed(1) : "—") + "%" },
-      { label: "SF", value: _fmtSf(latest.weakestLinkSf) + "×", color: latest.weakestLinkSf < 1.0 ? "#c41e3a" : "#3ddc84" }
+      { label: "Phase", value: s.phase === "hold" ? "Spool-up" : "Sweep" },
+      { label: "Time", value: run.timeS.toFixed(2) + "s" },
+      { label: "RPM", value: Math.round(s.rpm) },
+      { label: "Power (crank)", value: s.powerHp.toFixed(0) + " hp" },
+      { label: "Power (wheels)", value: s.wheelPowerHp.toFixed(0) + " hp" },
+      { label: "Torque", value: s.brakeTorqueNm.toFixed(0) + " Nm" },
+      { label: "Boost", value: s.boostBar.toFixed(2) + " bar" },
+      { label: "Boost Target", value: run.config.boostTargetBar.toFixed(2) + " bar" },
+      { label: "Oil Temp", value: s.oilTempC.toFixed(1) + "°C" },
+      { label: "Cyl Press", value: s.cylinderPressureBar.toFixed(1) + " bar" },
+      { label: "Knock Margin", value: (Number.isFinite(s.knockMarginPercent) ? s.knockMarginPercent.toFixed(1) : "—") + "%", color: s.knockDetected ? "#c41e3a" : "#3ddc84" },
+      { label: "SF", value: _fmtSf(s.weakestSf) + "×", color: s.weakestSf < 1.0 ? "#c41e3a" : "#3ddc84" }
     ];
 
     dyno.statusDiv.innerHTML = statusItems.map(item => {
@@ -414,21 +365,23 @@
     const w = canvas.width;
     const h = canvas.height;
     ctx.clearRect(0, 0, w, h);
-    if (dyno.history.length < 2) return;
+
+    const series = dyno.run.series;
+    if (series.length < 2) return;
 
     const mL = 56, mR = 56, mT = 28, mB = 44;
     const gW = w - mL - mR;
     const gH = h - mT - mB;
     const DIV = 5;
 
-    const xMin = dyno.sweepStartRpm;
-    const xMax = Math.max(xMin + 1, dyno.engine.revLimiterRPM || 7100);
+    const xMin = dyno.run.config.startRpm;
+    const xMax = dyno.run.config.endRpm;
 
     let peakP = 0;
     let peakT = 0;
-    for (let i = 0; i < dyno.history.length; i++) {
-      if (dyno.history[i].power > peakP) peakP = dyno.history[i].power;
-      if (dyno.history[i].torque > peakT) peakT = dyno.history[i].torque;
+    for (let i = 0; i < series.length; i++) {
+      if (series[i].powerHp > peakP) peakP = series[i].powerHp;
+      if (series[i].brakeTorqueNm > peakT) peakT = series[i].brakeTorqueNm;
     }
     // Each quantity has its own axis; both share the same 5 grid lines
     const pMax = _niceCeil(peakP, DIV);
@@ -477,20 +430,22 @@
       ctx.strokeStyle = color;
       ctx.lineWidth = 2;
       ctx.beginPath();
-      for (let i = 0; i < dyno.history.length; i++) {
-        const pt = dyno.history[i];
-        const x = xOf(pt.rpm);
-        const y = yOf(pt[key], vMax);
+      for (let i = 0; i < series.length; i++) {
+        const x = xOf(series[i].rpm);
+        const y = yOf(series[i][key], vMax);
         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       ctx.stroke();
     };
-    plotCurve("power", pMax, "#FF6B35");
-    plotCurve("torque", tMax, "#3ddc84");
+    plotCurve("powerHp", pMax, "#FF6B35");
+    ctx.setLineDash([6, 4]);
+    plotCurve("wheelPowerHp", pMax, "#FFB38F");
+    ctx.setLineDash([]);
+    plotCurve("brakeTorqueNm", tMax, "#3ddc84");
 
     // Axis titles
     ctx.fillStyle = "#FF6B35"; ctx.textAlign = "left";
-    ctx.fillText("Power (hp)", mL, 16);
+    ctx.fillText("bhp (solid) / whp (dashed)", mL, 16);
     ctx.fillStyle = "#3ddc84"; ctx.textAlign = "right";
     ctx.fillText("Torque (Nm)", mL + gW, 16);
     ctx.fillStyle = "#aaa"; ctx.textAlign = "center";
@@ -498,6 +453,7 @@
   }
 
   function _stopDyno(dyno) {
+    if (!dyno.isRunning) return;
     dyno.isRunning = false;
     if (dyno.rafId != null) { cancelAnimationFrame(dyno.rafId); dyno.rafId = null; }
 
@@ -506,13 +462,24 @@
     document.getElementById("dyno-pause-btn").textContent = "PAUSE";
     document.getElementById("dyno-stop-btn").disabled = true;
     document.getElementById("dyno-speed-select").disabled = true;
+    document.getElementById("dyno-loss-input").disabled = false;
 
+    _drawDynoChart(dyno);
     _showDynoResults(dyno);
   }
 
   function _showDynoResults(dyno) {
+    const run = dyno.run;
+    const peak = run.peak;
     dyno.chartsDiv.innerHTML = "";
     dyno.chartsDiv.style.display = "block";
+
+    const endText = {
+      structural: "Structural failure",
+      hydrolock: "Hydrolock",
+      numeric: "Numeric error"
+    }[peak.failure] || (run.done ? "Sweep complete" : "Stopped manually");
+    const endColor = peak.failure ? "#c41e3a" : "#3ddc84";
 
     const results = document.createElement("div");
     results.style.display = "grid";
@@ -520,14 +487,19 @@
     results.style.gap = "12px";
 
     const resultItems = [
-      { label: "Duration", value: dyno.elapsedSeconds.toFixed(2) + "s" },
-      { label: "Peak Power", value: dyno.peakPower.toFixed(0) + " hp @ " + Math.round(dyno.peakPowerRpm) + " rpm" },
-      { label: "Peak Torque", value: dyno.peakTorque.toFixed(0) + " Nm @ " + Math.round(dyno.peakTorqueRpm) + " rpm" },
-      { label: "Peak Oil Temp", value: dyno.peakOilTemp.toFixed(1) + "°C" },
-      { label: "Peak Cyl Pressure", value: dyno.peakCylinderPressure.toFixed(1) + " bar" },
-      { label: "Knock Margin Min", value: dyno.knockMarginMin.toFixed(1) + "%" },
-      { label: "Knock Detected", value: dyno.knockDetected ? "YES" : "NO", color: dyno.knockDetected ? "#c41e3a" : "#3ddc84" },
-      { label: "Hydrolock Risk", value: dyno.hydrolockDetected ? "YES" : "NO", color: dyno.hydrolockDetected ? "#c41e3a" : "#3ddc84" }
+      { label: "Run Ended", value: endText + " @ " + Math.round(peak.endRpm) + " rpm", color: endColor },
+      { label: "Duration", value: run.timeS.toFixed(2) + "s" },
+      { label: "Boost Target", value: run.config.boostTargetBar.toFixed(2) + " bar" },
+      { label: "Peak Power (crank, bhp)", value: peak.powerHp.toFixed(0) + " hp (" + OEL.Benchmark.hpToPs(peak.powerHp).toFixed(0) + " PS) @ " + Math.round(peak.powerHpRpm) + " rpm" },
+      { label: "Peak Power (wheels, whp)", value: peak.wheelPowerHp.toFixed(0) + " hp (" + OEL.Benchmark.hpToPs(peak.wheelPowerHp).toFixed(0) + " PS) @ " + Math.round(peak.wheelPowerHpRpm) + " rpm" },
+      { label: "Driveline Loss", value: run.config.drivelineLossPct.toFixed(0) + "%" },
+      { label: "Peak Torque", value: peak.brakeTorqueNm.toFixed(0) + " Nm @ " + Math.round(peak.torqueRpm) + " rpm" },
+      { label: "Peak Oil Temp", value: peak.oilTempC.toFixed(1) + "°C" },
+      { label: "Peak Cyl Pressure", value: peak.cylinderPressureBar.toFixed(1) + " bar" },
+      { label: "Knock Margin Min", value: peak.knockMarginPercentMin.toFixed(1) + "%" },
+      { label: "Knock Detected", value: peak.knockDetected ? "YES" : "NO", color: peak.knockDetected ? "#c41e3a" : "#3ddc84" },
+      { label: "Weakest Link SF", value: _fmtSf(peak.weakestSfMin) + "×", color: peak.weakestSfMin < 1.0 ? "#c41e3a" : "#3ddc84" },
+      { label: "Hydrolock Risk", value: peak.failure === "hydrolock" ? "YES" : "NO", color: peak.failure === "hydrolock" ? "#c41e3a" : "#3ddc84" }
     ];
 
     resultItems.forEach(item => {
