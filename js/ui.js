@@ -950,7 +950,7 @@
     const btn = qs("#dyno-engine-btn");
     if (!btn) return;
     btn.addEventListener("click", () => {
-      toggleToolPanel(app, "dyno", "Dyno Test v2", (body) => {
+      toggleToolPanel(app, "dyno", `Dyno Test v2 — ${app.profiles.engine.name}`, (body) => {
         if (!window.OEL || !OEL.DynoEngine) {
           const msg = ce("p"); msg.textContent = "Dyno module not loaded (js/dyno-engine.js).";
           body.appendChild(msg);
@@ -962,7 +962,13 @@
           app.profiles.engine,
           app.profiles.turbo,
           fuel,
-          { title: `Dyno v2 — ${app.profiles.engine.name}`, boostTargetBar: app.controls.boostTargetBar }
+          // Same inputs as the standard Dyno Test; the host panel already provides title and close button
+          {
+            showHeader: false,
+            boostTargetBar: app.controls.boostTargetBar,
+            drivelineLossPct: app.controls.drivelineLossPct,
+            onDrivelineLossChange: (pct) => { app.controls.drivelineLossPct = pct; }
+          }
         );
       });
     });
@@ -980,7 +986,7 @@
       const fuel = app.profiles.fuels.find(f => f.id === app.controls.activeFuelId);
       const benchmark = OEL.Benchmark.runWotBenchmark({
         engine: app.profiles.engine, turbo: app.profiles.turbo, fuel,
-        extras: {}, boostTargetBar: app.controls.boostTargetBar
+        extras: {}, boostTargetBar: app.controls.boostTargetBar, drivelineLossPct: app.controls.drivelineLossPct
       });
       const check = OEL.RealismCheck.checkRealism(app.profiles.engine, app.profiles.turbo, benchmark.peak);
       const levelClass = { ok: "ok", warn: "warn", critical: "critical" };
@@ -989,7 +995,8 @@
       let html = `<h3>${T("dynoTestTitle")}</h3>` +
         `<p class="launch-hint">${T("dynoTestExplain")}</p>` +
         `<div class="dyno-peaks">` +
-        `<div class="dyno-peak-tile"><span class="live-label">${T("cmpPeakPower")}</span><span class="live-value">${benchmark.peak.powerHp.toFixed(0)} hp @ ${benchmark.peak.powerHpRpm.toFixed(0)} rpm</span></div>` +
+        `<div class="dyno-peak-tile"><span class="live-label">${T("cmpPeakPower")}</span><span class="live-value">${benchmark.peak.powerHp.toFixed(0)} hp (${OEL.Benchmark.hpToPs(benchmark.peak.powerHp).toFixed(0)} PS) @ ${benchmark.peak.powerHpRpm.toFixed(0)} rpm</span></div>` +
+        `<div class="dyno-peak-tile"><span class="live-label">${T("cmpPeakWheelPower")} (${app.controls.drivelineLossPct}% loss)</span><span class="live-value">${benchmark.peak.wheelPowerHp.toFixed(0)} hp (${OEL.Benchmark.hpToPs(benchmark.peak.wheelPowerHp).toFixed(0)} PS) @ ${benchmark.peak.wheelPowerHpRpm.toFixed(0)} rpm</span></div>` +
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpPeakTorque")}</span><span class="live-value">${benchmark.peak.brakeTorqueNm.toFixed(0)} Nm @ ${benchmark.peak.torqueRpm.toFixed(0)} rpm</span></div>` +
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpOilTempPeak")}</span><span class="live-value">${benchmark.peak.oilTempC.toFixed(0)}°C</span></div>` +
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpWeakestSf")}</span><span class="live-value">${formatSf(benchmark.peak.weakestSfMin)}×</span></div>` +
@@ -1531,7 +1538,7 @@
       profiles: { engineBase: deepClone(engineBase), engine: null, turbo: deepClone(turbo), fuels: fuelDb.fuels, hybrid: null, nitrous: null, drivetrain: null },
       lastResolvedMods: null,
       controls: {
-        throttle01: 0.15, ambientC: 20, baroBar: 1.0, boostTargetBar: 0, activeFuelId: fuelDb.fuels[1].id,
+        throttle01: 0.15, ambientC: 20, baroBar: 1.0, boostTargetBar: 0, drivelineLossPct: 15, activeFuelId: fuelDb.fuels[1].id,
         altitudeM: 0, alsActive: false, nitrousArmed: false, hybridDeployPct: 0, gear: 0, gradePercent: 0, brake01: 0
       },
       discipline: "standard", panels: {},
