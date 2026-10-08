@@ -1,0 +1,701 @@
+{
+ "_info": "Per-charger power rating taken from the manufacturers' catalogs plus the airflow capacity derived from it: flowKgMin = hpMax / 10.5 hp per lb/min * 0.45359 kg/lb (rule of thumb printed in the Garrett Performance Catalog: 10-11 hp per lb/min for gasoline engines). Edit values here to calibrate.",
+ "ratings": {
+  "garrett-g35-900": {
+   "hpMin": 550,
+   "hpMax": 900,
+   "source": "Garrett Performance Catalog 2025, p.30 (Garrett G35-900)",
+   "flowLbMin": 85.7,
+   "flowKgMin": 38.88,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "g35_1050": {
+   "hpMin": 700,
+   "hpMax": 1050,
+   "source": "Garrett Performance Catalog 2025, p.31 (Garrett G35-1050)",
+   "flowLbMin": 100.0,
+   "flowKgMin": 45.36,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "g40_1150": {
+   "hpMin": 500,
+   "hpMax": 1150,
+   "source": "Garrett Performance Catalog 2025, p.33 (Garrett G40-1150)",
+   "flowLbMin": 109.5,
+   "flowKgMin": 49.68,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "g42_1450": {
+   "hpMin": 525,
+   "hpMax": 1450,
+   "source": "Garrett Performance Catalog 2025, p.36 (Garrett G42-1450)",
+   "flowLbMin": 138.1,
+   "flowKgMin": 62.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "g45_1500": {
+   "hpMin": 750,
+   "hpMax": 1500,
+   "source": "Garrett Performance Catalog 2025, p.39 (Garrett G45-1500)",
+   "flowLbMin": 142.9,
+   "flowKgMin": 64.8,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "g_series_ii_g25_585": {
+   "hpMin": 300,
+   "hpMax": 585,
+   "source": "Garrett Performance Catalog 2025, p.14 (G-Series II G25-585)",
+   "flowLbMin": 55.7,
+   "flowKgMin": 25.27,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "g_series_ii_g25_700": {
+   "hpMin": 350,
+   "hpMax": 700,
+   "source": "Garrett Performance Catalog 2025, p.15 (G-Series II G25-700)",
+   "flowLbMin": 66.7,
+   "flowKgMin": 30.24,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "g_series_ii_g30_725": {
+   "hpMin": 350,
+   "hpMax": 725,
+   "source": "Garrett Performance Catalog 2025, p.16 (G-Series II G30-725)",
+   "flowLbMin": 69.0,
+   "flowKgMin": 31.32,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "g_series_ii_g30_825": {
+   "hpMin": 475,
+   "hpMax": 825,
+   "source": "Garrett Performance Catalog 2025, p.17 (G-Series II G30-825)",
+   "flowLbMin": 78.6,
+   "flowKgMin": 35.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "g_series_ii_g35_990": {
+   "hpMin": 550,
+   "hpMax": 990,
+   "source": "Garrett Performance Catalog 2025, p.18 (G-Series II G35-990)",
+   "flowLbMin": 94.3,
+   "flowKgMin": 42.77,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "gt2052": {
+   "hpMin": 140,
+   "hpMax": 230,
+   "source": "Garrett Performance Catalog 2025, p.90 (Garrett GT2052)",
+   "flowLbMin": 21.9,
+   "flowKgMin": 9.94,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "gt3071": {
+   "hpMin": 280,
+   "hpMax": 480,
+   "source": "Garrett Performance Catalog 2025, p.97 (Garrett GT3071R)",
+   "flowLbMin": 45.7,
+   "flowKgMin": 20.74,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "gt3582": {
+   "hpMin": 400,
+   "hpMax": 675,
+   "source": "Garrett Performance Catalog 2025, p.99 (Garrett GT3582R)",
+   "flowLbMin": 64.3,
+   "flowKgMin": 29.16,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "gtx2860": {
+   "hpMin": 200,
+   "hpMax": 475,
+   "source": "Garrett Performance Catalog 2025, p.56 (Garrett GTX2860R GEN II)",
+   "flowLbMin": 45.2,
+   "flowKgMin": 20.52,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "gtx3071": {
+   "hpMin": 340,
+   "hpMax": 675,
+   "source": "Garrett Performance Catalog 2025, p.58 (Garrett GTX3071R GEN II)",
+   "flowLbMin": 64.3,
+   "flowKgMin": 29.16,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "gtx3576": {
+   "hpMin": 400,
+   "hpMax": 750,
+   "source": "Garrett Performance Catalog 2025, p.60 (Garrett GTX3576R GEN II)",
+   "flowLbMin": 71.4,
+   "flowKgMin": 32.4,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "gtx3584": {
+   "hpMin": 550,
+   "hpMax": 1000,
+   "source": "Garrett Performance Catalog 2025, p.62 (Garrett GTX3584RS)",
+   "flowLbMin": 95.2,
+   "flowKgMin": 43.2,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "gtx4088": {
+   "hpMin": 460,
+   "hpMax": 850,
+   "source": "Garrett Performance Catalog 2025, p.63 (Garrett GTX4088R)",
+   "flowLbMin": 81.0,
+   "flowKgMin": 36.72,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "6258": {
+   "hpMin": 225,
+   "hpMax": 450,
+   "source": "BorgWarner Performance Catalog, p.17",
+   "flowLbMin": 42.9,
+   "flowKgMin": 19.44,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "6758": {
+   "hpMin": 250,
+   "hpMax": 500,
+   "source": "BorgWarner Performance Catalog, p.18",
+   "flowLbMin": 47.6,
+   "flowKgMin": 21.6,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "7064": {
+   "hpMin": 300,
+   "hpMax": 550,
+   "source": "BorgWarner Performance Catalog, p.20",
+   "flowLbMin": 52.4,
+   "flowKgMin": 23.76,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "7163": {
+   "hpMin": 300,
+   "hpMax": 550,
+   "source": "BorgWarner Performance Catalog, p.19",
+   "flowLbMin": 52.4,
+   "flowKgMin": 23.76,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "7670": {
+   "hpMin": 375,
+   "hpMax": 650,
+   "source": "BorgWarner Performance Catalog, p.21",
+   "flowLbMin": 61.9,
+   "flowKgMin": 28.08,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "8370": {
+   "hpMin": 475,
+   "hpMax": 700,
+   "source": "BorgWarner Performance Catalog, p.22",
+   "flowLbMin": 66.7,
+   "flowKgMin": 30.24,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "8374": {
+   "hpMin": 475,
+   "hpMax": 750,
+   "source": "BorgWarner Performance Catalog, p.23",
+   "flowLbMin": 71.4,
+   "flowKgMin": 32.4,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "8474": {
+   "hpMin": 500,
+   "hpMax": 950,
+   "source": "BorgWarner Performance Catalog, p.24",
+   "flowLbMin": 90.5,
+   "flowKgMin": 41.04,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "9174": {
+   "hpMin": 600,
+   "hpMax": 1000,
+   "source": "BorgWarner Performance Catalog, p.25",
+   "flowLbMin": 95.2,
+   "flowKgMin": 43.2,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "9180": {
+   "hpMin": 600,
+   "hpMax": 1000,
+   "source": "BorgWarner Performance Catalog, p.27",
+   "flowLbMin": 95.2,
+   "flowKgMin": 43.2,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "9274": {
+   "hpMin": 600,
+   "hpMax": 1050,
+   "source": "BorgWarner Performance Catalog, p.26",
+   "flowLbMin": 100.0,
+   "flowKgMin": 45.36,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "9280": {
+   "hpMin": 600,
+   "hpMax": 1100,
+   "source": "BorgWarner Performance Catalog, p.28",
+   "flowLbMin": 104.8,
+   "flowKgMin": 47.52,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03": {
+   "hpMin": null,
+   "hpMax": 200,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K03)",
+   "flowLbMin": 19.0,
+   "flowKgMin": 8.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_005": {
+   "hpMin": null,
+   "hpMax": 200,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K03)",
+   "flowLbMin": 19.0,
+   "flowKgMin": 8.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_011": {
+   "hpMin": null,
+   "hpMax": 200,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K03)",
+   "flowLbMin": 19.0,
+   "flowKgMin": 8.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_013": {
+   "hpMin": null,
+   "hpMax": 200,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K03)",
+   "flowLbMin": 19.0,
+   "flowKgMin": 8.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_016": {
+   "hpMin": null,
+   "hpMax": 200,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K03)",
+   "flowLbMin": 19.0,
+   "flowKgMin": 8.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_017": {
+   "hpMin": null,
+   "hpMax": 200,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K03)",
+   "flowLbMin": 19.0,
+   "flowKgMin": 8.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_022": {
+   "hpMin": null,
+   "hpMax": 200,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K03)",
+   "flowLbMin": 19.0,
+   "flowKgMin": 8.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_025": {
+   "hpMin": null,
+   "hpMax": 200,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K03)",
+   "flowLbMin": 19.0,
+   "flowKgMin": 8.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_026": {
+   "hpMin": null,
+   "hpMax": 200,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K03)",
+   "flowLbMin": 19.0,
+   "flowKgMin": 8.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_029": {
+   "hpMin": null,
+   "hpMax": 200,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K03)",
+   "flowLbMin": 19.0,
+   "flowKgMin": 8.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_044": {
+   "hpMin": null,
+   "hpMax": 200,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K03)",
+   "flowLbMin": 19.0,
+   "flowKgMin": 8.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_045": {
+   "hpMin": null,
+   "hpMax": 200,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K03)",
+   "flowLbMin": 19.0,
+   "flowKgMin": 8.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_049": {
+   "hpMin": null,
+   "hpMax": 250,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 23.8,
+   "flowKgMin": 10.8,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_086": {
+   "hpMin": null,
+   "hpMax": 305,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 29.0,
+   "flowKgMin": 13.18,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_104": {
+   "hpMin": null,
+   "hpMax": 220,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 21.0,
+   "flowKgMin": 9.5,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_105": {
+   "hpMin": null,
+   "hpMax": 305,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 29.0,
+   "flowKgMin": 13.18,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_118": {
+   "hpMin": null,
+   "hpMax": 245,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 23.3,
+   "flowKgMin": 10.58,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_119": {
+   "hpMin": null,
+   "hpMax": 245,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 23.3,
+   "flowKgMin": 10.58,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_120": {
+   "hpMin": null,
+   "hpMax": 220,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 21.0,
+   "flowKgMin": 9.5,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_121": {
+   "hpMin": null,
+   "hpMax": 220,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 21.0,
+   "flowKgMin": 9.5,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_141": {
+   "hpMin": null,
+   "hpMax": 245,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 23.3,
+   "flowKgMin": 10.58,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_163": {
+   "hpMin": null,
+   "hpMax": 245,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 23.3,
+   "flowKgMin": 10.58,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_179": {
+   "hpMin": null,
+   "hpMax": 220,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 21.0,
+   "flowKgMin": 9.5,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_181": {
+   "hpMin": null,
+   "hpMax": 245,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 23.3,
+   "flowKgMin": 10.58,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_2080": {
+   "hpMin": null,
+   "hpMax": 200,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K03)",
+   "flowLbMin": 19.0,
+   "flowKgMin": 8.64,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_217": {
+   "hpMin": null,
+   "hpMax": 220,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 21.0,
+   "flowKgMin": 9.5,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k03_243": {
+   "hpMin": null,
+   "hpMax": 220,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 21.0,
+   "flowKgMin": 9.5,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k04": {
+   "hpMin": null,
+   "hpMax": 340,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 32.4,
+   "flowKgMin": 14.69,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k04_0060": {
+   "hpMin": null,
+   "hpMax": 610,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 58.1,
+   "flowKgMin": 26.35,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k04_0061": {
+   "hpMin": null,
+   "hpMax": 610,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 58.1,
+   "flowKgMin": 26.35,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k04_024": {
+   "hpMin": null,
+   "hpMax": 290,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 27.6,
+   "flowKgMin": 12.53,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k04_033": {
+   "hpMin": null,
+   "hpMax": 375,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 35.7,
+   "flowKgMin": 16.2,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k04_048": {
+   "hpMin": null,
+   "hpMax": 300,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K04)",
+   "flowLbMin": 28.6,
+   "flowKgMin": 12.96,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k04_064": {
+   "hpMin": null,
+   "hpMax": 300,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K04)",
+   "flowLbMin": 28.6,
+   "flowKgMin": 12.96,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k04_130": {
+   "hpMin": null,
+   "hpMax": 375,
+   "source": "BorgWarner Performance Catalog, p.56 (highest HP value listed for this part)",
+   "flowLbMin": 35.7,
+   "flowKgMin": 16.2,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k04_2075": {
+   "hpMin": null,
+   "hpMax": 220,
+   "source": "BorgWarner Performance Catalog, p.58-61 (peak horsepower of K04-2075)",
+   "flowLbMin": 21.0,
+   "flowKgMin": 9.5,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k04_2283": {
+   "hpMin": null,
+   "hpMax": 325,
+   "source": "BorgWarner Performance Catalog, p.58-61 (peak horsepower of K04-2283)",
+   "flowLbMin": 31.0,
+   "flowKgMin": 14.04,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k16": {
+   "hpMin": null,
+   "hpMax": 370,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K16)",
+   "flowLbMin": 35.2,
+   "flowKgMin": 15.98,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k16_2480": {
+   "hpMin": null,
+   "hpMax": 370,
+   "source": "BorgWarner Performance Catalog, p.58-61 (peak horsepower of K16-2480)",
+   "flowLbMin": 35.2,
+   "flowKgMin": 15.98,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k16_6726": {
+   "hpMin": null,
+   "hpMax": 370,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K16)",
+   "flowLbMin": 35.2,
+   "flowKgMin": 15.98,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k16_6727": {
+   "hpMin": null,
+   "hpMax": 370,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K16)",
+   "flowLbMin": 35.2,
+   "flowKgMin": 15.98,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k16_6735": {
+   "hpMin": null,
+   "hpMax": 370,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K16)",
+   "flowLbMin": 35.2,
+   "flowKgMin": 15.98,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "k16_6736": {
+   "hpMin": null,
+   "hpMax": 370,
+   "source": "BorgWarner Performance Catalog, p.56-61 (family value for K16)",
+   "flowLbMin": 35.2,
+   "flowKgMin": 15.98,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s200sx": {
+   "hpMin": 220,
+   "hpMax": 580,
+   "source": "BorgWarner Performance Catalog, p.33",
+   "flowLbMin": 55.2,
+   "flowKgMin": 25.06,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s200sx_e": {
+   "hpMin": 300,
+   "hpMax": 650,
+   "source": "BorgWarner Performance Catalog, p.34",
+   "flowLbMin": 61.9,
+   "flowKgMin": 28.08,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s200sx_r": {
+   "hpMin": 300,
+   "hpMax": 775,
+   "source": "BorgWarner Performance Catalog, p.35",
+   "flowLbMin": 73.8,
+   "flowKgMin": 33.48,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s300": {
+   "hpMin": 320,
+   "hpMax": 800,
+   "source": "BorgWarner Performance Catalog, p.36/37 (family value taken from the S300SX3 pages)",
+   "flowLbMin": 76.2,
+   "flowKgMin": 34.56,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s300sx3": {
+   "hpMin": 320,
+   "hpMax": 800,
+   "source": "BorgWarner Performance Catalog, p.36/37",
+   "flowLbMin": 76.2,
+   "flowKgMin": 34.56,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s300sx_e": {
+   "hpMin": 400,
+   "hpMax": 1100,
+   "source": "BorgWarner Performance Catalog, p.39/40",
+   "flowLbMin": 104.8,
+   "flowKgMin": 47.52,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s300sx_r": {
+   "hpMin": 400,
+   "hpMax": 1100,
+   "source": "BorgWarner Performance Catalog, p.41",
+   "flowLbMin": 104.8,
+   "flowKgMin": 47.52,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s400sx": {
+   "hpMin": 400,
+   "hpMax": 1300,
+   "source": "BorgWarner Performance Catalog, p.42/43",
+   "flowLbMin": 123.8,
+   "flowKgMin": 56.16,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s400sx3": {
+   "hpMin": 500,
+   "hpMax": 1050,
+   "source": "BorgWarner Performance Catalog, p.46",
+   "flowLbMin": 100.0,
+   "flowKgMin": 45.36,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s400sx4": {
+   "hpMin": 500,
+   "hpMax": 1250,
+   "source": "BorgWarner Performance Catalog, p.47/48",
+   "flowLbMin": 119.0,
+   "flowKgMin": 54.0,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s400sx_e": {
+   "hpMin": 500,
+   "hpMax": 1200,
+   "source": "BorgWarner Performance Catalog, p.44",
+   "flowLbMin": 114.3,
+   "flowKgMin": 51.84,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s410sx": {
+   "hpMin": 400,
+   "hpMax": 1300,
+   "source": "BorgWarner Performance Catalog, p.42/43 (no HP rating printed; S400SX family value used)",
+   "flowLbMin": 123.8,
+   "flowKgMin": 56.16,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s500sx": {
+   "hpMin": 900,
+   "hpMax": 1575,
+   "source": "BorgWarner Performance Catalog, p.49/50",
+   "flowLbMin": 150.0,
+   "flowKgMin": 68.04,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  },
+  "s500sx_e": {
+   "hpMin": 900,
+   "hpMax": 1875,
+   "source": "BorgWarner Performance Catalog, p.51",
+   "flowLbMin": 178.6,
+   "flowKgMin": 81.0,
+   "flowBasis": "hpMax / 10.5 hp per lb/min"
+  }
+ }
+}
