@@ -77,6 +77,7 @@
     return {
       engineBase: deepClone(app.profiles.engineBase),
       turbo: deepClone(app.profiles.turbo),
+      chargerList: deepClone(app.chargerList),
       mods: deepClone(app.mods),
       boostTargetBar: app.controls.boostTargetBar,
       activeFuelId: app.controls.activeFuelId
@@ -84,7 +85,8 @@
   }
   function applySnapshot(app, snap) {
     app.profiles.engineBase = snap.engineBase;
-    app.profiles.turbo = snap.turbo;
+    app.chargerList = snap.chargerList ? snap.chargerList : [snap.turbo];
+    app.profiles.turbo = OEL.Chargers.combine(app.chargerList);
     app.mods = snap.mods;
     app.controls.boostTargetBar = Math.min(snap.boostTargetBar, app.profiles.turbo.limits.maxBoostBar);
     app.controls.activeFuelId = snap.activeFuelId;
@@ -154,15 +156,92 @@
     applyEngineWithMods(app);
   }
 
-  async function selectCharger(app, chargerId) {
+  // ---------------------------------------------------------------- Chargers (up to 4 slots, twincharge)
+  // app.chargerList holds the raw profiles of all fitted chargers; app.profiles.turbo is the combined effective system.
+  function applyChargers(app) {
+    app.profiles.turbo = OEL.Chargers.combine(app.chargerList);
+    app.controls.boostTargetBar = Math.min(app.controls.boostTargetBar, app.profiles.turbo.limits.maxBoostBar);
+    app.worker.postMessage({ type: "importProfile", kind: "turbo", data: app.profiles.turbo });
+    buildLeftPanel(app, qs("#left-panel"));
+  }
+
+  async function setChargerSlot(app, index, chargerId) {
     const entry = app.catalogs.chargers.find(c => c.id === chargerId);
-    if (!entry) return;
+    if (!entry || index < 0 || index >= app.chargerList.length) return;
+    if (!OEL.Chargers.slotAllows(app.chargerList, index, entry.type)) {
+      flashAdvisory(app, "This charger cannot be combined with the others");
+      buildLeftPanel(app, qs("#left-panel"));
+      return;
+    }
     pushUndo(app);
     const data = await fetchJson(entry.file);
-    app.profiles.turbo = data;
-    app.controls.boostTargetBar = Math.min(app.controls.boostTargetBar, data.limits.maxBoostBar);
-    app.worker.postMessage({ type: "importProfile", kind: "turbo", data });
-    buildLeftPanel(app, qs("#left-panel"));
+    app.chargerList[index] = data;
+    applyChargers(app);
+  }
+
+  async function addChargerSlot(app) {
+    if (!OEL.Chargers.canAdd(app.chargerList)) return;
+    pushUndo(app);
+    let profile;
+    if (OEL.Chargers.kindOf(app.chargerList[0]) === "turbo") {
+      profile = deepClone(app.chargerList[0]); // classic twin: the same model once more
+    } else {
+      const entry = app.catalogs.chargers.find(c => c.type === "turbocharger");
+      profile = await fetchJson(entry.file);
+    }
+    app.chargerList.push(profile);
+    applyChargers(app);
+  }
+
+  function removeChargerSlot(app, index) {
+    if (app.chargerList.length <= 1 || index < 0 || index >= app.chargerList.length) return;
+    pushUndo(app);
+    app.chargerList.splice(index, 1);
+    applyChargers(app);
+  }
+
+  function buildChargerPanel(app) {
+    const wrap = ce("div", "field charger-list");
+    const label = ce("label"); label.textContent = T("chargerCatalog"); wrap.appendChild(label);
+
+    app.chargerList.forEach((profile, index) => {
+      const row = ce("div", "charger-row");
+      const select = ce("select");
+      let hasSelected = false;
+      for (const entry of app.catalogs.chargers) {
+        if (!OEL.Chargers.slotAllows(app.chargerList, index, entry.type)) continue;
+        const o = ce("option"); o.value = entry.id; o.textContent = entry.name;
+        if (entry.id === profile.id) { o.selected = true; hasSelected = true; }
+        select.appendChild(o);
+      }
+      if (!hasSelected) {
+        // Imported or custom profile that is not part of the catalog
+        const o = ce("option"); o.value = profile.id; o.textContent = profile.name || profile.id; o.selected = true;
+        select.insertBefore(o, select.firstChild);
+      }
+      select.addEventListener("change", () => setChargerSlot(app, index, select.value));
+      row.appendChild(select);
+
+      if (app.chargerList.length > 1) {
+        const rm = ce("button", "charger-btn"); rm.type = "button"; rm.textContent = "−";
+        rm.title = T("removeCharger");
+        rm.addEventListener("click", () => removeChargerSlot(app, index));
+        row.appendChild(rm);
+      }
+      wrap.appendChild(row);
+    });
+
+    if (OEL.Chargers.canAdd(app.chargerList)) {
+      const add = ce("button", "charger-btn charger-add"); add.type = "button";
+      add.textContent = "+ " + T("addCharger") + " (" + app.chargerList.length + "/" + OEL.Chargers.MAX_SLOTS + ")";
+      add.addEventListener("click", () => addChargerSlot(app));
+      wrap.appendChild(add);
+    }
+
+    const summary = ce("div", "charger-summary");
+    summary.textContent = OEL.Chargers.describe(app.profiles.turbo);
+    wrap.appendChild(summary);
+    return wrap;
   }
 
   function toggleMod(app, modId, enabled) {
@@ -199,17 +278,7 @@
     engineRow.appendChild(engineSelect);
     sec.appendChild(engineRow);
 
-    const chargerRow = ce("div", "field");
-    const chargerLabel = ce("label"); chargerLabel.textContent = T("chargerCatalog"); chargerRow.appendChild(chargerLabel);
-    const chargerSelect = ce("select");
-    for (const entry of app.catalogs.chargers) {
-      const o = ce("option"); o.value = entry.id; o.textContent = entry.name;
-      if (entry.id === app.profiles.turbo.id) o.selected = true;
-      chargerSelect.appendChild(o);
-    }
-    chargerSelect.addEventListener("change", () => selectCharger(app, chargerSelect.value));
-    chargerRow.appendChild(chargerSelect);
-    sec.appendChild(chargerRow);
+    sec.appendChild(buildChargerPanel(app));
 
     return sec;
   }
@@ -535,9 +604,8 @@
           app.mods = { active: [], variants: {} };
           applyEngineWithMods(app);
         } else if (data.limits && typeof data.type === "string") {
-          app.profiles.turbo = data;
-          app.worker.postMessage({ type: "importProfile", kind: "turbo", data });
-          buildLeftPanel(app, qs("#left-panel"));
+          app.chargerList = [data];
+          applyChargers(app);
         } else if (data.fuels) {
           app.profiles.fuels = data.fuels;
           buildLeftPanel(app, qs("#left-panel"));
@@ -1343,7 +1411,10 @@
   function applyLoadedSetup(app, data) {
     pushUndo(app);
     app.profiles.engineBase = data.config.engineBase;
-    app.profiles.turbo = data.config.turbo;
+    // New files carry the full charger list; older files only the single (raw) charger profile
+    const savedList = data.config.chargers;
+    app.chargerList = deepClone(Array.isArray(savedList) && OEL.Chargers.validate(savedList).ok ? savedList : [data.config.turbo]);
+    app.profiles.turbo = OEL.Chargers.combine(app.chargerList);
     app.mods = data.config.mods || { active: [], variants: {} };
     app.controls.activeFuelId = data.config.activeFuelId;
     app.controls.boostTargetBar = data.config.boostTargetBar;
@@ -1512,12 +1583,14 @@
   }
 
   async function initApp() {
-    const [engineCatalog, chargerCatalog, modsCatalog, fuelDb] = await Promise.all([
+    const [engineCatalog, chargerCatalog, modsCatalog, fuelDb, chargerRatings] = await Promise.all([
       fetchJson("data/catalog/engines.json"),
       fetchJson("data/catalog/chargers.json"),
       fetchJson("data/catalog/mods.json"),
-      fetchJson("data/fuels/pump-fuels.json")
+      fetchJson("data/fuels/pump-fuels.json"),
+      fetchJson("data/catalog/charger-ratings.json").catch(() => ({ ratings: {} })) // optional: catalog power ratings -> airflow capacity
     ]);
+    OEL.Chargers.setRatings(chargerRatings);
 
     const defaultEngineEntry = engineCatalog.entries[0];
     const defaultChargerEntry = chargerCatalog.entries.find(c => c.type === "turbocharger") || chargerCatalog.entries[0];
@@ -1535,7 +1608,8 @@
       catalogs: { engines: engineCatalog.entries, chargers: chargerCatalog.entries, mods: modsCatalog.entries },
       modsLibrary,
       mods: { active: [], variants: {} },
-      profiles: { engineBase: deepClone(engineBase), engine: null, turbo: deepClone(turbo), fuels: fuelDb.fuels, hybrid: null, nitrous: null, drivetrain: null },
+      chargerList: [deepClone(turbo)],
+      profiles: { engineBase: deepClone(engineBase), engine: null, turbo: OEL.Chargers.combine([deepClone(turbo)]), fuels: fuelDb.fuels, hybrid: null, nitrous: null, drivetrain: null },
       lastResolvedMods: null,
       controls: {
         throttle01: 0.15, ambientC: 20, baroBar: 1.0, boostTargetBar: 0, drivelineLossPct: 15, activeFuelId: fuelDb.fuels[1].id,

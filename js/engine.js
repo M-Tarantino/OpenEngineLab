@@ -48,6 +48,13 @@
    * Creates a new simulation state.
    * extras (optional): { nitrousProfile, hybridProfile, drivetrainProfile }
    */
+  // Charger system model (calibration constants, adjustable at runtime via OEL.Engine.CHARGER_MODEL)
+  const CHARGER_MODEL = {
+    DEFAULT_BOOST_RATE: 3.2, // 1/s, spool rate when the charger system defines none
+    SPOOL_FRACTION: 0.30,    // share of the turbo group's airflow capacity at which full boost becomes available
+    SPOOL_SHARPNESS: 1.5     // how quickly boost availability falls off below that airflow
+  };
+
   function createState(engineProfile, turboProfile, fuel, extras) {
     extras = extras || {};
     return {
@@ -61,6 +68,7 @@
       cycles: 0,
       rpm: engineProfile.idleRPM,
       boostBar: 0,
+      turboBoostBar: 0, // turbo stage only (twincharge); equals boostBar for a plain turbo
       oilTempC: 20,
       chamberTempC: 20,
       oilFilmOK: true,
@@ -105,24 +113,59 @@
     const ambientC = inputs.ambientC;
 
     const hasMguH = !!(state.hybridProfile && state.hybridProfile.hasMguH);
-    const isSupercharger = (state.turbo.type || "").toLowerCase() === "supercharger";
-    
+    const chargerType = (state.turbo.type || "").toLowerCase();
+    const isSupercharger = chargerType === "supercharger";
+    const isTwincharge = chargerType === "twincharge";
+
+    // Belt-driven stage: RPM-dependent, no lag. Boost = (RPM / maxRPM) x maxBoost x throttle x cooler effect
+    const blowerBoostBar = (sc) => {
+      const maxRpm = sc.limits.maxRPM || 8000;
+      const baseBoost = (rpm / maxRpm) * sc.limits.maxBoostBar * Math.max(0.1, throttle);
+      const coolerDelta = Math.min(20, Math.abs(ambientC - ((sc.cooler && sc.cooler.targetInletTempC) || 35)));
+      return baseBoost * (1 - (coolerDelta / 50) * 0.15); // cooler efficiency degrades in heat
+    };
+
+    // Airflow matching of a rated turbo group (capacity from the catalog rating):
+    // - spool: below a fraction of the group's capacity the turbos are not yet on their efficiency island
+    // - choke: the pressure ratio at which the group's airflow capacity is exhausted
+    const grp = state.turbo.group;
+    const rated = !!(grp && grp.flowKgMin > 0 && rpm > 0);
+    const flowPerPr = rated
+      ? airDensityKgM3(baro, ambientC) * volumetricEfficiency(throttle, rpm, redline) * (eg.displacementCC * 1e-6) * (rpm / 120) * 60 // kg/min per unit pressure ratio
+      : 0;
+    const spoolAvailability = (commandBar) => {
+      if (!rated || flowPerPr <= 0) return 1;
+      const ratio = (flowPerPr * (1 + commandBar / baro)) / (CHARGER_MODEL.SPOOL_FRACTION * grp.flowKgMin);
+      return Math.min(1, Math.pow(ratio, CHARGER_MODEL.SPOOL_SHARPNESS));
+    };
+    const chokeLimit = (commandBar) => {
+      if (!rated || flowPerPr <= 0) return commandBar;
+      return Math.min(commandBar, Math.max(0, baro * (grp.flowKgMin / flowPerPr - 1)));
+    };
+
     if (isSupercharger) {
-      // Supercharger: RPM-dependent, no turbo lag, instant response
-      // Boost = (RPM / maxRPM) × maxBoost × throttle_correction × cooler_effect
-      const maxRpm = state.turbo.limits.maxRPM || 8000;
-      const maxBoost = state.turbo.limits.maxBoostBar;
-      const baseBoost = (rpm / maxRpm) * maxBoost * Math.max(0.1, throttle);
-      const coolerDelta = Math.min(20, Math.abs(ambientC - (state.turbo.cooler?.targetInletTempC || 35)));
-      const coolerPenalty = 1 - (coolerDelta / 50) * 0.15; // Cooler efficiency degrades in heat
-      state.boostBar = baseBoost * coolerPenalty;
+      state.boostBar = blowerBoostBar(state.turbo);
+    } else if (isTwincharge) {
+      // Supercharger stage gives immediate base boost, the turbo stage adds the rest (pressure ratios multiply).
+      // A bypass valve keeps the total at the commanded boost.
+      const cmd = chokeLimit(inputs.boostCommandBar);
+      const scBoost = Math.min(blowerBoostBar(state.turbo.blower), cmd);
+      const prSc = 1 + scBoost / baro;
+      let boostRate = inputs.boostLerpRateOverride || (grp && grp.boostRate) || CHARGER_MODEL.DEFAULT_BOOST_RATE;
+      let turboTarget = baro * (Math.max(1, (1 + cmd / baro) / prSc) - 1) * spoolAvailability(cmd);
+      if (inputs.cutIgnition) { turboTarget = 0; boostRate = 0.6; }
+      if (hasMguH) boostRate = Math.max(boostRate, 20);
+      state.turboBoostBar += (turboTarget - state.turboBoostBar) * Math.min(1, dt * boostRate);
+      state.boostBar = baro * (prSc * (1 + state.turboBoostBar / baro) - 1);
     } else {
-      // Turbocharger: Lag-based boost response (original logic)
-      let boostRate = inputs.boostLerpRateOverride || 3.2;
+      // Turbocharger(s): lag-based boost response
+      let boostRate = inputs.boostLerpRateOverride || (grp && grp.boostRate) || CHARGER_MODEL.DEFAULT_BOOST_RATE;
       let boostTargetThisTick = inputs.boostCommandBar;
+      if (rated) boostTargetThisTick = Math.min(boostTargetThisTick * spoolAvailability(boostTargetThisTick), chokeLimit(boostTargetThisTick));
       if (inputs.cutIgnition) { boostTargetThisTick = 0; boostRate = 0.6; }
       if (hasMguH) boostRate = Math.max(boostRate, 20);
       state.boostBar += (boostTargetThisTick - state.boostBar) * Math.min(1, dt * boostRate);
+      state.turboBoostBar = state.boostBar;
     }
     state.boostBar = Math.max(0, Math.min(state.turbo.limits.maxBoostBar, state.boostBar));
 
@@ -332,7 +375,7 @@
 
   root.OEL = root.OEL || {};
   root.OEL.Engine = {
-    createState, resetFailure, step,
+    createState, resetFailure, step, CHARGER_MODEL,
     pistonAreaMM2, airDensityKgM3, baroAtAltitude, volumetricEfficiency,
     oilViscosity, thermalDerationFactor, knockLimitBar
   };

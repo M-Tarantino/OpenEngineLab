@@ -24,7 +24,8 @@
       },
       config: {
         engineBase: app.profiles.engineBase,
-        turbo: app.profiles.turbo,
+        turbo: app.profiles.turbo,           // combined effective charger system (what the simulation uses)
+        chargers: app.chargerList,           // the individual chargers, to restore the slots on load
         mods: app.mods,
         activeFuelId: app.controls.activeFuelId,
         boostTargetBar: app.controls.boostTargetBar,
