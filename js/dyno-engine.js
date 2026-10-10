@@ -11,6 +11,7 @@
    * - Peak detection, knock/hydrolock/structural reporting after the run
    *
    * labels: { title, showHeader, boostTargetBar, ambientC, baroBar, sweepRateRpmPerS, drivelineLossPct, onDrivelineLossChange }
+   * Optional reference curve: load a CSV (rpm,torque_nm,power_hp, "# basis=wheel|crank") to overlay real dyno data
    */
 
   function createDynoTest(containerDivId, engine, turbo, fuel, labels) {
@@ -27,6 +28,7 @@
       fuel,
       labels,
       run: null,
+      reference: null, // optional real dyno curve for calibration: { name, basis, rpm[], torqueNm[], powerHp[] }
       isRunning: false,
       isPaused: false,
       lastFrameTime: 0,
@@ -44,6 +46,127 @@
 
     _buildDynoUI(dyno);
     return dyno;
+  }
+
+  const HP_K = 7127; // hp = Nm * rpm / HP_K (same constant as the engine model)
+
+  // Parses a reference dyno curve. Columns: rpm, torque_nm, power_hp (header optional).
+  // Optional comment line "# basis=wheel" or "# basis=crank" tells which power the data represents.
+  function parseReferenceCsv(text, fileName) {
+    const lines = String(text).replace(/^\uFEFF/, "").split(/\r?\n/);
+    let basis = "crank";
+    const rows = [];
+    let delimiter = null;
+    let cols = { rpm: 0, torque: 1, power: 2 };
+    let powerFactor = 1;
+    let headerSeen = false;
+
+    for (let li = 0; li < lines.length; li++) {
+      const raw = lines[li].trim();
+      if (!raw) continue;
+      if (raw.charAt(0) === "#") {
+        const m = /basis\s*=\s*(wheel|crank)/i.exec(raw);
+        if (m) basis = m[1].toLowerCase();
+        continue;
+      }
+      if (!delimiter) delimiter = raw.indexOf(";") >= 0 ? ";" : (raw.indexOf("\t") >= 0 ? "\t" : ",");
+      const fields = raw.split(delimiter).map(f => f.trim());
+      const numeric = fields.map(f => parseFloat(delimiter === "," ? f : f.replace(",", ".")));
+
+      if (!headerSeen && fields.some(f => /[a-z]/i.test(f))) {
+        headerSeen = true;
+        const names = fields.map(f => f.toLowerCase());
+        const find = (re) => names.findIndex(n => re.test(n));
+        const iRpm = find(/rpm|drehzahl/);
+        const iTq = find(/torque|nm|moment/);
+        const iPw = find(/power|hp|ps|kw|leistung/);
+        if (iRpm < 0 || iTq < 0 || iPw < 0) throw new Error("CSV header needs rpm, torque and power columns");
+        cols = { rpm: iRpm, torque: iTq, power: iPw };
+        const pn = names[iPw];
+        if (/kw/.test(pn)) powerFactor = 1.34102;
+        else if (/ps/.test(pn) && !/hp/.test(pn)) powerFactor = 1 / 1.01387;
+        continue;
+      }
+      headerSeen = true;
+      const rpm = numeric[cols.rpm];
+      const tq = numeric[cols.torque];
+      const pw = numeric[cols.power];
+      if (Number.isFinite(rpm) && Number.isFinite(tq) && Number.isFinite(pw) && rpm > 0) {
+        rows.push({ rpm, tq, pw: pw * powerFactor });
+      }
+    }
+
+    if (rows.length < 5) throw new Error("CSV needs at least 5 valid rows (rpm, torque, power)");
+    rows.sort((a, b) => a.rpm - b.rpm);
+    return {
+      name: fileName || "reference",
+      basis,
+      rpm: rows.map(r => r.rpm),
+      torqueNm: rows.map(r => r.tq),
+      powerHp: rows.map(r => r.pw)
+    };
+  }
+
+  // Linear interpolation on a sorted x array
+  function _interp(xs, ys, x) {
+    const n = xs.length;
+    if (x <= xs[0]) return ys[0];
+    if (x >= xs[n - 1]) return ys[n - 1];
+    let lo = 0, hi = n - 1;
+    while (hi - lo > 1) {
+      const mid = (lo + hi) >> 1;
+      if (xs[mid] <= x) lo = mid; else hi = mid;
+    }
+    const t = (x - xs[lo]) / (xs[hi] - xs[lo]);
+    return ys[lo] + t * (ys[hi] - ys[lo]);
+  }
+
+  // Compares the recorded sweep with the loaded reference curve on the reference's own basis
+  // (wheel reference -> simulated wheel power; crank reference -> simulated crank power)
+  function _compareToReference(dyno) {
+    const ref = dyno.reference;
+    const series = dyno.run ? dyno.run.series : [];
+    if (!ref || series.length < 2) return null;
+    const wheel = ref.basis === "wheel";
+    const simRpm = series.map(p => p.rpm);
+    const simPower = series.map(p => (wheel ? p.wheelPowerHp : p.powerHp));
+    const simTorque = series.map(p => (wheel ? (p.rpm > 0 ? (p.wheelPowerHp * HP_K) / p.rpm : 0) : p.brakeTorqueNm));
+    const lo = Math.max(simRpm[0], ref.rpm[0]);
+    const hi = Math.min(simRpm[simRpm.length - 1], ref.rpm[ref.rpm.length - 1]);
+    if (!(hi > lo)) return null;
+
+    let sumP = 0, sumT = 0, n = 0;
+    for (let i = 0; i < ref.rpm.length; i++) {
+      const r = ref.rpm[i];
+      if (r < lo || r > hi || ref.powerHp[i] <= 0 || ref.torqueNm[i] <= 0) continue;
+      sumP += Math.abs(_interp(simRpm, simPower, r) - ref.powerHp[i]) / ref.powerHp[i];
+      sumT += Math.abs(_interp(simRpm, simTorque, r) - ref.torqueNm[i]) / ref.torqueNm[i];
+      n++;
+    }
+    if (n === 0) return null;
+
+    const argMax = (arr, xs) => { let k = 0; for (let i = 1; i < arr.length; i++) if (arr[i] > arr[k]) k = i; return { v: arr[k], rpm: xs[k] }; };
+    const sp = argMax(simPower, simRpm), st = argMax(simTorque, simRpm);
+    const rp = argMax(ref.powerHp, ref.rpm), rt = argMax(ref.torqueNm, ref.rpm);
+    return {
+      basis: ref.basis,
+      mapePower: (sumP / n) * 100,
+      mapeTorque: (sumT / n) * 100,
+      simPeakPower: sp, refPeakPower: rp,
+      simPeakTorque: st, refPeakTorque: rt
+    };
+  }
+
+  function _setReference(dyno, text, fileName) {
+    const status = document.getElementById("dyno-ref-status");
+    try {
+      dyno.reference = parseReferenceCsv(text, fileName);
+      if (status) { status.textContent = dyno.reference.name + " (" + dyno.reference.basis + ")"; status.style.color = "#6EC1FF"; }
+    } catch (err) {
+      dyno.reference = null;
+      if (status) { status.textContent = String(err.message || err); status.style.color = "#c41e3a"; }
+    }
+    _drawDynoChart(dyno);
   }
 
   function _buildDynoUI(dyno) {
@@ -212,6 +335,54 @@
     };
     dyno.controlsDiv.appendChild(lossInput);
 
+    // Reference curve (CSV) for calibration: drawn dotted over the simulated curves
+    const refLabel = document.createElement("span");
+    refLabel.textContent = "Reference curve (CSV): ";
+    refLabel.style.color = "#aaa";
+    refLabel.style.fontSize = "12px";
+    dyno.controlsDiv.appendChild(refLabel);
+
+    const refInput = document.createElement("input");
+    refInput.id = "dyno-ref-input";
+    refInput.type = "file";
+    refInput.accept = ".csv,.txt,text/csv,text/plain";
+    refInput.style.fontSize = "12px";
+    refInput.style.color = "#aaa";
+    refInput.onchange = () => {
+      const file = refInput.files && refInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => _setReference(dyno, reader.result, file.name);
+      reader.readAsText(file);
+    };
+    dyno.controlsDiv.appendChild(refInput);
+
+    const refStatus = document.createElement("span");
+    refStatus.id = "dyno-ref-status";
+    refStatus.textContent = "none";
+    refStatus.style.fontSize = "12px";
+    refStatus.style.color = "#777";
+    dyno.controlsDiv.appendChild(refStatus);
+
+    const refClear = document.createElement("button");
+    refClear.id = "dyno-ref-clear";
+    refClear.textContent = "✕";
+    refClear.title = "Remove reference curve";
+    refClear.style.padding = "2px 8px";
+    refClear.style.border = "1px solid #555";
+    refClear.style.borderRadius = "4px";
+    refClear.style.backgroundColor = "#222";
+    refClear.style.color = "#fff";
+    refClear.style.cursor = "pointer";
+    refClear.onclick = () => {
+      dyno.reference = null;
+      refInput.value = "";
+      refStatus.textContent = "none";
+      refStatus.style.color = "#777";
+      _drawDynoChart(dyno);
+    };
+    dyno.controlsDiv.appendChild(refClear);
+
     dyno.container.appendChild(dyno.controlsDiv);
 
     // Status readout
@@ -366,22 +537,30 @@
     const h = canvas.height;
     ctx.clearRect(0, 0, w, h);
 
-    const series = dyno.run.series;
-    if (series.length < 2) return;
+    const series = dyno.run ? dyno.run.series : [];
+    const ref = dyno.reference;
+    if (series.length < 2 && !ref) return;
 
     const mL = 56, mR = 56, mT = 28, mB = 44;
     const gW = w - mL - mR;
     const gH = h - mT - mB;
     const DIV = 5;
 
-    const xMin = dyno.run.config.startRpm;
-    const xMax = dyno.run.config.endRpm;
+    // X range: the sweep range once a run exists, otherwise the range of the reference curve
+    const xMin = dyno.run ? dyno.run.config.startRpm : ref.rpm[0];
+    const xMax = dyno.run ? dyno.run.config.endRpm : ref.rpm[ref.rpm.length - 1];
 
     let peakP = 0;
     let peakT = 0;
     for (let i = 0; i < series.length; i++) {
       if (series[i].powerHp > peakP) peakP = series[i].powerHp;
       if (series[i].brakeTorqueNm > peakT) peakT = series[i].brakeTorqueNm;
+    }
+    if (ref) {
+      for (let i = 0; i < ref.rpm.length; i++) {
+        if (ref.powerHp[i] > peakP) peakP = ref.powerHp[i];
+        if (ref.torqueNm[i] > peakT) peakT = ref.torqueNm[i];
+      }
     }
     // Each quantity has its own axis; both share the same 5 grid lines
     const pMax = _niceCeil(peakP, DIV);
@@ -443,6 +622,29 @@
     ctx.setLineDash([]);
     plotCurve("brakeTorqueNm", tMax, "#3ddc84");
 
+    // Reference curve (real dyno data), dotted
+    if (ref) {
+      const plotRef = (xs, ys, vMax, color) => {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        let started = false;
+        for (let i = 0; i < xs.length; i++) {
+          if (xs[i] < xMin || xs[i] > xMax) continue;
+          const x = xOf(xs[i]);
+          const y = yOf(ys[i], vMax);
+          if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      };
+      ctx.setLineDash([2, 3]);
+      plotRef(ref.rpm, ref.powerHp, pMax, "#6EC1FF");
+      plotRef(ref.rpm, ref.torqueNm, tMax, "#C9A6FF");
+      ctx.setLineDash([]);
+      ctx.fillStyle = "#6EC1FF"; ctx.textAlign = "center";
+      ctx.fillText("dotted = ref (" + ref.basis + ")", mL + gW / 2, 16);
+    }
+
     // Axis titles
     ctx.fillStyle = "#FF6B35"; ctx.textAlign = "left";
     ctx.fillText("bhp (solid) / whp (dashed)", mL, 16);
@@ -502,6 +704,20 @@
       { label: "Hydrolock Risk", value: peak.failure === "hydrolock" ? "YES" : "NO", color: peak.failure === "hydrolock" ? "#c41e3a" : "#3ddc84" }
     ];
 
+    // Calibration view: deviation of the simulated sweep from the loaded reference curve
+    const cmp = _compareToReference(dyno);
+    if (cmp) {
+      const errColor = (pct) => (pct <= 5 ? "#3ddc84" : (pct <= 15 ? "#FFB627" : "#c41e3a"));
+      const signed = (sim, ref) => { const p = ((sim - ref) / ref) * 100; return (p >= 0 ? "+" : "") + p.toFixed(0) + "%"; };
+      resultItems.push(
+        { label: "Reference", value: dyno.reference.name + " (" + cmp.basis + ")", color: "#6EC1FF" },
+        { label: "Power error vs ref (mean abs)", value: cmp.mapePower.toFixed(1) + "%", color: errColor(cmp.mapePower) },
+        { label: "Torque error vs ref (mean abs)", value: cmp.mapeTorque.toFixed(1) + "%", color: errColor(cmp.mapeTorque) },
+        { label: "Peak power sim vs ref", value: cmp.simPeakPower.v.toFixed(0) + " vs " + cmp.refPeakPower.v.toFixed(0) + " hp (" + signed(cmp.simPeakPower.v, cmp.refPeakPower.v) + ") @ " + Math.round(cmp.simPeakPower.rpm) + " vs " + Math.round(cmp.refPeakPower.rpm) + " rpm" },
+        { label: "Peak torque sim vs ref", value: cmp.simPeakTorque.v.toFixed(0) + " vs " + cmp.refPeakTorque.v.toFixed(0) + " Nm (" + signed(cmp.simPeakTorque.v, cmp.refPeakTorque.v) + ") @ " + Math.round(cmp.simPeakTorque.rpm) + " vs " + Math.round(cmp.refPeakTorque.rpm) + " rpm" }
+      );
+    }
+
     resultItems.forEach(item => {
       const div = document.createElement("div");
       div.style.padding = "12px";
@@ -517,6 +733,7 @@
 
   root.OEL = root.OEL || {};
   root.OEL.DynoEngine = {
-    createDynoTest
+    createDynoTest,
+    parseReferenceCsv
   };
 })(typeof window !== "undefined" ? window : global);

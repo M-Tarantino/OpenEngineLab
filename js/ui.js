@@ -146,6 +146,81 @@
     buildLeftPanel(app, qs("#left-panel"));
   }
 
+  // ---------------------------------------------------------------- Engine standard (stock) configuration
+  // One file per engine: data/stock-configs/<engine id>.json with chargers, fuel, boost target, driveline loss, ignition and fuel map.
+
+  /** Loads (and caches) the stock configuration file of an engine. Returns null if the engine has none. */
+  async function loadStockRecord(app, engineId) {
+    if (!app.stockConfigs) app.stockConfigs = {};
+    if (Object.prototype.hasOwnProperty.call(app.stockConfigs, engineId)) return app.stockConfigs[engineId];
+    let rec = null;
+    try {
+      rec = await fetchJson("data/stock-configs/" + encodeURIComponent(engineId) + ".json");
+      if (!rec || !Array.isArray(rec.chargers)) rec = null;
+    } catch (err) {
+      rec = null; // no file for this engine (e.g. an imported engine)
+    }
+    app.stockConfigs[engineId] = rec;
+    return rec;
+  }
+
+  /** Applies the stock configuration of an engine to the app state (no worker traffic). Returns the record or null. */
+  async function applyStockConfiguration(app, engineId) {
+    const rec = await loadStockRecord(app, engineId);
+    if (!rec) return null;
+
+    // A charger entry is either a catalog id or a part that belongs to this engine only: { profile, count }
+    const list = [];
+    for (const item of rec.chargers) {
+      if (typeof item === "string") {
+        const entry = app.catalogs.chargers.find(c => c.id === item);
+        if (!entry) { console.warn("Stock configuration: charger '" + item + "' is not in the catalog"); return null; }
+        list.push(await fetchJson(entry.file));
+      } else if (item && item.profile) {
+        const count = Math.max(1, Math.floor(item.count || 1));
+        for (let i = 0; i < count; i++) list.push(deepClone(item.profile));
+      } else {
+        return null;
+      }
+    }
+    if (!OEL.Chargers.validate(list).ok) return null;
+
+    app.chargerList = list;
+    app.profiles.turbo = OEL.Chargers.combine(list);
+    if (rec.fuelId && app.profiles.fuels.some(f => f.id === rec.fuelId)) app.controls.activeFuelId = rec.fuelId;
+    app.controls.boostTargetBar = Math.min(Number.isFinite(rec.boostTargetBar) ? rec.boostTargetBar : 0, app.profiles.turbo.limits.maxBoostBar);
+    if (Number.isFinite(rec.drivelineLossPct)) app.controls.drivelineLossPct = rec.drivelineLossPct;
+    if (rec.ignitionMap) applyMapInPlace(OEL.ECM.IGN_MAP, rec.ignitionMap);
+    if (rec.fuelMap) applyMapInPlace(OEL.ECM.FUEL_MAP, rec.fuelMap);
+    return rec;
+  }
+
+  /** Sends charger system, fuel and both maps of an applied stock configuration to the simulation worker. */
+  function pushStockToWorker(app, rec) {
+    app.worker.postMessage({ type: "importProfile", kind: "turbo", data: app.profiles.turbo });
+    const fuel = app.profiles.fuels.find(f => f.id === app.controls.activeFuelId);
+    if (fuel) app.worker.postMessage({ type: "patch", target: "fuel", data: fuel });
+    if (rec.ignitionMap) app.worker.postMessage({ type: "setMap", map: "IGN", data: rec.ignitionMap });
+    if (rec.fuelMap) app.worker.postMessage({ type: "setMap", map: "FUEL", data: rec.fuelMap });
+  }
+
+  /** Restores the stock configuration of the current engine (no mods, stock chargers, fuel, boost target, maps). */
+  async function loadStockConfiguration(app) {
+    const engineId = app.profiles.engineBase.id;
+    if (!(await loadStockRecord(app, engineId))) {
+      flashAdvisory(app, "No stock configuration is defined for this engine");
+      return;
+    }
+    pushUndo(app);
+    app.mods = { active: [], variants: {} };
+    const rec = await applyStockConfiguration(app, engineId);
+    if (!rec) { flashAdvisory(app, "Stock configuration could not be loaded"); return; }
+    closeToolPanel(app, "maps"); // an open map editor would show the previous maps
+    pushStockToWorker(app, rec);
+    applyEngineWithMods(app);
+    flashAdvisory(app, "Stock configuration loaded: " + app.profiles.engine.name);
+  }
+
   async function selectEngine(app, engineId) {
     const entry = app.catalogs.engines.find(e => e.id === engineId);
     if (!entry) return;
@@ -153,6 +228,9 @@
     const data = await fetchJson(entry.file);
     app.profiles.engineBase = data;
     app.mods = { active: [], variants: {} };
+    // A newly selected engine starts in its standard configuration (chargers, fuel, boost target, maps)
+    const rec = await applyStockConfiguration(app, engineId);
+    if (rec) { closeToolPanel(app, "maps"); pushStockToWorker(app, rec); }
     applyEngineWithMods(app);
   }
 
@@ -277,6 +355,11 @@
     engineSelect.addEventListener("change", () => selectEngine(app, engineSelect.value));
     engineRow.appendChild(engineSelect);
     sec.appendChild(engineRow);
+
+    const stockBtn = ce("button", "charger-btn"); stockBtn.type = "button";
+    stockBtn.textContent = T("stockConfig");
+    stockBtn.addEventListener("click", () => loadStockConfiguration(app));
+    sec.appendChild(stockBtn);
 
     sec.appendChild(buildChargerPanel(app));
 
@@ -1609,6 +1692,7 @@
       modsLibrary,
       mods: { active: [], variants: {} },
       chargerList: [deepClone(turbo)],
+      stockConfigs: {}, // cache of the per-engine stock configuration files
       profiles: { engineBase: deepClone(engineBase), engine: null, turbo: OEL.Chargers.combine([deepClone(turbo)]), fuels: fuelDb.fuels, hybrid: null, nitrous: null, drivetrain: null },
       lastResolvedMods: null,
       controls: {
@@ -1631,11 +1715,15 @@
     app.profiles.engine = initialEngine;
     app.lastResolvedMods = resolved;
 
+    // The start engine begins in its standard configuration as well
+    const startRecord = await applyStockConfiguration(app, app.profiles.engineBase.id);
+
     createWorker(app);
     app.worker.postMessage({
       type: "init", engine: app.profiles.engine, turbo: app.profiles.turbo,
       fuel: app.profiles.fuels.find(f => f.id === app.controls.activeFuelId), extras: {}
     });
+    if (startRecord) pushStockToWorker(app, startRecord);
 
     populateDisciplineSelect(app);
     buildLeftPanel(app, qs("#left-panel"));

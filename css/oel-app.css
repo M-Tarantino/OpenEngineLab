@@ -338,3 +338,16 @@ a.icon-btn-text:hover { border-color: var(--info); color: var(--info); }
 @media (max-width: 900px) {
   .tool-panel { position: fixed; inset: 0; z-index: 1000; }
 }
+
+/* Forced induction: list of up to 4 chargers with add/remove buttons */
+.charger-list { display: flex; flex-direction: column; gap: 6px; }
+.charger-row { display: flex; gap: 6px; align-items: center; }
+.charger-row select { flex: 1 1 auto; min-width: 0; }
+.charger-btn {
+  background: var(--bg-raised); color: var(--text); border: 1px solid var(--border);
+  border-radius: 3px; padding: 6px 10px; cursor: pointer;
+  font-family: var(--font-ui); font-size: 0.9rem; font-weight: 600;
+}
+.charger-btn:hover { border-color: var(--info); color: var(--info); }
+.charger-add { align-self: flex-start; }
+.charger-summary { font-family: var(--font-data); font-size: 0.75rem; color: var(--text-dim); line-height: 1.4; }
