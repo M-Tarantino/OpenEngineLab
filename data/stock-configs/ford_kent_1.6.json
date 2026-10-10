@@ -1,0 +1,102 @@
+{
+ "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+ "engineId": "ford_kent_1.6",
+ "name": "Ford Kent 1.6L (Crossflow) - stock configuration",
+ "status": "generated, not yet calibrated",
+ "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder, ignition for a naturally aspirated engine (low-load row, 0.1 deg retard per % load)",
+ "chargers": [
+  "none-na"
+ ],
+ "fuelId": "e10-95",
+ "boostTargetBar": 0,
+ "drivelineLossPct": 15,
+ "ignitionMap": [
+  [
+   13.1,
+   23.3,
+   29.6,
+   33.7,
+   30.0,
+   30.0
+  ],
+  [
+   10.6,
+   20.8,
+   27.1,
+   31.2,
+   27.5,
+   27.5
+  ],
+  [
+   8.1,
+   18.3,
+   24.6,
+   28.7,
+   25.0,
+   25.0
+  ],
+  [
+   5.6,
+   15.8,
+   22.1,
+   26.2,
+   22.5,
+   22.5
+  ],
+  [
+   3.1,
+   13.3,
+   19.6,
+   23.7,
+   20.0,
+   20.0
+  ]
+ ],
+ "fuelMap": [
+  [
+   0.79,
+   1.07,
+   1.34,
+   1.5,
+   1.45,
+   1.45
+  ],
+  [
+   1.38,
+   1.93,
+   2.4,
+   2.69,
+   2.59,
+   2.59
+  ],
+  [
+   1.99,
+   2.87,
+   3.58,
+   4.01,
+   3.85,
+   3.85
+  ],
+  [
+   2.59,
+   3.81,
+   4.79,
+   5.39,
+   5.18,
+   5.18
+  ],
+  [
+   3.19,
+   4.75,
+   6.0,
+   6.77,
+   6.5,
+   6.5
+  ]
+ ],
+ "reference": {
+  "peakPowerHp": 84,
+  "basis": "crank",
+  "source": "documentation (MODULAR_ARCHITECTURE.md): approx. published stock figure"
+ }
+}

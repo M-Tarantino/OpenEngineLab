@@ -1,0 +1,139 @@
+{
+ "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+ "engineId": "vr38dett",
+ "name": "Nissan VR38DETT 3.8L V6 Twin-Turbo - stock configuration",
+ "status": "generated, not yet calibrated (OEM turbo values estimated)",
+ "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder",
+ "chargers": [
+  {
+   "count": 2,
+   "profile": {
+    "id": "vr38dett-oem",
+    "type": "turbocharger",
+    "name": "Nissan VR38DETT OEM turbo (one per bank, estimated)",
+    "series": "OEM",
+    "bearing_type": "Unknown",
+    "application": {
+     "hp_range": "0-340",
+     "displacement_range_l": "3.8-3.8",
+     "wastegate_type": "Internal",
+     "rotation": "Standard",
+     "description": "Factory twin-turbo set of the R35 GT-R: one turbo per cylinder bank, parallel. Values are estimates derived from the factory output of about 545 PS, not manufacturer data."
+    },
+    "limits": {
+     "maxBoostBar": 1.3,
+     "maxRPM": 200000
+    },
+    "dynamics": {
+     "timeConstantS": 0.45,
+     "volumetricEfficiency": 0.78,
+     "heatRatioK": 1.4,
+     "beltSlipCoeff": 0.0
+    },
+    "cooler": {
+     "effectivenessPercent": 55,
+     "targetInletTempC": 35
+    },
+    "metadata": {
+     "source": "estimated",
+     "features": [
+      "OEM",
+      "estimated values"
+     ]
+    },
+    "description": "Nissan VR38DETT OEM turbo (estimated) - use two of them (one per bank)",
+    "compressor": {
+     "maxMassFlowKgMin": 14.69,
+     "flowBasis": "estimated: 340 hp / 10.5 hp per lb/min; sized so that two turbos carry about 0.95 bar up to redline of the simulated VR38DETT"
+    }
+   }
+  }
+ ],
+ "fuelId": "super-plus-98",
+ "boostTargetBar": 0.95,
+ "drivelineLossPct": 15,
+ "ignitionMap": [
+  [
+   12.0,
+   22.0,
+   28.0,
+   32.0,
+   34.0,
+   30.0
+  ],
+  [
+   10.0,
+   19.0,
+   25.0,
+   29.0,
+   30.0,
+   26.0
+  ],
+  [
+   8.0,
+   16.0,
+   21.0,
+   24.0,
+   25.0,
+   21.0
+  ],
+  [
+   6.0,
+   13.0,
+   17.0,
+   19.0,
+   19.0,
+   16.0
+  ],
+  [
+   4.0,
+   10.0,
+   13.0,
+   14.0,
+   14.0,
+   12.0
+  ]
+ ],
+ "fuelMap": [
+  [
+   1.2,
+   1.6,
+   2.0,
+   2.3,
+   2.4,
+   2.3
+  ],
+  [
+   2.1,
+   2.9,
+   3.6,
+   4.1,
+   4.3,
+   4.1
+  ],
+  [
+   3.0,
+   4.3,
+   5.4,
+   6.1,
+   6.4,
+   6.1
+  ],
+  [
+   3.9,
+   5.7,
+   7.2,
+   8.2,
+   8.6,
+   8.2
+  ],
+  [
+   4.8,
+   7.1,
+   9.0,
+   10.3,
+   10.8,
+   10.3
+  ]
+ ]
+}

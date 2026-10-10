@@ -1,0 +1,102 @@
+{
+ "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+ "engineId": "honda_d15",
+ "name": "Honda D15 SOHC - stock configuration",
+ "status": "generated, not yet calibrated",
+ "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder, ignition for a naturally aspirated engine (low-load row, 0.1 deg retard per % load)",
+ "chargers": [
+  "none-na"
+ ],
+ "fuelId": "e10-95",
+ "boostTargetBar": 0,
+ "drivelineLossPct": 15,
+ "ignitionMap": [
+  [
+   12.5,
+   22.6,
+   28.7,
+   32.8,
+   32.2,
+   30.0
+  ],
+  [
+   10.0,
+   20.1,
+   26.2,
+   30.3,
+   29.7,
+   27.5
+  ],
+  [
+   7.5,
+   17.6,
+   23.7,
+   27.8,
+   27.2,
+   25.0
+  ],
+  [
+   5.0,
+   15.1,
+   21.2,
+   25.3,
+   24.7,
+   22.5
+  ],
+  [
+   2.5,
+   12.6,
+   18.7,
+   22.8,
+   22.2,
+   20.0
+  ]
+ ],
+ "fuelMap": [
+  [
+   0.72,
+   0.97,
+   1.21,
+   1.38,
+   1.39,
+   1.36
+  ],
+  [
+   1.26,
+   1.75,
+   2.17,
+   2.46,
+   2.48,
+   2.42
+  ],
+  [
+   1.81,
+   2.6,
+   3.26,
+   3.66,
+   3.69,
+   3.6
+  ],
+  [
+   2.35,
+   3.45,
+   4.35,
+   4.92,
+   4.96,
+   4.83
+  ],
+  [
+   2.9,
+   4.3,
+   5.44,
+   6.18,
+   6.23,
+   6.07
+  ]
+ ],
+ "reference": {
+  "peakPowerHp": 86,
+  "basis": "crank",
+  "source": "documentation (MODULAR_ARCHITECTURE.md): approx. published stock figure"
+ }
+}

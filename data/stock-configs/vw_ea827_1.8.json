@@ -1,0 +1,102 @@
+{
+ "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+ "engineId": "vw_ea827_1.8",
+ "name": "VW EA827 1.8L 8v - stock configuration",
+ "status": "generated, not yet calibrated",
+ "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder, ignition for a naturally aspirated engine (low-load row, 0.1 deg retard per % load)",
+ "chargers": [
+  "none-na"
+ ],
+ "fuelId": "e10-95",
+ "boostTargetBar": 0,
+ "drivelineLossPct": 15,
+ "ignitionMap": [
+  [
+   13.1,
+   23.3,
+   29.6,
+   33.7,
+   30.0,
+   30.0
+  ],
+  [
+   10.6,
+   20.8,
+   27.1,
+   31.2,
+   27.5,
+   27.5
+  ],
+  [
+   8.1,
+   18.3,
+   24.6,
+   28.7,
+   25.0,
+   25.0
+  ],
+  [
+   5.6,
+   15.8,
+   22.1,
+   26.2,
+   22.5,
+   22.5
+  ],
+  [
+   3.1,
+   13.3,
+   19.6,
+   23.7,
+   20.0,
+   20.0
+  ]
+ ],
+ "fuelMap": [
+  [
+   0.87,
+   1.19,
+   1.49,
+   1.68,
+   1.62,
+   1.62
+  ],
+  [
+   1.54,
+   2.15,
+   2.67,
+   3.0,
+   2.88,
+   2.88
+  ],
+  [
+   2.21,
+   3.19,
+   3.99,
+   4.46,
+   4.29,
+   4.29
+  ],
+  [
+   2.88,
+   4.24,
+   5.34,
+   6.0,
+   5.76,
+   5.76
+  ],
+  [
+   3.55,
+   5.29,
+   6.68,
+   7.53,
+   7.24,
+   7.24
+  ]
+ ],
+ "reference": {
+  "peakPowerHp": 90,
+  "basis": "crank",
+  "source": "documentation (MODULAR_ARCHITECTURE.md): approx. published stock figure"
+ }
+}

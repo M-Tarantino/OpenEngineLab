@@ -1,0 +1,102 @@
+{
+ "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+ "engineId": "chrysler_3.8_v6_ohv",
+ "name": "Chrysler 3.8L V6 OHV (EGL/EGH) - stock configuration",
+ "status": "generated, not yet calibrated",
+ "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder, ignition for a naturally aspirated engine (low-load row, 0.1 deg retard per % load)",
+ "chargers": [
+  "none-na"
+ ],
+ "fuelId": "e10-95",
+ "boostTargetBar": 0,
+ "drivelineLossPct": 15,
+ "ignitionMap": [
+  [
+   14.3,
+   24.8,
+   31.2,
+   31.1,
+   30.0,
+   30.0
+  ],
+  [
+   11.8,
+   22.3,
+   28.7,
+   28.6,
+   27.5,
+   27.5
+  ],
+  [
+   9.3,
+   19.8,
+   26.2,
+   26.1,
+   25.0,
+   25.0
+  ],
+  [
+   6.8,
+   17.3,
+   23.7,
+   23.6,
+   22.5,
+   22.5
+  ],
+  [
+   4.3,
+   14.8,
+   21.2,
+   21.1,
+   20.0,
+   20.0
+  ]
+ ],
+ "fuelMap": [
+  [
+   1.29,
+   1.77,
+   2.23,
+   2.31,
+   2.29,
+   2.29
+  ],
+  [
+   2.27,
+   3.2,
+   3.98,
+   4.13,
+   4.08,
+   4.08
+  ],
+  [
+   3.28,
+   4.78,
+   5.93,
+   6.15,
+   6.07,
+   6.07
+  ],
+  [
+   4.29,
+   6.36,
+   7.96,
+   8.26,
+   8.15,
+   8.15
+  ],
+  [
+   5.3,
+   7.93,
+   9.99,
+   10.38,
+   10.24,
+   10.24
+  ]
+ ],
+ "reference": {
+  "peakPowerHp": 190.4,
+  "basis": "crank",
+  "source": "owner's vehicle: 193 PS factory rating"
+ }
+}

@@ -1,0 +1,97 @@
+{
+ "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+ "engineId": "toyota_3k",
+ "name": "Toyota 3K - stock configuration",
+ "status": "generated, not yet calibrated",
+ "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder, ignition for a naturally aspirated engine (low-load row, 0.1 deg retard per % load)",
+ "chargers": [
+  "none-na"
+ ],
+ "fuelId": "e10-95",
+ "boostTargetBar": 0,
+ "drivelineLossPct": 15,
+ "ignitionMap": [
+  [
+   13.1,
+   23.3,
+   29.6,
+   33.7,
+   30.0,
+   30.0
+  ],
+  [
+   10.6,
+   20.8,
+   27.1,
+   31.2,
+   27.5,
+   27.5
+  ],
+  [
+   8.1,
+   18.3,
+   24.6,
+   28.7,
+   25.0,
+   25.0
+  ],
+  [
+   5.6,
+   15.8,
+   22.1,
+   26.2,
+   22.5,
+   22.5
+  ],
+  [
+   3.1,
+   13.3,
+   19.6,
+   23.7,
+   20.0,
+   20.0
+  ]
+ ],
+ "fuelMap": [
+  [
+   0.57,
+   0.78,
+   0.97,
+   1.1,
+   1.06,
+   1.06
+  ],
+  [
+   1.01,
+   1.41,
+   1.75,
+   1.96,
+   1.89,
+   1.89
+  ],
+  [
+   1.45,
+   2.09,
+   2.61,
+   2.92,
+   2.81,
+   2.81
+  ],
+  [
+   1.89,
+   2.78,
+   3.49,
+   3.93,
+   3.78,
+   3.78
+  ],
+  [
+   2.33,
+   3.46,
+   4.38,
+   4.93,
+   4.74,
+   4.74
+  ]
+ ]
+}
