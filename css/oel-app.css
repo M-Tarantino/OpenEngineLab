@@ -358,3 +358,11 @@ a.icon-btn-text:hover { border-color: var(--info); color: var(--info); }
 .calibration-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
 .calibration-row input[type="text"] { width: 90px; }
 .calibration-manual { display: flex; align-items: center; gap: 4px; font-family: var(--font-ui); font-size: 0.85rem; }
+
+/* Schematic: engine outline, head contour, centerlines, combustion glow, weak-point legend */
+.engine-outline { fill: none; stroke: #3A444D; stroke-width: 1.5; stroke-dasharray: 8 5; }
+.head-outline { fill: none; stroke: #2A333B; stroke-width: 1; }
+.centerline { stroke: #2A333B; stroke-width: 1; stroke-dasharray: 2 4; }
+.top-glow { fill: #FFB703; mix-blend-mode: screen; pointer-events: none; }
+.weak-legend-title { fill: #9AA6B2; font-family: monospace; font-size: 12px; letter-spacing: 0.08em; }
+.weak-legend-item { fill: #E4E9ED; font-family: monospace; font-size: 13px; }
