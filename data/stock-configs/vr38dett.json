@@ -135,5 +135,19 @@
    10.8,
    10.3
   ]
- ]
+ ],
+ "reference": {
+  "peakPowerHp": 522.7,
+  "peakPowerPs": 530,
+  "peakPowerRpm": 6400,
+  "peakTorqueNm": 612,
+  "peakTorqueRpm": 3200,
+  "basis": "crank",
+  "standard": "Manufacturer rating in PS as published in Nissan GT-R market specifications; rating standard (SAE/DIN/JIS) not stated, converted to mechanical hp with 1 hp = 1.01387 PS",
+  "market": "Japan/Europe (PS rating)",
+  "variant": "R35 GT-R MY2011 production (CBA-R35 / DBA-R35), 9.0:1, 95.5 x 88.4 mm, 7000 rpm redline",
+  "source": "carfromjapan.com spec sheet DBA-R35 (530 PS at 6400 rpm, 612 N·m); encycarpedia.com Nissan GT-R 2011 (530 PS at 6400 rpm, 612 N·m at 3200 rpm); jbskyline.net 2011 R35 specifications (530 hp at 6400 rpm, 612 Nm at 3200 rpm, redline 7000 rpm)",
+  "confidence": "press",
+  "notes": "Bore/stroke, compression and redline match the engine file. Sources label the 530 figure as PS or hp; PS is used. Earlier MY2007-2010 ratings were 473-485 hp and are not used. Nismo and GT-R50 variants not used. The attached Dynapack sheet (630 hp at the wheels, tuned car) is not a factory figure and is not used here. OEM turbo values in the stock configuration are estimates, so the factor also absorbs boost-model error."
+ }
 }

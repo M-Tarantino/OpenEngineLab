@@ -93,5 +93,19 @@
    7.24,
    7.24
   ]
- ]
+ ],
+ "reference": {
+  "peakPowerHp": null,
+  "peakPowerPs": null,
+  "peakPowerRpm": null,
+  "peakTorqueNm": null,
+  "peakTorqueRpm": null,
+  "basis": "crank",
+  "standard": null,
+  "market": null,
+  "variant": null,
+  "source": null,
+  "confidence": "none",
+  "notes": "No reliable factory peak found in the sources searched (7K, 1.8 L). Nothing is estimated."
+ }
 }

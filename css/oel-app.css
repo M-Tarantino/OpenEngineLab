@@ -351,3 +351,10 @@ a.icon-btn-text:hover { border-color: var(--info); color: var(--info); }
 .charger-btn:hover { border-color: var(--info); color: var(--info); }
 .charger-add { align-self: flex-start; }
 .charger-summary { font-family: var(--font-data); font-size: 0.75rem; color: var(--text-dim); line-height: 1.4; }
+
+/* Calibration panel (engine section) */
+.calibration-panel { margin-top: 8px; border-top: 1px solid var(--border, #333); padding-top: 8px; }
+.calibration-line { font-family: var(--font-data); font-size: 0.75rem; color: var(--text-dim); line-height: 1.5; }
+.calibration-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
+.calibration-row input[type="text"] { width: 90px; }
+.calibration-manual { display: flex; align-items: center; gap: 4px; font-family: var(--font-ui); font-size: 0.85rem; }

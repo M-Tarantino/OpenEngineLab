@@ -95,8 +95,17 @@
   ]
  ],
  "reference": {
-  "peakPowerHp": 115,
+  "peakPowerHp": null,
+  "peakPowerPs": null,
+  "peakPowerRpm": null,
+  "peakTorqueNm": null,
+  "peakTorqueRpm": null,
   "basis": "crank",
-  "source": "documentation (MODULAR_ARCHITECTURE.md): approx. published stock figure"
+  "standard": null,
+  "market": null,
+  "variant": null,
+  "source": null,
+  "confidence": "none",
+  "notes": "Only a regional catalogue listing (Brazilian Golf GLX 2.0, 1997-98; bore 82.5 x 92.8 mm matches) was found. It gives 57.5 hp per litre (about 114 cv) and 16.7 kgfm, without a stated peak speed. The power is derived from specific output, so it is not used as a reference. The file's compression of 10.0:1 is not verified. Previous value 115 hp had no verifiable source and was removed."
  }
 }

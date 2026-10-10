@@ -95,8 +95,17 @@
   ]
  ],
  "reference": {
-  "peakPowerHp": 84,
+  "peakPowerHp": null,
+  "peakPowerPs": null,
+  "peakPowerRpm": null,
+  "peakTorqueNm": null,
+  "peakTorqueRpm": null,
   "basis": "crank",
-  "source": "documentation (MODULAR_ARCHITECTURE.md): approx. published stock figure"
+  "standard": null,
+  "market": null,
+  "variant": null,
+  "source": null,
+  "confidence": "none",
+  "notes": "No reliable stock peak found. The only specific figure (83 bhp at 5500 rpm, Corgi model listing) is for the Mk2 Escort 1600 Sport with a Weber carburettor and is not used. Bore/stroke 81.0 x 77.6 and compression 9.0:1 not verified against a source. Previous value 84 hp had no verifiable source and was removed."
  }
 }

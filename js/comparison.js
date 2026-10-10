@@ -29,7 +29,7 @@
       // discipline-specific extras (hybrid/nitrous/drivetrain) don't apply to
       // this dyno-style comparison, so every setup is judged on equal footing.
       return OEL.Benchmark.runWotBenchmark({
-        engine: setup.config.engineBase, turbo: setup.config.turbo, fuel,
+        engine: OEL.Calibration.attachToEngine(setup.config.engineBase, setup.config.calibration), turbo: setup.config.turbo, fuel,
         extras: {}, boostTargetBar: setup.config.boostTargetBar
       });
     }

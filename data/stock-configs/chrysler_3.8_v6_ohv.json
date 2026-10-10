@@ -96,7 +96,16 @@
  ],
  "reference": {
   "peakPowerHp": 190.4,
+  "peakPowerPs": 193,
+  "peakPowerRpm": null,
+  "peakTorqueNm": null,
+  "peakTorqueRpm": null,
   "basis": "crank",
-  "source": "owner's vehicle: 193 PS factory rating"
+  "standard": "Owner-stated PS value, converted to mechanical hp",
+  "market": "unknown",
+  "variant": "EGL/EGH 3.8 V6 OHV (owner's vehicle, model year not stated)",
+  "source": "Owner statement: 193 PS factory rating",
+  "confidence": "owner-stated",
+  "notes": "Calibration target kept as instructed. Published context, not used as target: 180 hp at 4400 rpm for a 1998 Caravan 3.8 (EGH, 9.0:1; fichacompleta.com.br); 215 hp and 245 lb-ft for a 2001 Town & Country 3.8 (theautochannel.com review). 215 hp is 218 PS, above the owner's 193 PS. Bore/stroke 96.0 x 87.0 and redline 5200 rpm match; the file uses 9.6:1 compression, the 1998 listing 9.0:1."
  }
 }

@@ -29,7 +29,8 @@
         mods: app.mods,
         activeFuelId: app.controls.activeFuelId,
         boostTargetBar: app.controls.boostTargetBar,
-        discipline: app.discipline
+        discipline: app.discipline,
+        calibration: OEL.Calibration ? OEL.Calibration.serializeState(app.calibration || null) : null
       }
     };
     return setup;

@@ -95,8 +95,17 @@
   ]
  ],
  "reference": {
-  "peakPowerHp": 105,
+  "peakPowerHp": null,
+  "peakPowerPs": null,
+  "peakPowerRpm": null,
+  "peakTorqueNm": null,
+  "peakTorqueRpm": null,
   "basis": "crank",
-  "source": "documentation (MODULAR_ARCHITECTURE.md): approx. published stock figure"
+  "standard": null,
+  "market": null,
+  "variant": null,
+  "source": null,
+  "confidence": "none",
+  "notes": "No reliable source. Candidate only: 127 hp at 6800 rpm for the D16Y8 (1996-2000 Civic EX) from a Q&A page, not considered reliable. That engine is listed at 10.2:1 compression while the file uses 9.4:1 (mismatch), so it is not used. Previous value 105 hp had no verifiable source and was removed."
  }
 }

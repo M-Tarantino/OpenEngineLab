@@ -95,8 +95,17 @@
   ]
  ],
  "reference": {
-  "peakPowerHp": 90,
+  "peakPowerHp": 88.8,
+  "peakPowerPs": 90,
+  "peakPowerRpm": 5500,
+  "peakTorqueNm": 142,
+  "peakTorqueRpm": 3000,
   "basis": "crank",
-  "source": "documentation (MODULAR_ARCHITECTURE.md): approx. published stock figure"
+  "standard": "PS as published in the catalogue, converted to mechanical hp",
+  "market": "Europe",
+  "variant": "1.8 8V EA827, Golf Mk2 (9.0:1), 81 x 86.4 mm",
+  "source": "encycarpedia.com 1988 Volkswagen Golf 1.8 (90 ps at 5500 rpm, 142 N·m at 3000 rpm, 9:1); en.wikipedia.org Volkswagen EA827 engine (66 kW / 90 PS, 142 N·m at 9.0:1 listed at 5400 rpm / 2600 rpm)",
+  "confidence": "press",
+  "notes": "Bore/stroke and compression 9.0:1 match the file. Wikipedia lists the same power at 5400 rpm and the torque at 2600 rpm for 9.0:1; the encycarpedia rpm values are used. A listing of 112 hp for a 1.8 Golf is a different variant and is not used."
  }
 }

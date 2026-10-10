@@ -93,5 +93,19 @@
    4.74,
    4.74
   ]
- ]
+ ],
+ "reference": {
+  "peakPowerHp": 60,
+  "peakPowerPs": null,
+  "peakPowerRpm": 6000,
+  "peakTorqueNm": null,
+  "peakTorqueRpm": null,
+  "basis": "crank",
+  "standard": "Not stated in the source (hp as published)",
+  "market": "Japan",
+  "variant": "3K 8-valve OHV 1.2 L (1,166 cc), 60 hp version of the 1969-1977 range",
+  "source": "rollaclub.com forum post quoting the Wikipedia 'Toyota K engine' list: 3K 60 hp at 6000 rpm",
+  "confidence": "community",
+  "notes": "Second-hand quote, a single source. The same list gives 84 hp (3K-BR) and 97 hp (3K-B) for other variants, with compression 9 and 10; the file's 9.0:1 could also belong to the 97 hp version, so the variant is uncertain. Bore/stroke 75 x 66 mm and redline 6000 rpm are consistent."
+ }
 }

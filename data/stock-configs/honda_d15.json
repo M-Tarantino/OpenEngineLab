@@ -95,8 +95,17 @@
   ]
  ],
  "reference": {
-  "peakPowerHp": 86,
+  "peakPowerHp": null,
+  "peakPowerPs": null,
+  "peakPowerRpm": null,
+  "peakTorqueNm": null,
+  "peakTorqueRpm": null,
   "basis": "crank",
-  "source": "documentation (MODULAR_ARCHITECTURE.md): approx. published stock figure"
+  "standard": null,
+  "market": null,
+  "variant": null,
+  "source": null,
+  "confidence": "none",
+  "notes": "No reliable source. Candidate only: 102 hp at 5900 rpm and 98 lb-ft at 5000 rpm for the D15B7 (EG Civic), from content-farm copies that are not considered reliable, so not used. Bore/stroke 75.0 x 84.5 and compression 9.2:1 are consistent with that listing. Engine file redline 6500 rpm not verified. Previous value 86 hp had no verifiable source and was removed."
  }
 }

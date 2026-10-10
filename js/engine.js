@@ -55,6 +55,17 @@
     SPOOL_SHARPNESS: 1.5     // how quickly boost availability falls off below that airflow
   };
 
+  /**
+   * Output scale from the engine profile's calibration block (see js/calibration.js).
+   * Applied only to the brake-torque output, never to the combustion torque, so rpm dynamics,
+   * cylinder pressure, knock, stress and thermal calculations are identical with and without it.
+   * Missing, non-finite or non-positive values fall back to 1.0.
+   */
+  function resolveTorqueScale(engineProfile) {
+    const f = engineProfile && engineProfile.calibration ? Number(engineProfile.calibration.factor) : 1;
+    return Number.isFinite(f) && f > 0 ? f : 1;
+  }
+
   function createState(engineProfile, turboProfile, fuel, extras) {
     extras = extras || {};
     return {
@@ -64,6 +75,7 @@
       nitrousProfile: extras.nitrousProfile || null,
       hybridProfile: extras.hybridProfile || null,
       drivetrainProfile: extras.drivetrainProfile || null,
+      torqueScale: resolveTorqueScale(engineProfile),
       time: 0,
       cycles: 0,
       rpm: engineProfile.idleRPM,
@@ -342,7 +354,7 @@
     const newRpm = rpm + angularAccelRadS2 * (60 / (2 * Math.PI)) * dt;
     state.rpm = Math.max(seized ? 0 : 300, Math.min(state.engine.revLimiterRPM * 1.05, newRpm));
 
-    const brakeTorqueNm = Math.max(0, combustionTorqueNm - frictionTorqueNm);
+    const brakeTorqueNm = Math.max(0, combustionTorqueNm - frictionTorqueNm) * state.torqueScale;
     const powerHp = (brakeTorqueNm * rpm) / 7127;
     const powerKw = (brakeTorqueNm * rpm * 2 * Math.PI) / 60000;
 

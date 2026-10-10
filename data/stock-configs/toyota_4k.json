@@ -93,5 +93,19 @@
    5.25,
    5.25
   ]
- ]
+ ],
+ "reference": {
+  "peakPowerHp": 65,
+  "peakPowerPs": null,
+  "peakPowerRpm": 5600,
+  "peakTorqueNm": 97,
+  "peakTorqueRpm": 3600,
+  "basis": "crank",
+  "standard": "Not stated in the source (hp and ft·lbf as published)",
+  "market": "Japan/export, 1982-1984 standard output",
+  "variant": "4K 8-valve OHV 1.3 L (1,290 cc)",
+  "source": "pakwheels.com forum post quoting the Wikipedia 'Toyota K engine' figures: 65 hp at 5600 rpm, 72 ft·lbf (97 N·m) at 3600 rpm; rollaclub.com forum: 60 hp at 5250 rpm for 1980",
+  "confidence": "community",
+  "notes": "Second-hand quotes. Output varied by year and market (58-74 hp in these sources), so the variant is uncertain. Bore/stroke 75 x 73 mm is consistent with 1.29 L. Engine file redline 6000 rpm is above the published peak speed."
+ }
 }

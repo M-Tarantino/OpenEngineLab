@@ -695,6 +695,7 @@
       { label: "Peak Power (crank, bhp)", value: peak.powerHp.toFixed(0) + " hp (" + OEL.Benchmark.hpToPs(peak.powerHp).toFixed(0) + " PS) @ " + Math.round(peak.powerHpRpm) + " rpm" },
       { label: "Peak Power (wheels, whp)", value: peak.wheelPowerHp.toFixed(0) + " hp (" + OEL.Benchmark.hpToPs(peak.wheelPowerHp).toFixed(0) + " PS) @ " + Math.round(peak.wheelPowerHpRpm) + " rpm" },
       { label: "Driveline Loss", value: run.config.drivelineLossPct.toFixed(0) + "%" },
+      { label: "Calibration", value: dyno.labels.getCalibrationText ? dyno.labels.getCalibrationText() : "—" },
       { label: "Peak Torque", value: peak.brakeTorqueNm.toFixed(0) + " Nm @ " + Math.round(peak.torqueRpm) + " rpm" },
       { label: "Peak Oil Temp", value: peak.oilTempC.toFixed(1) + "°C" },
       { label: "Peak Cyl Pressure", value: peak.cylinderPressureBar.toFixed(1) + " bar" },

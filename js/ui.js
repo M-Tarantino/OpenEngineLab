@@ -80,7 +80,8 @@
       chargerList: deepClone(app.chargerList),
       mods: deepClone(app.mods),
       boostTargetBar: app.controls.boostTargetBar,
-      activeFuelId: app.controls.activeFuelId
+      activeFuelId: app.controls.activeFuelId,
+      calibration: deepClone(app.calibration || null)
     };
   }
   function applySnapshot(app, snap) {
@@ -93,6 +94,7 @@
     const fuel = app.profiles.fuels.find(f => f.id === snap.activeFuelId);
     if (fuel) app.worker.postMessage({ type: "patch", target: "fuel", data: fuel });
     app.worker.postMessage({ type: "importProfile", kind: "turbo", data: app.profiles.turbo });
+    app.calibration = snap.calibration || null;
     applyEngineWithMods(app);
   }
   function pushUndo(app) {
@@ -132,6 +134,83 @@
     return engineBase;
   }
 
+  // ---------------------------------------------------------------- Calibration (single power factor, see js/calibration.js)
+  /** Attaches the current calibration to an engine profile; engine.js applies it to the brake-torque output only. */
+  function attachCalibration(app, engineProfile) {
+    engineProfile.calibration = OEL.Calibration.toEngineBlock(app.calibration || null);
+  }
+
+  /**
+   * Runs the standard WOT sweep on the cached stock system: stock chargers, fuel, boost target,
+   * driveline loss and stock ECU maps, no modifications, no calibration block (factor 1.0).
+   * The live ECU maps are restored afterwards, so user map edits are never overwritten.
+   */
+  function runStockSweep(app, rec) {
+    const sys = app.stockSystem;
+    const ignSaved = OEL.ECM.IGN_MAP.map(row => row.slice());
+    const fuelSaved = OEL.ECM.FUEL_MAP.map(row => row.slice());
+    try {
+      if (rec.ignitionMap) applyMapInPlace(OEL.ECM.IGN_MAP, rec.ignitionMap);
+      if (rec.fuelMap) applyMapInPlace(OEL.ECM.FUEL_MAP, rec.fuelMap);
+      const base = ensureBaseStock(deepClone(app.profiles.engineBase));
+      const engine = OEL.Mods.applyResolvedConfig(base, OEL.Mods.resolveEngineConfiguration(base, [], {}, app.modsLibrary));
+      const fuel = app.profiles.fuels.find(f => f.id === sys.fuelId);
+      const run = OEL.Benchmark.runWotBenchmark({
+        engine, turbo: deepClone(sys.turbo), fuel, extras: {},
+        boostTargetBar: sys.boostTargetBar, drivelineLossPct: sys.drivelineLossPct
+      });
+      return run.peak;
+    } finally {
+      applyMapInPlace(OEL.ECM.IGN_MAP, ignSaved);
+      applyMapInPlace(OEL.ECM.FUEL_MAP, fuelSaved);
+    }
+  }
+
+  /**
+   * Builds the calibration state for the cached stock system. The automatic factor is always
+   * computed for display; a manual factor (if any) takes precedence in the simulation.
+   * choice: { target: normalized target | null, manualFactor: number | null }
+   */
+  function computeStockCalibration(app, rec, choice) {
+    const sys = app.stockSystem;
+    const target = choice.target || null;
+    const point = OEL.Calibration.makeCalibrationPoint(sys.boostTargetBar, sys.chargerList, sys.fuelId);
+    const auto = target ? OEL.Calibration.computeAutoFactor(target, runStockSweep(app, rec)) : null;
+    return OEL.Calibration.buildState({ target, manualFactor: choice.manualFactor, auto, point });
+  }
+
+  /** True when a stock configuration with a cached stock system exists for the current engine. */
+  function canCalibrate(app) {
+    const id = app.profiles.engineBase.id;
+    const ok = !!(app.stockConfigs && app.stockConfigs[id] && app.stockSystem && app.stockSystem.engineId === id);
+    if (!ok) flashAdvisory(app, T("calNoStock"));
+    return ok;
+  }
+
+  /** Applies a change to the target and/or the manual factor, keeping every other calibration input. */
+  function updateCalibration(app, patch) {
+    const id = app.profiles.engineBase.id;
+    const rec = app.stockConfigs[id];
+    const cur = app.calibration || {};
+    const target = Object.prototype.hasOwnProperty.call(patch, "target") ? patch.target : (cur.target || null);
+    const manualFactor = Object.prototype.hasOwnProperty.call(patch, "manualFactor") ? patch.manualFactor : (cur.manualFactor ?? null);
+    app.calibration = computeStockCalibration(app, rec, { target, manualFactor });
+    applyEngineWithMods(app);
+  }
+
+  function calibrationStatus(app) {
+    const cal = app.calibration || null;
+    const ext = OEL.Calibration.evaluateExtrapolation(cal ? cal.point : null, app.controls.boostTargetBar, app.chargerList);
+    return { cal, ext, key: OEL.Calibration.statusKey(cal, ext) };
+  }
+
+  /** One-line summary for the Dyno views: factor in use and whether it is calibrated or extrapolated. */
+  function calibrationSummaryText(app) {
+    const st = calibrationStatus(app);
+    const factor = st.cal ? st.cal.factor : 1;
+    return factor.toFixed(4) + " (" + T(st.key) + ")";
+  }
+
   function applyEngineWithMods(app) {
     ensureBaseStock(app.profiles.engineBase);
     const resolved = OEL.Mods.resolveEngineConfiguration(
@@ -139,6 +218,7 @@
     );
     const engineProfile = deepClone(app.profiles.engineBase);
     OEL.Mods.applyResolvedConfig(engineProfile, resolved);
+    attachCalibration(app, engineProfile);
     app.profiles.engine = engineProfile;
     app.lastResolvedMods = resolved;
     app.worker.postMessage({ type: "importProfile", kind: "engine", data: engineProfile });
@@ -166,6 +246,8 @@
 
   /** Applies the stock configuration of an engine to the app state (no worker traffic). Returns the record or null. */
   async function applyStockConfiguration(app, engineId) {
+    app.stockSystem = null;
+    app.calibration = null;
     const rec = await loadStockRecord(app, engineId);
     if (!rec) return null;
 
@@ -192,6 +274,18 @@
     if (Number.isFinite(rec.drivelineLossPct)) app.controls.drivelineLossPct = rec.drivelineLossPct;
     if (rec.ignitionMap) applyMapInPlace(OEL.ECM.IGN_MAP, rec.ignitionMap);
     if (rec.fuelMap) applyMapInPlace(OEL.ECM.FUEL_MAP, rec.fuelMap);
+    app.stockSystem = {
+      engineId,
+      chargerList: deepClone(list),
+      turbo: deepClone(app.profiles.turbo),
+      boostTargetBar: app.controls.boostTargetBar,
+      fuelId: app.controls.activeFuelId,
+      drivelineLossPct: app.controls.drivelineLossPct
+    };
+    app.calibration = computeStockCalibration(app, rec, {
+      target: OEL.Calibration.targetFromRecord(rec),
+      manualFactor: OEL.Calibration.manualFactorFromRecord(rec)
+    });
     return rec;
   }
 
@@ -340,6 +434,103 @@
     applyEngineWithMods(app);
   }
 
+  /** Calibration controls: factor, target (value/unit/basis), manual override, recalibrate and reset. */
+  function buildCalibrationPanel(app) {
+    const st = calibrationStatus(app);
+    const cal = st.cal;
+    const factor = cal ? cal.factor : 1;
+    const wrap = ce("div", "field calibration-panel");
+
+    const title = ce("label"); title.textContent = T("calTitle"); wrap.appendChild(title);
+    const line = (text) => { const p = ce("div", "calibration-line"); p.textContent = text; wrap.appendChild(p); };
+    line(T("calFactor") + ": " + factor.toFixed(4) + " — " + T(st.key));
+    if (cal && cal.auto) line(T("calAutoFactor") + ": " + cal.auto.factor.toFixed(4));
+    if (cal && cal.target) {
+      line(T("calTarget") + ": " + cal.target.value + " " + cal.target.unit + " (" + T(cal.target.basis === "wheel" ? "calBasisWheel" : "calBasisCrank") + ")");
+    } else {
+      line(T("calNoTarget"));
+    }
+    if (cal && cal.point) {
+      const fuel = app.profiles.fuels.find(f => f.id === cal.point.fuelId);
+      line(T("calPoint") + ": " + T("calPointText", {
+        boost: cal.point.boostTargetBar.toFixed(2),
+        chargers: cal.point.chargerSignature || "—",
+        fuel: fuel ? fuel.name : (cal.point.fuelId || "—")
+      }));
+    }
+    if (st.ext.extrapolated) {
+      const reasons = st.ext.reasons.map(r => T(r === "boost" ? "calReasonBoost" : "calReasonChargers")).join(", ");
+      const warn = ce("div", "launch-alert warn");
+      warn.textContent = T("calExtrapolated", { reasons: reasons, pct: Math.round(OEL.Calibration.EXTRAPOLATION_BOOST_TOLERANCE * 100) });
+      wrap.appendChild(warn);
+    }
+    if (cal && cal.auto && cal.auto.clamped) {
+      const warn = ce("div", "launch-alert warn");
+      warn.textContent = T("calClamped", { min: OEL.Calibration.FACTOR_MIN, max: OEL.Calibration.FACTOR_MAX });
+      wrap.appendChild(warn);
+    }
+
+    // Target: value, unit and basis
+    const targetRow = ce("div", "calibration-row");
+    const valueInput = ce("input"); valueInput.type = "text"; valueInput.inputMode = "decimal";
+    valueInput.value = cal && cal.target ? String(cal.target.value) : "";
+    const unitSel = ce("select");
+    for (const u of OEL.Calibration.UNITS) { const o = ce("option"); o.value = u; o.textContent = u; if (cal && cal.target && cal.target.unit === u) o.selected = true; unitSel.appendChild(o); }
+    const basisSel = ce("select");
+    for (const b of ["crank", "wheel"]) { const o = ce("option"); o.value = b; o.textContent = T(b === "wheel" ? "calBasisWheel" : "calBasisCrank"); if (cal && cal.target && cal.target.basis === b) o.selected = true; basisSel.appendChild(o); }
+    if (!cal || !cal.target) unitSel.value = "PS";
+    const commitTarget = () => {
+      const target = OEL.Calibration.normalizeTarget({
+        value: OEL.Calibration.parseDecimal(valueInput.value), unit: unitSel.value, basis: basisSel.value
+      });
+      if (!target) { flashAdvisory(app, T("calInvalidTarget")); buildLeftPanel(app, qs("#left-panel")); return; }
+      if (!canCalibrate(app)) return;
+      pushUndo(app);
+      updateCalibration(app, { target });
+    };
+    valueInput.addEventListener("change", commitTarget);
+    unitSel.addEventListener("change", commitTarget);
+    basisSel.addEventListener("change", commitTarget);
+    targetRow.appendChild(valueInput); targetRow.appendChild(unitSel); targetRow.appendChild(basisSel);
+    wrap.appendChild(targetRow);
+
+    // Actions
+    const actionRow = ce("div", "calibration-row");
+    const recBtn = ce("button", "charger-btn"); recBtn.type = "button"; recBtn.textContent = T("calRecalibrate");
+    recBtn.addEventListener("click", () => { if (!canCalibrate(app)) return; pushUndo(app); updateCalibration(app, {}); });
+    const resetBtn = ce("button", "charger-btn"); resetBtn.type = "button"; resetBtn.textContent = T("calReset");
+    resetBtn.addEventListener("click", () => { if (!canCalibrate(app)) return; pushUndo(app); updateCalibration(app, { manualFactor: 1 }); });
+    actionRow.appendChild(recBtn); actionRow.appendChild(resetBtn);
+    wrap.appendChild(actionRow);
+
+    // Manual override
+    const manualRow = ce("div", "calibration-row");
+    const manualLabel = ce("label", "calibration-manual");
+    const manualBox = ce("input"); manualBox.type = "checkbox";
+    manualBox.checked = !!(cal && cal.manualFactor !== null && cal.manualFactor !== undefined);
+    manualLabel.appendChild(manualBox);
+    const manualText = document.createTextNode(" " + T("calManual")); manualLabel.appendChild(manualText);
+    const manualInput = ce("input"); manualInput.type = "text"; manualInput.inputMode = "decimal";
+    manualInput.value = manualBox.checked ? String(cal.manualFactor) : factor.toFixed(4);
+    manualInput.disabled = !manualBox.checked;
+    manualBox.addEventListener("change", () => {
+      if (!canCalibrate(app)) return;
+      pushUndo(app);
+      updateCalibration(app, { manualFactor: manualBox.checked ? factor : null });
+    });
+    manualInput.addEventListener("change", () => {
+      const v = OEL.Calibration.validateManualFactor(manualInput.value);
+      if (v === null) { flashAdvisory(app, T("calInvalidFactor")); buildLeftPanel(app, qs("#left-panel")); return; }
+      if (!canCalibrate(app)) return;
+      pushUndo(app);
+      updateCalibration(app, { manualFactor: v });
+    });
+    manualRow.appendChild(manualLabel); manualRow.appendChild(manualInput);
+    wrap.appendChild(manualRow);
+
+    return wrap;
+  }
+
   function buildEngineCatalogPanel(app) {
     const sec = ce("div", "panel-section");
     const title = ce("h3"); title.textContent = app.profiles.engine.name; sec.appendChild(title);
@@ -360,6 +551,7 @@
     stockBtn.textContent = T("stockConfig");
     stockBtn.addEventListener("click", () => loadStockConfiguration(app));
     sec.appendChild(stockBtn);
+    sec.appendChild(buildCalibrationPanel(app));
 
     sec.appendChild(buildChargerPanel(app));
 
@@ -685,6 +877,8 @@
         if (data.geometry && data.materials && data.cylinders) {
           app.profiles.engineBase = data;
           app.mods = { active: [], variants: {} };
+          app.stockSystem = null;
+          app.calibration = null;
           applyEngineWithMods(app);
         } else if (data.limits && typeof data.type === "string") {
           app.chargerList = [data];
@@ -1116,6 +1310,7 @@
           // Same inputs as the standard Dyno Test; the host panel already provides title and close button
           {
             showHeader: false,
+            getCalibrationText: () => calibrationSummaryText(app),
             boostTargetBar: app.controls.boostTargetBar,
             drivelineLossPct: app.controls.drivelineLossPct,
             onDrivelineLossChange: (pct) => { app.controls.drivelineLossPct = pct; }
@@ -1149,6 +1344,7 @@
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpPeakPower")}</span><span class="live-value">${benchmark.peak.powerHp.toFixed(0)} hp (${OEL.Benchmark.hpToPs(benchmark.peak.powerHp).toFixed(0)} PS) @ ${benchmark.peak.powerHpRpm.toFixed(0)} rpm</span></div>` +
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpPeakWheelPower")} (${app.controls.drivelineLossPct}% loss)</span><span class="live-value">${benchmark.peak.wheelPowerHp.toFixed(0)} hp (${OEL.Benchmark.hpToPs(benchmark.peak.wheelPowerHp).toFixed(0)} PS) @ ${benchmark.peak.wheelPowerHpRpm.toFixed(0)} rpm</span></div>` +
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpPeakTorque")}</span><span class="live-value">${benchmark.peak.brakeTorqueNm.toFixed(0)} Nm @ ${benchmark.peak.torqueRpm.toFixed(0)} rpm</span></div>` +
+        `<div class="dyno-peak-tile"><span class="live-label">${T("calLabel")}</span><span class="live-value">${calibrationSummaryText(app)}</span></div>` +
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpOilTempPeak")}</span><span class="live-value">${benchmark.peak.oilTempC.toFixed(0)}°C</span></div>` +
         `<div class="dyno-peak-tile"><span class="live-label">${T("cmpWeakestSf")}</span><span class="live-value">${formatSf(benchmark.peak.weakestSfMin)}×</span></div>` +
         `</div>` +
@@ -1502,6 +1698,7 @@
     app.controls.activeFuelId = data.config.activeFuelId;
     app.controls.boostTargetBar = data.config.boostTargetBar;
     app.setupMeta = data.metadata;
+    app.calibration = OEL.Calibration.sanitizeState(data.config.calibration);
     app.worker.postMessage({ type: "importProfile", kind: "turbo", data: app.profiles.turbo });
     const fuel = app.profiles.fuels.find(f => f.id === app.controls.activeFuelId);
     if (fuel) app.worker.postMessage({ type: "patch", target: "fuel", data: fuel });
@@ -1705,7 +1902,8 @@
       track: { profile: null, player: null }, trackPanelEl: null,
       undo: { stack: [], redoStack: [] },
       view: "schematic", schematicView: "side", running: true, ignitionOn: false, lastFrameMs: null,
-      lastResult: null, lastEcmOut: null
+      lastResult: null, lastEcmOut: null,
+      calibration: null, stockSystem: null
     };
     window.OEL_APP = app;
 
@@ -1717,6 +1915,7 @@
 
     // The start engine begins in its standard configuration as well
     const startRecord = await applyStockConfiguration(app, app.profiles.engineBase.id);
+    attachCalibration(app, app.profiles.engine);
 
     createWorker(app);
     app.worker.postMessage({
