@@ -895,12 +895,21 @@
     reader.readAsText(file);
   }
 
+  function schematicStressLabels() {
+    return {
+      rod: componentLabel("rod"), headBolt: componentLabel("headBolt"), pistonPin: componentLabel("pistonPin"),
+      cylinderHead: componentLabel("cylinderHead"), block: componentLabel("block")
+    };
+  }
+
   function rebuildSchematic(app) {
     const container = qs("#schematic-container");
     if (!container) return;
     const labels = {
       schematicAlt: T("schematicAlt"), cylinder: T("cylinderLabel"),
       block: componentLabel("block"), cylinderHead: componentLabel("cylinderHead"),
+      rod: componentLabel("rod"), headBolt: componentLabel("headBolt"), pistonPin: componentLabel("pistonPin"),
+      weakPointsTitle: T("weakPointsTitle"),
       frontViewAlt: T("frontViewAlt"), topViewAlt: T("topViewAlt"), bank: T("bankLabel")
     };
     const view = app.schematicView || "side";
@@ -1828,17 +1837,20 @@
 
       if (app.lastResult) {
         const result = app.lastResult;
-        app.render.thetaRad = (app.render.thetaRad + (result.rpm * 2 * Math.PI / 60) * dt) % (2 * Math.PI);
+        const dTheta = (result.rpm * 2 * Math.PI / 60) * dt;
+        app.render.thetaRad = (app.render.thetaRad + dTheta) % (2 * Math.PI);
+        app.render.cycleRad = (app.render.cycleRad + dTheta) % (4 * Math.PI);
         const view = app.schematicView || "side";
-        if (view === "side") {
-          safeCall(OEL.Renderer.updateCrankAngle, app.render.handle, app.render.thetaRad);
-          safeCall(OEL.Renderer.applyStressState, app.render.handle, result.components, {
-            rod: componentLabel("rod"), headBolt: componentLabel("headBolt"), pistonPin: componentLabel("pistonPin"),
-            cylinderHead: componentLabel("cylinderHead"), block: componentLabel("block")
-          });
-        } else {
-          safeCall(OEL.Renderer.applyOverallStress, app.render.handle, result.weakestLink);
+        const handle = app.render.handle;
+        safeCall(OEL.Renderer.updateCrankAngle, handle, app.render.thetaRad);
+        safeCall(OEL.Renderer.applyStressState, handle, result.components, schematicStressLabels());
+        if (view === "top") {
+          safeCall(OEL.Renderer.updateCombustionPulse, handle, app.render.cycleRad, result.cylinderPressureBar);
         }
+        if (view !== "side") {
+          safeCall(OEL.Renderer.applyOverallStress, handle, result.weakestLink);
+        }
+        safeCall(OEL.Renderer.applyWeakPoints, handle, result.components);
         safeCall(updateCharts, app);
         safeCall(updateLiveReadout, app, result);
         safeCall(updateStats, app);
@@ -1898,7 +1910,7 @@
       },
       discipline: "standard", panels: {},
       history: { t: [], rpm: [], boost: [], oilTemp: [], cylPressure: [], powerHp: [], torqueNm: [], knockMargin: [] },
-      render: { handle: null, thetaRad: 0 },
+      render: { handle: null, thetaRad: 0, cycleRad: 0 },
       track: { profile: null, player: null }, trackPanelEl: null,
       undo: { stack: [], redoStack: [] },
       view: "schematic", schematicView: "side", running: true, ignitionOn: false, lastFrameMs: null,

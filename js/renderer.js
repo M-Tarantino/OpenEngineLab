@@ -68,6 +68,43 @@
     }
   }
 
+  const TOP_CRANK_PX = 16;
+  const TOP_LEGEND_H = 72;
+  const WEAK_LIST_LEN = 3;
+  const CYCLE_DEG = 720;
+  const COMBUSTION_PEAK_DEG = 15;
+  const COMBUSTION_SIGMA_DEG = 30;
+  const COMBUSTION_MAX_OPACITY = 0.85;
+  const PEAK_PRESSURE_DECAY = 0.995;
+  const COLOR_COMBUSTION = [255, 183, 3];
+  let uidCounter = 0;
+
+  function nextUid(prefix) {
+    uidCounter += 1;
+    return `${prefix}-${uidCounter}`;
+  }
+
+  // Crank-pin phase per cylinder. Banks of a V engine share crank pins,
+  // so both cylinders of one pin position receive the same phase.
+  function cylinderPinPhaseRad(index, cylCount, isSingleBank) {
+    const perBank = isSingleBank ? cylCount : Math.ceil(cylCount / 2);
+    const pinIndex = isSingleBank ? index : Math.floor(index / 2);
+    return (pinIndex * 2 * Math.PI) / Math.max(1, perBank);
+  }
+
+  // Firing position of a cylinder within the 720 deg four-stroke cycle.
+  // Uses the 1-based firingOrder from the engine profile when available.
+  function firingAngleDeg(index, profile) {
+    const cylCount = profile.cylinders;
+    let pos = index;
+    const order = profile.firingOrder;
+    if (Array.isArray(order) && order.length === cylCount) {
+      const found = order.indexOf(index + 1);
+      if (found >= 0) pos = found;
+    }
+    return pos * (CYCLE_DEG / cylCount);
+  }
+
   function pistonTravelMM(theta, crankRadiusMM, rodLengthMM) {
     const top = crankRadiusMM + rodLengthMM;
     const pos = crankRadiusMM * Math.cos(theta) +
@@ -206,7 +243,7 @@
         dirX,
         dirY,
         cylLen,
-        phaseRad: (i * (360 / cylCount)) * Math.PI / 180,
+        phaseRad: cylinderPinPhaseRad(i, cylCount, isSingleBank),
         pistonGroup,
         rod
       });
@@ -303,7 +340,7 @@
         const cylBank = isSingleBank ? 0 : (i % 2 === 0 ? -1 : 1);
         if (cylBank !== bank) continue;
 
-        const phaseRad = (i * (360 / cylCount)) * Math.PI / 180;
+        const phaseRad = cylinderPinPhaseRad(i, cylCount, isSingleBank);
 
         const crankArm = el("line", { x1: crankX, y1: crankY, x2: crankX, y2: crankY, class: "front-crank-arm", stroke: "#aaa", "stroke-width": 4 });
         svg.appendChild(crankArm);
@@ -374,9 +411,14 @@
     const pistonR = 14;
     const base = 80;
     const bankGap = isSingleBank ? 0 : 120;
+    const outlinePad = 16;
+    const headPad = 14;
 
+    const plotH = isSingleBank ? 220 : 320;
     const width = Math.max(400, base * 2 + (perBank - 1) * spacing);
-    const height = isSingleBank ? 220 : 320;
+    const height = plotH + TOP_LEGEND_H;
+    const centerY = plotH / 2;
+
     const svg = el("svg", {
       viewBox: `0 0 ${width} ${height}`,
       class: "engine-svg",
@@ -385,29 +427,66 @@
     });
     container.appendChild(svg);
 
+    // Glow filter used to highlight the weakest component
+    const glowFilterId = nextUid("oel-weak-glow");
+    const defs = el("defs", {});
+    const filter = el("filter", { id: glowFilterId, x: "-60%", y: "-60%", width: "220%", height: "220%" });
+    filter.appendChild(el("feGaussianBlur", { in: "SourceGraphic", stdDeviation: "4", result: "blur" }));
+    const merge = el("feMerge", {});
+    merge.appendChild(el("feMergeNode", { in: "blur" }));
+    merge.appendChild(el("feMergeNode", { in: "SourceGraphic" }));
+    filter.appendChild(merge);
+    defs.appendChild(filter);
+    svg.appendChild(defs);
+
     const groups = { block: [], cylinderHead: [], piston: [], rod: [], pistonPin: [], headBolt: [], overall: [] };
     const cylinders = [];
-    const centerY = height / 2;
 
     const crankXStart = base - 40;
     const crankXEnd = base + (perBank - 1) * spacing + 40;
+    const blockX = crankXStart - 10;
+    const blockY = isSingleBank ? centerY - 80 : centerY - bankGap / 2 - 50;
+    const blockW = (crankXEnd - crankXStart) + 20;
+    const blockH = isSingleBank ? 160 : bankGap + 100;
+
+    // Engine outline: outer silhouette of the block, drawn behind all components
+    svg.appendChild(el("rect", {
+      x: blockX - outlinePad,
+      y: blockY - outlinePad,
+      width: blockW + outlinePad * 2,
+      height: blockH + outlinePad * 2,
+      rx: 18,
+      class: "engine-outline"
+    }));
 
     const blockRect = el("rect", {
-      x: crankXStart - 10,
-      y: isSingleBank ? centerY - 80 : centerY - (bankGap / 2) - 50,
-      width: (crankXEnd - crankXStart) + 20,
-      height: isSingleBank ? 160 : bankGap + 100,
-      rx: 10,
-      class: "engine-block"
+      x: blockX, y: blockY, width: blockW, height: blockH, rx: 10, class: "engine-block"
     });
+    const blockTip = el("title", {});
+    blockTip.textContent = labels.block || "Engine Block";
+    blockRect.appendChild(blockTip);
     svg.appendChild(blockRect);
     groups.block.push(blockRect);
 
-    const crankLine = el("line", { x1: crankXStart, y1: centerY, x2: crankXEnd, y2: centerY, class: "crank-axis", stroke: "#555", "stroke-width": 4 });
-    svg.appendChild(crankLine);
+    // Per-bank head contour and cylinder centerline
+    const bankCenters = isSingleBank ? [centerY - 40] : [centerY - bankGap / 2, centerY + bankGap / 2];
+    for (const cy of bankCenters) {
+      svg.appendChild(el("rect", {
+        x: base - boreR - headPad,
+        y: cy - boreR - headPad,
+        width: (perBank - 1) * spacing + (boreR + headPad) * 2,
+        height: (boreR + headPad) * 2,
+        rx: 16,
+        class: "head-outline"
+      }));
+      svg.appendChild(el("line", { x1: crankXStart, y1: cy, x2: crankXEnd, y2: cy, class: "centerline" }));
+    }
 
-    const crankJournalLeft = el("circle", { cx: crankXStart, cy: centerY, r: 12, class: "journal" });
-    svg.appendChild(crankJournalLeft);
+    const crankLine = el("line", {
+      x1: crankXStart, y1: centerY, x2: crankXEnd, y2: centerY, class: "crank-axis", stroke: "#555", "stroke-width": 4
+    });
+    svg.appendChild(crankLine);
+    svg.appendChild(el("circle", { cx: crankXStart, cy: centerY, r: 12, class: "journal" }));
 
     for (let i = 0; i < cylCount; i++) {
       const bank = isSingleBank ? 0 : (i % 2 === 0 ? -1 : 1);
@@ -415,6 +494,7 @@
 
       const baseCx = base + posIdx * spacing;
       const baseCy = isSingleBank ? centerY - 40 : centerY + bank * (bankGap / 2);
+      const phaseRad = cylinderPinPhaseRad(i, cylCount, isSingleBank);
 
       const headRect = el("rect", {
         x: baseCx - boreR - 5,
@@ -442,36 +522,42 @@
         }
       }
 
-      const plugDir = bank === -1 ? -1 : 1; 
+      const plugDir = bank === -1 ? -1 : 1;
       const plugY = isSingleBank ? baseCy - boreR - 5 : baseCy + plugDir * (boreR + 5);
-      const plug = el("circle", { cx: baseCx, cy: plugY, r: 5, class: "top-plug", fill: "#ccc" });
-      svg.appendChild(plug);
+      svg.appendChild(el("circle", { cx: baseCx, cy: plugY, r: 5, class: "top-plug", fill: "#ccc" }));
 
-      const crankJournal = el("circle", { cx: baseCx, cy: centerY, r: 6, class: "journal" });
-      svg.appendChild(crankJournal);
+      svg.appendChild(el("circle", { cx: baseCx, cy: centerY, r: 6, class: "journal" }));
 
       const crankPin = el("circle", { cx: baseCx, cy: centerY, r: 4, class: "top-crank-pin", fill: "#ffb703" });
       svg.appendChild(crankPin);
 
-      const rod = el("line", { x1: baseCx, y1: centerY, x2: baseCx, y2: baseCy, class: "conrod-top", stroke: "#888", "stroke-width": 5 });
+      const rod = el("line", {
+        x1: baseCx, y1: centerY, x2: baseCx, y2: baseCy, class: "conrod-top", stroke: "#888", "stroke-width": 5
+      });
       svg.appendChild(rod);
       groups.rod.push(rod);
 
-      const phaseRad = (i * (360 / cylCount)) * Math.PI / 180;
       const pistonGroup = el("g", { transform: `translate(${baseCx},${baseCy})` });
-      svg.appendChild(pistonGroup);
-
       const piston = el("circle", { cx: 0, cy: 0, r: pistonR, class: "piston" });
       pistonGroup.appendChild(piston);
-      groups.piston.push(piston);
-      groups.overall.push(piston);
-
       const pin = el("circle", { cx: 0, cy: 0, r: 3, class: "piston-pin", fill: "#333" });
       pistonGroup.appendChild(pin);
+      svg.appendChild(pistonGroup);
+      groups.piston.push(piston);
       groups.pistonPin.push(pin);
+      groups.overall.push(piston);
+
+      // Combustion flash, driven by firing order and cylinder pressure
+      const glow = el("circle", {
+        cx: baseCx, cy: baseCy, r: boreR - 1, class: "top-glow", fill: rgb(COLOR_COMBUSTION), opacity: 0
+      });
+      svg.appendChild(glow);
 
       const labelY = isSingleBank ? baseCy + boreR + 25 : baseCy + plugDir * (boreR + 25);
-      const label = el("text", { x: baseCx, y: labelY, class: "top-cyl-label", "text-anchor": "middle", fill: "#fff", "font-family": "monospace", "font-size": "14px" });
+      const label = el("text", {
+        x: baseCx, y: labelY, class: "top-cyl-label", "text-anchor": "middle", fill: "#fff",
+        "font-family": "monospace", "font-size": "14px"
+      });
       label.textContent = String(i + 1);
       svg.appendChild(label);
 
@@ -483,13 +569,28 @@
         crankX: baseCx,
         crankY: centerY,
         phaseRad,
+        fireDeg: firingAngleDeg(i, profile),
         pistonGroup,
         piston,
         pin,
         rod,
-        crankPin
+        crankPin,
+        glow
       });
     }
+
+    // Weak-point legend: rank order is filled in by applyWeakPoints every frame
+    const legend = el("g", { class: "weak-legend", transform: `translate(12,${plotH + 14})` });
+    const legendTitle = el("text", { x: 0, y: 0, class: "weak-legend-title" });
+    legendTitle.textContent = labels.weakPointsTitle || "Weak points";
+    legend.appendChild(legendTitle);
+    const legendRows = [];
+    for (let r = 0; r < WEAK_LIST_LEN; r++) {
+      const row = el("text", { x: 0, y: 17 * (r + 1), class: "weak-legend-item" });
+      legend.appendChild(row);
+      legendRows.push(row);
+    }
+    svg.appendChild(legend);
 
     return {
       svg,
@@ -497,7 +598,12 @@
       groups,
       mode: "top",
       crankRadiusMM: (profile.geometry && profile.geometry.strokeMM) ? profile.geometry.strokeMM / 2 : 40,
-      rodLengthMM: (profile.geometry && profile.geometry.rodLengthMM) ? profile.geometry.rodLengthMM : 140
+      rodLengthMM: (profile.geometry && profile.geometry.rodLengthMM) ? profile.geometry.rodLengthMM : 140,
+      labels,
+      glowFilterId,
+      legendRows,
+      weakNodes: [],
+      peakBar: 0
     };
   }
 
@@ -583,36 +689,89 @@
         }
       }
     } else if (handle.mode === "top") {
-      const rCrankPx = 16;
-
+      // Top view: crank pin orbit projected onto the deck plane. Pistons do not
+      // move visibly from above, so only the crank-pin projection animates.
       for (const c of handle.cylinders) {
         const alpha = thetaRad + c.phaseRad;
-
-        const cPinY = c.crankY + rCrankPx * Math.sin(alpha);
-
-        const bankDir = (c.bank === 1) ? 1 : (c.bank === -1 ? -1 : -1);
-
-        const travelMM = pistonTravelMM(alpha, crankR, rodL);
-        const maxTravelMM = 2 * crankR;
-        const travelFrac = travelMM / maxTravelMM;
-
-        const strokePx = 28;
-        const pistonY = c.baseCy + bankDir * ((strokePx / 2) - travelFrac * strokePx);
-
-        c.pistonGroup.setAttribute("transform", `translate(${c.baseCx},${pistonY})`);
-
+        const pinY = c.crankY + TOP_CRANK_PX * Math.sin(alpha);
         if (c.crankPin) {
-          c.crankPin.setAttribute("cx", c.baseCx);
-          c.crankPin.setAttribute("cy", cPinY);
+          c.crankPin.setAttribute("cy", pinY);
         }
-
         if (c.rod) {
-          c.rod.setAttribute("x1", c.baseCx);
-          c.rod.setAttribute("y1", cPinY);
-          c.rod.setAttribute("x2", c.baseCx);
-          c.rod.setAttribute("y2", pistonY);
+          c.rod.setAttribute("y1", pinY);
         }
       }
+    }
+  }
+
+  /**
+   * Pulses the top-view combustion glow in firing order.
+   * Timing comes from the 720 deg cycle angle; amplitude from the simulated
+   * cylinder pressure relative to its recent peak (zero when the engine is off).
+   * @param {object} handle top-view handle
+   * @param {number} cycleRad accumulated crank angle over the four-stroke cycle, radians
+   * @param {number} cylinderPressureBar current simulated cylinder pressure
+   */
+  function updateCombustionPulse(handle, cycleRad, cylinderPressureBar) {
+    if (!handle || handle.mode !== "top" || !Array.isArray(handle.cylinders)) return;
+
+    const pressure = Number.isFinite(cylinderPressureBar) ? Math.max(0, cylinderPressureBar) : 0;
+    handle.peakBar = Math.max(pressure, (handle.peakBar || 0) * PEAK_PRESSURE_DECAY);
+    const load = handle.peakBar > 1e-6 ? Math.min(1, pressure / handle.peakBar) : 0;
+
+    const cycleDeg = ((((cycleRad * 180) / Math.PI) % CYCLE_DEG) + CYCLE_DEG) % CYCLE_DEG;
+
+    for (const c of handle.cylinders) {
+      // Signed angle from this cylinder's firing point, in [-360, 360)
+      let rel = (cycleDeg - c.fireDeg) % CYCLE_DEG;
+      if (rel < 0) rel += CYCLE_DEG;
+      if (rel > CYCLE_DEG / 2) rel -= CYCLE_DEG;
+
+      const shape = Math.exp(-Math.pow((rel - COMBUSTION_PEAK_DEG) / COMBUSTION_SIGMA_DEG, 2));
+      c.glow.setAttribute("opacity", (shape * load * COMBUSTION_MAX_OPACITY).toFixed(3));
+    }
+  }
+
+  /**
+   * Highlights the weakest component with a glow and lists the three weakest
+   * components with their safety factors in the top-view legend.
+   * @param {object} handle schematic handle with groups
+   * @param {Array<{id:string, sf:number}>} components result.components
+   */
+  function applyWeakPoints(handle, components) {
+    if (!handle || !handle.groups || !Array.isArray(components)) return;
+
+    for (const node of handle.weakNodes || []) {
+      node.style.filter = "";
+    }
+    handle.weakNodes = [];
+
+    const ranked = components
+      .filter((c) => Number.isFinite(c.sf))
+      .sort((a, b) => a.sf - b.sf);
+
+    if (ranked.length > 0 && handle.glowFilterId) {
+      const nodes = handle.groups[ranked[0].id] || [];
+      for (const node of nodes) {
+        node.style.filter = `url(#${handle.glowFilterId})`;
+        handle.weakNodes.push(node);
+      }
+    }
+
+    if (Array.isArray(handle.legendRows)) {
+      const labels = handle.labels || {};
+      handle.legendRows.forEach((row, idx) => {
+        const c = ranked[idx];
+        if (!c) {
+          if (row.textContent !== "") row.textContent = "";
+          return;
+        }
+        const sfText = c.sf > 99 ? ">99" : c.sf.toFixed(2);
+        const text = `${idx + 1}. ${labels[c.id] || c.id}  SF ${sfText}`;
+        if (row.textContent !== text) row.textContent = text;
+        const color = sfToVisual(c.sf).color;
+        if (row.getAttribute("fill") !== color) row.setAttribute("fill", color);
+      });
     }
   }
 
@@ -752,6 +911,8 @@
     drawKennfield,
     buildSchematicFront,
     buildSchematicTop,
-    applyOverallStress
+    applyOverallStress,
+    updateCombustionPulse,
+    applyWeakPoints
   };
 })(typeof window !== "undefined" ? window : global);
