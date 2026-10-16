@@ -1,0 +1,111 @@
+{
+  "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+  "engineId": "vw_w12_6_0",
+  "name": "VW W12 6.0L (A8 / Phaeton) - stock configuration",
+  "status": "generated, not yet calibrated",
+  "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder, ignition for a naturally aspirated engine (low-load row, 0.1 deg retard per % load)",
+  "chargers": [
+    "none-na"
+  ],
+  "fuelId": "super-plus-98",
+  "boostTargetBar": 0,
+  "drivelineLossPct": 15,
+  "ignitionMap": [
+    [
+      12.4,
+      22.5,
+      28.6,
+      32.6,
+      32.5,
+      30.0
+    ],
+    [
+      9.9,
+      20.0,
+      26.1,
+      30.1,
+      30.0,
+      27.5
+    ],
+    [
+      7.4,
+      17.5,
+      23.6,
+      27.6,
+      27.5,
+      25.0
+    ],
+    [
+      4.9,
+      15.0,
+      21.1,
+      25.1,
+      25.0,
+      22.5
+    ],
+    [
+      2.4,
+      12.5,
+      18.6,
+      22.6,
+      22.5,
+      20.0
+    ]
+  ],
+  "fuelMap": [
+    [
+      0.96,
+      1.29,
+      1.61,
+      1.84,
+      1.87,
+      1.82
+    ],
+    [
+      1.68,
+      2.33,
+      2.9,
+      3.28,
+      3.34,
+      3.24
+    ],
+    [
+      2.41,
+      3.46,
+      4.34,
+      4.89,
+      4.97,
+      4.82
+    ],
+    [
+      3.14,
+      4.6,
+      5.8,
+      6.57,
+      6.67,
+      6.47
+    ],
+    [
+      3.86,
+      5.73,
+      7.25,
+      8.25,
+      8.38,
+      8.13
+    ]
+  ],
+  "reference": {
+    "peakPowerHp": 443.8,
+    "peakPowerPs": 450,
+    "peakPowerRpm": 6200,
+    "peakTorqueNm": 580,
+    "peakTorqueRpm": 4000,
+    "basis": "crank",
+    "standard": "Manufacturer rating in PS as published, converted to mechanical hp with 1 hp = 1.01387 PS",
+    "market": "Europe",
+    "variant": "Audi A8 W12 6.0 / Phaeton W12 (331 kW), 84.0 x 90.168 mm, 10.75:1",
+    "source": "auto.cz 'Motory V12 (1.dil): Volkswagen/Audi W12' (Phaeton 309 kW 550 N·m at 3000 rpm 10.8:1; A8 W12 331 kW 580 N·m at 4000-4700 rpm 10.75:1); automobile.fandom.com W12 engine (450 PS at 6200 rpm, 428 lbf·ft at 4000-4700 rpm, 72 degree banks, 15 degree VR angle); VW SSP 248 (84 x 90.168 mm, firing order 1-12-5-8-3-10-6-7-2-11-4-9)",
+    "confidence": "press",
+    "notes": "Connecting rod length 153.0 mm, oil mass and the redline 6600 rpm / limiter 6900 rpm are estimates. The 309 kW Phaeton version (420 PS, 550 N·m) is the earlier tune."
+  }
+}

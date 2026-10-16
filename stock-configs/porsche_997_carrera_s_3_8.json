@@ -1,0 +1,111 @@
+{
+  "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+  "engineId": "porsche_997_carrera_s_3_8",
+  "name": "Porsche 997 Carrera S 3.8 Flat-Six (355 PS) - stock configuration",
+  "status": "generated, not yet calibrated",
+  "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder, ignition for a naturally aspirated engine (low-load row, 0.1 deg retard per % load)",
+  "chargers": [
+    "none-na"
+  ],
+  "fuelId": "super-plus-98",
+  "boostTargetBar": 0,
+  "drivelineLossPct": 15,
+  "ignitionMap": [
+    [
+      12.0,
+      21.5,
+      27.6,
+      31.6,
+      33.7,
+      30.8
+    ],
+    [
+      9.5,
+      19.0,
+      25.1,
+      29.1,
+      31.2,
+      28.3
+    ],
+    [
+      7.0,
+      16.5,
+      22.6,
+      26.6,
+      28.7,
+      25.8
+    ],
+    [
+      4.5,
+      14.0,
+      20.1,
+      24.1,
+      26.2,
+      23.3
+    ],
+    [
+      2.0,
+      11.5,
+      17.6,
+      21.6,
+      23.7,
+      20.8
+    ]
+  ],
+  "fuelMap": [
+    [
+      1.21,
+      1.59,
+      1.99,
+      2.29,
+      2.4,
+      2.33
+    ],
+    [
+      2.11,
+      2.88,
+      3.58,
+      4.08,
+      4.29,
+      4.17
+    ],
+    [
+      3.02,
+      4.27,
+      5.36,
+      6.07,
+      6.39,
+      6.2
+    ],
+    [
+      3.93,
+      5.65,
+      7.15,
+      8.16,
+      8.59,
+      8.33
+    ],
+    [
+      4.83,
+      7.04,
+      8.94,
+      10.25,
+      10.79,
+      10.47
+    ]
+  ],
+  "reference": {
+    "peakPowerHp": 350.1,
+    "peakPowerPs": 355,
+    "peakPowerRpm": 6600,
+    "peakTorqueNm": 400,
+    "peakTorqueRpm": 4600,
+    "basis": "crank",
+    "standard": "Rating in PS/kW as published, converted to mechanical hp with 1 hp = 1.01387 PS",
+    "market": "Europe/North America (as stated in the source)",
+    "variant": "Porsche 997 Carrera S 3.8 Flat-Six (355 PS)",
+    "source": "Porsche Newsroom '60 Years Porsche 911 - 6th generation engines' (3.8-litre flat-six, 355 PS); stuttcars.com Carrera S (3.8 L M97/01, 355 hp at 6600 rpm, 295 lbf·ft/400 N·m at 4600 rpm, 7200 rpm redline); fcpeuro.com (3 mm larger bore than the 3.6)",
+    "confidence": "press",
+    "notes": "Estimated, not in the sources: connecting rod length (136.6 mm = 1.65 x stroke); rev limiter 7500 rpm (+300 over the published redline/maximum speed); oil mass 6.7 kg (scaled from displacement); firing order (typical for this layout, not confirmed in the sources); stroke 82.8 mm and compression ratio (published values recalled, not re-confirmed in this search). Stock fuel 'super-plus-98' is the lowest octane rating without knock in this simulation; it can differ from the real fuel requirement."
+  }
+}

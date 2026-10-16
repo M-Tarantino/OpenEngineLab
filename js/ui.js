@@ -5,7 +5,10 @@
   const HISTORY_LEN = 480;
   const T = (k, v) => OEL.I18N.t(k, v);
   const COMP_KEYS = { rod: "compRod", headBolt: "compHeadBolt", pistonPin: "compPistonPin", cylinderHead: "compCylinderHead", block: "compBlock" };
-  const componentLabel = (id) => T(COMP_KEYS[id] || id);
+  const ROTARY_COMP_KEYS = { rod: "compRotRod", headBolt: "compRotHeadBolt", pistonPin: "compRotPin", cylinderHead: "compRotHead", block: "compRotBlock" };
+  /** True when the active engine is a rotary (Wankel) engine, whose components carry rotary names. */
+  const isRotaryActive = () => !!(window.OEL_APP && window.OEL_APP.profiles && window.OEL_APP.profiles.engine && window.OEL_APP.profiles.engine.configuration === "R");
+  const componentLabel = (id) => T((isRotaryActive() && ROTARY_COMP_KEYS[id]) || COMP_KEYS[id] || id);
   // Safety factors explode when the load is near zero (engine off/idle); cap the displayed value
   const formatSf = (sf) => (Number.isFinite(sf) && sf <= 99 ? sf.toFixed(2) : ">99");
 
@@ -720,6 +723,7 @@
 
   function displacementFromGeometry(engine) {
     const g = engine.geometry;
+    if (engine.rotary) return g.displacementCC; // rotary displacement is fixed by the rotor geometry, not by the equivalent piston
     const cylVolCC = (Math.PI / 4) * Math.pow(g.boreMM / 10, 2) * (g.strokeMM / 10);
     return Math.round(cylVolCC * engine.cylinders);
   }
@@ -909,6 +913,7 @@
       schematicAlt: T("schematicAlt"), cylinder: T("cylinderLabel"),
       block: componentLabel("block"), cylinderHead: componentLabel("cylinderHead"),
       rod: componentLabel("rod"), headBolt: componentLabel("headBolt"), pistonPin: componentLabel("pistonPin"),
+      rotor: T("rotorLabel"),
       weakPointsTitle: T("weakPointsTitle"),
       frontViewAlt: T("frontViewAlt"), topViewAlt: T("topViewAlt"), bank: T("bankLabel")
     };

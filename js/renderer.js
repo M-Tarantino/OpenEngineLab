@@ -124,8 +124,193 @@
     return [p1, p2, p3, p4].map(p => p.join(",")).join(" ");
   }
 
+
+  // ---------------------------------------------------------------- Rotary (Wankel) schematic
+  const ROTARY_R_PX = 62;          // generating radius of the housing epitrochoid in px
+  const ROTARY_SPACING_PX = 190;   // distance between rotor centres in the side/top layout
+
+  function epitrochoidPoints(cx, cy, rPx, ePx, steps) {
+    const pts = [];
+    for (let i = 0; i < steps; i++) {
+      const lam = (i / steps) * 2 * Math.PI;
+      pts.push((cx + ePx * Math.cos(3 * lam) + rPx * Math.cos(lam)).toFixed(2) + "," +
+               (cy + ePx * Math.sin(3 * lam) + rPx * Math.sin(lam)).toFixed(2));
+    }
+    return pts.join(" ");
+  }
+
+  /** Rotor vertices for eccentric-shaft angle theta; the rotor turns at one third of the shaft speed. */
+  function rotorVertices(cx, cy, rPx, ePx, theta) {
+    const centreX = cx + ePx * Math.cos(theta);
+    const centreY = cy + ePx * Math.sin(theta);
+    const phi = theta / 3;
+    const v = [];
+    for (let k = 0; k < 3; k++) {
+      const a = phi + (k * 2 * Math.PI) / 3;
+      v.push([centreX + rPx * Math.cos(a), centreY + rPx * Math.sin(a)]);
+    }
+    return { centreX, centreY, v };
+  }
+
+  function rotorPath(v) {
+    // Flank arcs bulge outward like a Reuleaux triangle; the arc radius equals the vertex distance.
+    const r = Math.hypot(v[0][0] - v[1][0], v[0][1] - v[1][1]);
+    return `M${v[0][0].toFixed(2)},${v[0][1].toFixed(2)} ` +
+      `A${r.toFixed(2)},${r.toFixed(2)} 0 0 1 ${v[1][0].toFixed(2)},${v[1][1].toFixed(2)} ` +
+      `A${r.toFixed(2)},${r.toFixed(2)} 0 0 1 ${v[2][0].toFixed(2)},${v[2][1].toFixed(2)} ` +
+      `A${r.toFixed(2)},${r.toFixed(2)} 0 0 1 ${v[0][0].toFixed(2)},${v[0][1].toFixed(2)} Z`;
+  }
+
+  /**
+   * Builds the rotary schematic. view: "side" (rotor housings side by side), "front" (end-on view of
+   * one large rotor) or "top" (housings stacked along the eccentric shaft). The handle uses the same
+   * stress groups as the piston views so applyStressState / applyWeakPoints work unchanged:
+   *   rod = eccentric shaft, pistonPin = rotor, headBolt = tie rods, cylinderHead = side housing,
+   *   block = rotor housing.
+   */
+  function buildRotary(container, profile, labels, view) {
+    labels = labels || {};
+    container.innerHTML = "";
+    const rotors = Math.max(1, (profile.rotary && profile.rotary.rotors) || 2);
+    const big = view === "front";
+    const rPx = big ? 110 : ROTARY_R_PX;
+    const ePx = rPx / 7;                                  // eccentricity ratio e/R = 15/105
+    const spacing = big ? 0 : ROTARY_SPACING_PX;
+    const width = big ? 420 : Math.max(420, 120 + rotors * spacing);
+    const height = view === "top" ? 300 : 360;
+    const svg = el("svg", {
+      viewBox: `0 0 ${width} ${height}`, class: "engine-svg", role: "img",
+      "aria-label": (view === "top" ? labels.topViewAlt : view === "front" ? labels.frontViewAlt : labels.schematicAlt) || "Rotary engine schematic"
+    });
+    container.appendChild(svg);
+
+    const glowFilterId = nextUid("oel-weak-glow");
+    const defs = el("defs", {});
+    const filter = el("filter", { id: glowFilterId, x: "-60%", y: "-60%", width: "220%", height: "220%" });
+    filter.appendChild(el("feGaussianBlur", { in: "SourceGraphic", stdDeviation: "4", result: "blur" }));
+    const merge = el("feMerge", {});
+    merge.appendChild(el("feMergeNode", { in: "blur" }));
+    merge.appendChild(el("feMergeNode", { in: "SourceGraphic" }));
+    filter.appendChild(merge);
+    defs.appendChild(filter);
+    svg.appendChild(defs);
+
+    const groups = { block: [], cylinderHead: [], piston: [], rod: [], pistonPin: [], headBolt: [], overall: [] };
+    const items = [];
+    const cy = height / 2;
+    const startX = big ? width / 2 : (width - (rotors - 1) * spacing) / 2;
+
+    const shaft = el("line", { x1: 20, y1: cy, x2: width - 20, y2: cy, class: "crank-axis" });
+    svg.appendChild(shaft);
+
+    const drawn = big ? 1 : rotors;   // end-on view shows only the front rotor, the others sit behind it on the same axis
+    for (let i = 0; i < drawn; i++) {
+      const cx = startX + i * spacing;
+      const tip = (text) => { const t = el("title", {}); t.textContent = text; return t; };
+
+      if (view === "top") {
+        // Top view: housing slices along the shaft, tie rods through all of them.
+        const w = 120;
+        const sideL = el("rect", { x: cx - w / 2 - 14, y: cy - rPx - 14, width: 14, height: (rPx + 14) * 2, class: "cylinder-head" });
+        sideL.appendChild(tip(labels.cylinderHead || "Side Housing"));
+        const housing = el("rect", { x: cx - w / 2, y: cy - rPx, width: w, height: rPx * 2, class: "engine-block" });
+        housing.appendChild(tip(labels.block || "Rotor Housing"));
+        svg.appendChild(housing); svg.appendChild(sideL);
+        groups.block.push(housing); groups.cylinderHead.push(sideL);
+        if (i === drawn - 1) {
+          const sideR = el("rect", { x: cx + w / 2, y: cy - rPx - 14, width: 14, height: (rPx + 14) * 2, class: "cylinder-head" });
+          sideR.appendChild(tip(labels.cylinderHead || "Side Housing"));
+          svg.appendChild(sideR); groups.cylinderHead.push(sideR);
+        }
+        for (const dy of [-rPx + 8, rPx - 8]) {
+          const rod = el("circle", { cx: cx - w / 2 - 14, cy: cy + dy, r: 4, class: "head-bolt" });
+          const rod2 = el("circle", { cx: cx + w / 2 + 14, cy: cy + dy, r: 4, class: "head-bolt" });
+          svg.appendChild(rod); svg.appendChild(rod2);
+          groups.headBolt.push(rod, rod2);
+        }
+        const lobe = el("circle", { cx, cy, r: 16, class: "journal" });
+        lobe.appendChild(tip(labels.rod || "Eccentric Shaft"));
+        svg.appendChild(lobe);
+        const rotorBar = el("rect", { x: cx - 36, y: cy - 20, width: 72, height: 40, rx: 8, class: "piston" });
+        rotorBar.appendChild(tip(labels.pistonPin || "Rotor"));
+        svg.appendChild(rotorBar);
+        groups.rod.push(lobe); groups.pistonPin.push(rotorBar); groups.overall.push(housing);
+        items.push({ index: i, cx, cy, lobe, rotorBar, kind: "top" });
+        continue;
+      }
+
+      const sideHousing = el("rect", { x: cx - rPx - ePx - 14, y: cy - rPx - ePx - 14, width: (rPx + ePx + 14) * 2, height: (rPx + ePx + 14) * 2, rx: 14, class: "cylinder-head" });
+      sideHousing.appendChild(tip(labels.cylinderHead || "Side Housing"));
+      svg.appendChild(sideHousing);
+      groups.cylinderHead.push(sideHousing);
+
+      const housing = el("polygon", { points: epitrochoidPoints(cx, cy, rPx, ePx, 120), class: "engine-block" });
+      housing.appendChild(tip(labels.block || "Rotor Housing"));
+      svg.appendChild(housing);
+      groups.block.push(housing);
+
+      const r2 = rPx + ePx + 6;
+      for (const [dx, dy] of [[-r2, -r2], [r2, -r2], [-r2, r2], [r2, r2]]) {
+        const tb = el("circle", { cx: cx + dx, cy: cy + dy, r: 4, class: "head-bolt" });
+        tb.appendChild(tip(labels.headBolt || "Tie Rods"));
+        svg.appendChild(tb);
+        groups.headBolt.push(tb);
+      }
+
+      const rotorPoly = el("path", { d: "", class: "piston" });
+      rotorPoly.appendChild(tip(`${labels.rotor || "Rotor"} ${i + 1}`));
+      svg.appendChild(rotorPoly);
+      groups.pistonPin.push(rotorPoly);
+      groups.piston.push(rotorPoly);
+      groups.overall.push(housing, rotorPoly);
+
+      const lobe = el("circle", { cx: cx, cy: cy, r: Math.max(6, ePx * 0.9), class: "journal" });
+      lobe.appendChild(tip(labels.rod || "Eccentric Shaft"));
+      svg.appendChild(lobe);
+      groups.rod.push(lobe);
+
+      const seals = [];
+      for (let k = 0; k < 3; k++) {
+        const seal = el("circle", { cx: cx, cy: cy, r: 3.5, class: "piston-pin" });
+        svg.appendChild(seal);
+        seals.push(seal);
+        groups.pistonPin.push(seal);
+      }
+      items.push({ index: i, cx, cy, rPx, ePx, rotorPoly, lobe, seals, kind: "face" });
+    }
+
+    const handle = {
+      svg, cylinders: items, groups, mode: "rotary", view, labels, glowFilterId,
+      legendRows: null, weakNodes: [], peakBar: 0, crankRadiusMM: 0, rodLengthMM: 0
+    };
+    updateRotary(handle, 0);
+    return handle;
+  }
+
+  /** Moves the rotors for eccentric-shaft angle theta. Rotors on one shaft sit 180 deg apart in phase. */
+  function updateRotary(handle, thetaRad) {
+    for (const it of handle.cylinders) {
+      const theta = thetaRad + (it.index % 2) * Math.PI;
+      if (it.kind === "top") {
+        const dy = 16 * Math.sin(theta);
+        it.lobe.setAttribute("cy", it.cy + dy);
+        it.rotorBar.setAttribute("y", it.cy + dy - 20);
+        continue;
+      }
+      const r = rotorVertices(it.cx, it.cy, it.rPx, it.ePx, theta);
+      it.rotorPoly.setAttribute("d", rotorPath(r.v));
+      it.lobe.setAttribute("cx", r.centreX);
+      it.lobe.setAttribute("cy", r.centreY);
+      for (let k = 0; k < 3; k++) {
+        it.seals[k].setAttribute("cx", r.v[k][0]);
+        it.seals[k].setAttribute("cy", r.v[k][1]);
+      }
+    }
+  }
+
   function buildSchematic(container, profile, labels) {
     labels = labels || {};
+    if (profile && profile.configuration === "R") return buildRotary(container, profile, labels, "side");
     container.innerHTML = "";
     const cylCount = profile.cylinders;
     const isSingleBank = profile.configuration === "I";
@@ -265,6 +450,7 @@
 
   function buildSchematicFront(container, profile, labels) {
     labels = labels || {};
+    if (profile && profile.configuration === "R") return buildRotary(container, profile, labels, "front");
     container.innerHTML = "";
     const cylCount = profile.cylinders;
     const isSingleBank = profile.configuration === "I";
@@ -401,6 +587,7 @@
 
   function buildSchematicTop(container, profile, labels) {
     labels = labels || {};
+    if (profile && profile.configuration === "R") return buildRotary(container, profile, labels, "top");
     container.innerHTML = "";
     const cylCount = profile.cylinders;
     const isSingleBank = profile.configuration === "I";
@@ -627,6 +814,7 @@
     }
 
     if (!handle.cylinders) return;
+    if (handle.mode === "rotary") { updateRotary(handle, thetaRad); return; }
 
     const crankR = handle.crankRadiusMM || 40;
     const rodL = handle.rodLengthMM || 140;

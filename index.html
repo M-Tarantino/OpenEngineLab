@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,8 +8,62 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/oel-app.css?v=5">
+<style>
+[hidden] { display: none !important; }
+.landing { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(8, 10, 14, 0.94); overflow-y: auto; }
+.landing-card { max-width: 680px; width: 100%; background: #12161d; border: 1px solid #2a3140; border-radius: 10px; padding: 32px; color: #e6e9ef; font-family: "Barlow Condensed", system-ui, sans-serif; }
+.landing-lang { display: flex; gap: 6px; justify-content: flex-end; margin-bottom: 8px; }
+.landing-lang button { background: transparent; color: #9aa4b5; border: 1px solid #2a3140; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-family: "JetBrains Mono", monospace; font-size: 12px; }
+.landing-lang button[aria-pressed="true"] { color: #fff; border-color: #e0a526; }
+.landing h1 { margin: 0 0 6px; font-size: 40px; letter-spacing: 0.5px; }
+.landing h1 span { color: #e0a526; }
+.landing-sub { margin: 0 0 20px; color: #9aa4b5; font-size: 18px; }
+.landing ul { margin: 0 0 22px; padding-left: 20px; line-height: 1.6; font-size: 17px; }
+.landing p { font-size: 17px; line-height: 1.6; margin: 0 0 14px; }
+.landing-note { color: #9aa4b5; font-size: 15px; }
+.landing-start { display: block; width: 100%; padding: 14px; border: 0; border-radius: 6px; background: #e0a526; color: #0b0d12; font-family: "Barlow Condensed", system-ui, sans-serif; font-size: 22px; font-weight: 700; cursor: pointer; }
+.landing-start:hover, .landing-start:focus-visible { background: #f0b735; outline: 2px solid #fff; outline-offset: 2px; }
+</style>
 </head>
 <body>
+<div id="landing" class="landing" role="dialog" aria-modal="true" aria-labelledby="landing-title">
+  <div class="landing-card">
+    <div class="landing-lang" role="group" aria-label="Language">
+      <button type="button" data-lang-pick="de" aria-pressed="true">DE</button>
+      <button type="button" data-lang-pick="en" aria-pressed="false">EN</button>
+    </div>
+    <h1 id="landing-title">Open<span>Engine</span>Lab</h1>
+    <div data-lang="de">
+      <p class="landing-sub">Browserbasierter Motor-Physik-Simulator und Tuning-Workbench für Motorsport</p>
+      <p>OpenEngineLab simuliert einen Verbrennungsmotor Zyklus für Zyklus: Zylinderdruck, Ladedruck, Öltemperatur, Klopfgrenze und Bauteilspannungen werden live berechnet. Alles läuft im Browser, ohne Server.</p>
+      <ul>
+        <li>Basismotoren, Lader (Turbo, Kompressor, Saugmotor) und Modifikationen frei kombinieren</li>
+        <li>Standardisierter Dyno-Test mit Leistungs- und Drehmomentkurve</li>
+        <li>Kennfeld-Editor für Zündung und Einspritzung</li>
+        <li>Setups als .oel-Datei speichern, laden und vergleichen</li>
+        <li>Realismus-Prüfung auf physikalische Plausibilität</li>
+      </ul>
+      <p class="landing-note">Nicht-kommerzielles Lern- und Forschungsprojekt. Die Werte sind Modelle, keine Herstellerdaten.</p>
+    </div>
+    <div data-lang="en" hidden>
+      <p class="landing-sub">Browser-based engine physics simulator and tuning workbench for motorsport</p>
+      <p>OpenEngineLab simulates an internal combustion engine cycle by cycle: cylinder pressure, boost, oil temperature, knock limit and component stress are computed live. Everything runs in the browser, no server required.</p>
+      <ul>
+        <li>Combine base engines, chargers (turbo, supercharger, naturally aspirated) and modifications freely</li>
+        <li>Standardized dyno test with power and torque curves</li>
+        <li>Fuel map editor for ignition and fuel quantity</li>
+        <li>Save, load and compare setups as .oel files</li>
+        <li>Realism check for physical plausibility</li>
+      </ul>
+      <p class="landing-note">Non-commercial learning and research project. Values are models, not manufacturer data.</p>
+    </div>
+    <button type="button" id="landing-start-btn" class="landing-start">
+      <span data-lang="de">Simulation starten</span>
+      <span data-lang="en" hidden>Start simulation</span>
+    </button>
+  </div>
+</div>
+
 <header class="topbar">
   <div class="brand">Open<span>Engine</span>Lab</div>
   <div class="topbar-controls">
@@ -108,5 +162,40 @@
 <script src="js/map-editor.js"></script>
 <script src="js/dyno-engine.js"></script>
 <script src="js/ui.js"></script>
+<script>
+(function () {
+  var landing = document.getElementById("landing");
+  var startBtn = document.getElementById("landing-start-btn");
+  var langButtons = document.querySelectorAll("[data-lang-pick]");
+  var langBlocks = document.querySelectorAll("#landing [data-lang]");
+
+  function setLanding(lang) {
+    langBlocks.forEach(function (el) { el.hidden = el.getAttribute("data-lang") !== lang; });
+    langButtons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-lang-pick") === lang)); });
+    document.documentElement.lang = lang;
+  }
+
+  var initial = (navigator.language || "de").slice(0, 2) === "en" ? "en" : "de";
+  setLanding(initial);
+
+  langButtons.forEach(function (b) {
+    b.addEventListener("click", function () { setLanding(b.getAttribute("data-lang-pick")); });
+  });
+
+  function startSimulation() {
+    var langSelect = document.getElementById("lang-select");
+    var lang = document.documentElement.lang;
+    if (langSelect && langSelect.value !== lang) {
+      langSelect.value = lang;
+      langSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    landing.hidden = true;
+    startBtn.blur();
+  }
+
+  startBtn.addEventListener("click", startSimulation);
+  startBtn.focus();
+})();
+</script>
 </body>
 </html>

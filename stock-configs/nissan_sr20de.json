@@ -1,0 +1,111 @@
+{
+  "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+  "engineId": "nissan_sr20de",
+  "name": "Nissan SR20DE - stock configuration",
+  "status": "generated, not yet calibrated",
+  "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder, ignition for a naturally aspirated engine (low-load row, 0.1 deg retard per % load)",
+  "chargers": [
+    "none-na"
+  ],
+  "fuelId": "e10-95",
+  "boostTargetBar": 0,
+  "drivelineLossPct": 15,
+  "ignitionMap": [
+    [
+      12.0,
+      20.9,
+      27.1,
+      31.1,
+      33.2,
+      31.9
+    ],
+    [
+      9.5,
+      18.4,
+      24.6,
+      28.6,
+      30.7,
+      29.4
+    ],
+    [
+      7.0,
+      15.9,
+      22.1,
+      26.1,
+      28.2,
+      26.9
+    ],
+    [
+      4.5,
+      13.4,
+      19.6,
+      23.6,
+      25.7,
+      24.4
+    ],
+    [
+      2.0,
+      10.9,
+      17.1,
+      21.1,
+      23.2,
+      21.9
+    ]
+  ],
+  "fuelMap": [
+    [
+      0.95,
+      1.23,
+      1.53,
+      1.76,
+      1.86,
+      1.85
+    ],
+    [
+      1.66,
+      2.22,
+      2.75,
+      3.15,
+      3.33,
+      3.31
+    ],
+    [
+      2.37,
+      3.28,
+      4.13,
+      4.69,
+      4.95,
+      4.92
+    ],
+    [
+      3.08,
+      4.34,
+      5.5,
+      6.29,
+      6.66,
+      6.62
+    ],
+    [
+      3.79,
+      5.4,
+      6.87,
+      7.9,
+      8.36,
+      8.31
+    ]
+  ],
+  "reference": {
+    "peakPowerHp": 145,
+    "peakPowerPs": 147,
+    "peakPowerRpm": 6400,
+    "peakTorqueNm": 179,
+    "peakTorqueRpm": 4800,
+    "basis": "crank",
+    "standard": "SAE net, as published for the 1991 specification",
+    "market": "North America (SAE net, 1991)",
+    "variant": "SR20DE 1991, 10.0:1, 86 x 86 mm",
+    "source": "Wikipedia 'Nissan SR engine' (SAE 1991 table: 10.0:1, rod 136.3 mm, 145 hp at 6400 rpm, 132 lbf·ft/179 N·m at 4800 rpm); carfromjapan.com Silvia Spec-S S15 (160 PS at 6400 rpm, 188.3 N·m at 4800 rpm, 10.0:1) as cross-check",
+    "confidence": "press",
+    "notes": "Other SR20DE variants range from 140 PS (9.5:1) to 190-204 PS (high-compression versions). The redline 7500 rpm and limiter 7800 rpm are estimates, no source gave them."
+  }
+}

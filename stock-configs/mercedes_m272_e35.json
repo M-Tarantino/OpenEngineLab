@@ -1,0 +1,111 @@
+{
+  "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+  "engineId": "mercedes_m272_e35",
+  "name": "Mercedes-Benz M272 E35 3.5 V6 (272 PS) - stock configuration",
+  "status": "generated, not yet calibrated",
+  "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder, ignition for a naturally aspirated engine (low-load row, 0.1 deg retard per % load)",
+  "chargers": [
+    "none-na"
+  ],
+  "fuelId": "e10-95",
+  "boostTargetBar": 0,
+  "drivelineLossPct": 15,
+  "ignitionMap": [
+    [
+      12.4,
+      22.5,
+      28.6,
+      32.6,
+      32.5,
+      30.0
+    ],
+    [
+      9.9,
+      20.0,
+      26.1,
+      30.1,
+      30.0,
+      27.5
+    ],
+    [
+      7.4,
+      17.5,
+      23.6,
+      27.6,
+      27.5,
+      25.0
+    ],
+    [
+      4.9,
+      15.0,
+      21.1,
+      25.1,
+      25.0,
+      22.5
+    ],
+    [
+      2.4,
+      12.5,
+      18.6,
+      22.6,
+      22.5,
+      20.0
+    ]
+  ],
+  "fuelMap": [
+    [
+      1.12,
+      1.5,
+      1.88,
+      2.15,
+      2.18,
+      2.12
+    ],
+    [
+      1.96,
+      2.72,
+      3.38,
+      3.83,
+      3.89,
+      3.78
+    ],
+    [
+      2.81,
+      4.04,
+      5.06,
+      5.7,
+      5.79,
+      5.62
+    ],
+    [
+      3.66,
+      5.36,
+      6.76,
+      7.66,
+      7.78,
+      7.55
+    ],
+    [
+      4.51,
+      6.68,
+      8.46,
+      9.62,
+      9.78,
+      9.48
+    ]
+  ],
+  "reference": {
+    "peakPowerHp": 268.3,
+    "peakPowerPs": 272,
+    "peakPowerRpm": 6000,
+    "peakTorqueNm": 350,
+    "peakTorqueRpm": 3700,
+    "basis": "crank",
+    "standard": "Rating in PS/kW as published, converted to mechanical hp with 1 hp = 1.01387 PS",
+    "market": "Europe/North America (as stated in the source)",
+    "variant": "Mercedes-Benz M272 E35 3.5 V6 (272 PS)",
+    "source": "Mercedes-Benz Public Archive W 211 E 35 (M 272 E 35: 6 cylinders 90 degree V, light-alloy block, 92.9 x 86.0 mm, 3498 cc, 10.7:1, 200 kW/272 hp at 6000 rpm, 350 N·m at 2400-5000 rpm); auto-data.net (engine oil capacity 8 l)",
+    "confidence": "manufacturer",
+    "notes": "Estimated, not in the sources: connecting rod length (141.9 mm = 1.65 x stroke); redline 6600 rpm and limiter 6900 rpm; firing order (typical for this layout, not confirmed in the sources). Stock fuel 'e10-95' is the lowest octane rating without knock in this simulation; it can differ from the real fuel requirement."
+  }
+}

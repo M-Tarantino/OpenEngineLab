@@ -1,0 +1,111 @@
+{
+  "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+  "engineId": "toyota_2jz_ge",
+  "name": "Toyota 2JZ-GE - stock configuration",
+  "status": "generated, not yet calibrated",
+  "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder, ignition for a naturally aspirated engine (low-load row, 0.1 deg retard per % load)",
+  "chargers": [
+    "none-na"
+  ],
+  "fuelId": "e10-95",
+  "boostTargetBar": 0,
+  "drivelineLossPct": 15,
+  "ignitionMap": [
+    [
+      12.2,
+      22.2,
+      28.3,
+      32.3,
+      33.3,
+      30.0
+    ],
+    [
+      9.7,
+      19.7,
+      25.8,
+      29.8,
+      30.8,
+      27.5
+    ],
+    [
+      7.2,
+      17.2,
+      23.3,
+      27.3,
+      28.3,
+      25.0
+    ],
+    [
+      4.7,
+      14.7,
+      20.8,
+      24.8,
+      25.8,
+      22.5
+    ],
+    [
+      2.2,
+      12.2,
+      18.3,
+      22.3,
+      23.3,
+      20.0
+    ]
+  ],
+  "fuelMap": [
+    [
+      0.95,
+      1.27,
+      1.59,
+      1.83,
+      1.88,
+      1.81
+    ],
+    [
+      1.67,
+      2.31,
+      2.87,
+      3.26,
+      3.36,
+      3.23
+    ],
+    [
+      2.39,
+      3.43,
+      4.3,
+      4.85,
+      5.01,
+      4.81
+    ],
+    [
+      3.1,
+      4.54,
+      5.73,
+      6.52,
+      6.73,
+      6.47
+    ],
+    [
+      3.82,
+      5.66,
+      7.17,
+      8.18,
+      8.45,
+      8.13
+    ]
+  ],
+  "reference": {
+    "peakPowerHp": 221.9,
+    "peakPowerPs": 225,
+    "peakPowerRpm": 6000,
+    "peakTorqueNm": 284.4,
+    "peakTorqueRpm": 4800,
+    "basis": "crank",
+    "standard": "Net rating in PS as published in Japanese market specifications, converted to mechanical hp with 1 hp = 1.01387 PS",
+    "market": "Japan",
+    "variant": "JZA80 Supra SZ-R, 2JZ-GE non-VVT-i, 10.0:1, 86 x 86 mm",
+    "source": "carfromjapan.com Toyota Supra SZ-R E-JZA80/GF-JZA80 (225 PS at 6000 rpm, 29.0 kgm/284.4 N·m at 4800 rpm, 2997 cc, 86.0 x 86.0 mm, 10.0:1); Wikipedia 'Toyota JZ engine' (215-230 PS range)",
+    "confidence": "press",
+    "notes": "Rod length 142.0 mm is the commonly published value and was not re-verified. Redline 6800 rpm and limiter 7100 rpm are estimates."
+  }
+}

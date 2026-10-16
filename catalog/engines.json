@@ -1,0 +1,189 @@
+{
+  "entries": [
+    {
+      "id": "vr38dett",
+      "name": "Nissan VR38DETT 3.8L V6 Twin-Turbo",
+      "file": "data/engines/vr38dett.json"
+    },
+    {
+      "id": "chrysler_3.8_v6_ohv",
+      "name": "Chrysler 3.8L V6 OHV (EGL/EGH)",
+      "file": "data/engines/chrysler-3.8-v6-ohv.json"
+    },
+    {
+      "id": "ford_kent_1.6",
+      "name": "Ford Kent 1.6L (Crossflow)",
+      "file": "data/engines/ford-kent-1-6.json"
+    },
+    {
+      "id": "honda_d15",
+      "name": "Honda D15 SOHC",
+      "file": "data/engines/honda-d15.json"
+    },
+    {
+      "id": "honda_d16",
+      "name": "Honda D16 SOHC",
+      "file": "data/engines/honda-d16.json"
+    },
+    {
+      "id": "toyota_3k",
+      "name": "Toyota 3K",
+      "file": "data/engines/toyota-3k.json"
+    },
+    {
+      "id": "toyota_4k",
+      "name": "Toyota 4K",
+      "file": "data/engines/toyota-4k.json"
+    },
+    {
+      "id": "toyota_5k",
+      "name": "Toyota 5K",
+      "file": "data/engines/toyota-5k.json"
+    },
+    {
+      "id": "toyota_7k",
+      "name": "Toyota 7K",
+      "file": "data/engines/toyota-7k.json"
+    },
+    {
+      "id": "vw_ea827_1.8",
+      "name": "VW EA827 1.8L 8v",
+      "file": "data/engines/vw-ea827-1-8.json"
+    },
+    {
+      "id": "vw_ea827_2.0",
+      "name": "VW EA827 2.0L 8v",
+      "file": "data/engines/vw-ea827-2-0.json"
+    },
+    {
+      "id": "honda_b18c",
+      "name": "Honda B18C (Integra Type R)",
+      "file": "data/engines/honda-b18c.json"
+    },
+    {
+      "id": "nissan_sr20de",
+      "name": "Nissan SR20DE",
+      "file": "data/engines/nissan-sr20de.json"
+    },
+    {
+      "id": "toyota_2jz_ge",
+      "name": "Toyota 2JZ-GE",
+      "file": "data/engines/toyota-2jz-ge.json"
+    },
+    {
+      "id": "ford_windsor_302",
+      "name": "Ford Windsor 302 (5.0 HO)",
+      "file": "data/engines/ford-windsor-302.json"
+    },
+    {
+      "id": "vw_ea888_gen3",
+      "name": "VW EA888 Gen3 2.0 TSI (CHHA)",
+      "file": "data/engines/vw-ea888-gen3.json"
+    },
+    {
+      "id": "vw_w12_6_0",
+      "name": "VW W12 6.0L (A8 / Phaeton)",
+      "file": "data/engines/vw-w12-6-0.json"
+    },
+    {
+      "id": "bugatti_w16_8_0",
+      "name": "Bugatti W16 8.0L Quad-Turbo",
+      "file": "data/engines/bugatti-w16-8-0.json"
+    },
+    {
+      "id": "mazda_13b_msp",
+      "name": "Mazda 13B-MSP Renesis (2-rotor Wankel)",
+      "file": "data/engines/mazda-13b-msp.json"
+    },
+    {
+      "id": "vw_ea211_1_0_tsi",
+      "name": "VW EA211 1.0 TSI (110 PS)",
+      "file": "data/engines/vw-ea211-1-0-tsi.json"
+    },
+    {
+      "id": "vw_ea211_1_4_tsi",
+      "name": "VW EA211 1.4 TSI (150 PS)",
+      "file": "data/engines/vw-ea211-1-4-tsi.json"
+    },
+    {
+      "id": "vw_ea211_1_5_tsi_evo",
+      "name": "VW EA211 evo 1.5 TSI (150 PS)",
+      "file": "data/engines/vw-ea211-1-5-tsi-evo.json"
+    },
+    {
+      "id": "audi_2_5_tfsi",
+      "name": "Audi 2.5 TFSI I5 (TT RS, 340 PS)",
+      "file": "data/engines/audi-2-5-tfsi.json"
+    },
+    {
+      "id": "audi_3_2_fsi",
+      "name": "Audi 3.2 FSI V6 (255 hp)",
+      "file": "data/engines/audi-3-2-fsi.json"
+    },
+    {
+      "id": "audi_4_2_fsi",
+      "name": "Audi 4.2 FSI V8 (350 PS)",
+      "file": "data/engines/audi-4-2-fsi.json"
+    },
+    {
+      "id": "bmw_n52b30",
+      "name": "BMW N52B30 3.0 I6 (255 hp)",
+      "file": "data/engines/bmw-n52b30.json"
+    },
+    {
+      "id": "bmw_n55b30",
+      "name": "BMW N55B30 3.0 Turbo I6 (306 PS)",
+      "file": "data/engines/bmw-n55b30.json"
+    },
+    {
+      "id": "bmw_b48a20o0",
+      "name": "BMW B48 2.0 Turbo (B48A20O0, 170 kW)",
+      "file": "data/engines/bmw-b48a20o0.json"
+    },
+    {
+      "id": "mercedes_m272_e35",
+      "name": "Mercedes-Benz M272 E35 3.5 V6 (272 PS)",
+      "file": "data/engines/mercedes-m272-e35.json"
+    },
+    {
+      "id": "mercedes_m274_de20",
+      "name": "Mercedes-Benz M274 DE20 2.0 Turbo (211 PS)",
+      "file": "data/engines/mercedes-m274-de20.json"
+    },
+    {
+      "id": "mercedes_m276_de30la",
+      "name": "Mercedes-Benz M276 DE30 LA 3.0 V6 Bi-Turbo (333 PS)",
+      "file": "data/engines/mercedes-m276-de30la.json"
+    },
+    {
+      "id": "opel_z16xep",
+      "name": "Opel Z16XEP 1.6",
+      "file": "data/engines/opel-z16xep.json"
+    },
+    {
+      "id": "opel_z18xer",
+      "name": "Opel Z18XER 1.8",
+      "file": "data/engines/opel-z18xer.json"
+    },
+    {
+      "id": "opel_a14net",
+      "name": "Opel A14NET 1.4 Turbo (140 PS)",
+      "file": "data/engines/opel-a14net.json"
+    },
+    {
+      "id": "porsche_997_carrera_3_6",
+      "name": "Porsche 997 Carrera 3.6 Flat-Six (325 PS)",
+      "file": "data/engines/porsche-997-carrera-3-6.json"
+    },
+    {
+      "id": "porsche_997_carrera_s_3_8",
+      "name": "Porsche 997 Carrera S 3.8 Flat-Six (355 PS)",
+      "file": "data/engines/porsche-997-carrera-s-3-8.json"
+    },
+    {
+      "id": "porsche_cayenne_s_4_8",
+      "name": "Porsche Cayenne S 4.8 V8 (385 PS)",
+      "file": "data/engines/porsche-cayenne-s-4-8.json"
+    }
+  ]
+}

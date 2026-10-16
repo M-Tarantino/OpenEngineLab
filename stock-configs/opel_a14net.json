@@ -1,0 +1,153 @@
+{
+  "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+  "engineId": "opel_a14net",
+  "name": "Opel A14NET 1.4 Turbo (140 PS) - stock configuration",
+  "status": "generated, not yet calibrated (OEM turbo values estimated)",
+  "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder",
+  "chargers": [
+    {
+      "count": 1,
+      "profile": {
+        "id": "opel-a14net-oem",
+        "type": "turbocharger",
+        "name": "Opel A14NET 1.4 Turbo (140 PS) OEM turbo (estimated)",
+        "series": "OEM",
+        "bearing_type": "Unknown",
+        "application": {
+          "hp_range": "0-173",
+          "displacement_range_l": "1.4-1.4",
+          "wastegate_type": "Internal",
+          "rotation": "Standard",
+          "description": "Estimated OEM turbo set (1 x) derived from the factory output, not manufacturer data."
+        },
+        "limits": {
+          "maxBoostBar": 1.0,
+          "maxRPM": 200000
+        },
+        "dynamics": {
+          "timeConstantS": 0.45,
+          "volumetricEfficiency": 0.78,
+          "heatRatioK": 1.4,
+          "beltSlipCoeff": 0.0
+        },
+        "cooler": {
+          "effectivenessPercent": 55,
+          "targetInletTempC": 35
+        },
+        "metadata": {
+          "source": "estimated",
+          "features": [
+            "OEM",
+            "estimated values"
+          ]
+        },
+        "description": "Opel A14NET 1.4 Turbo (140 PS) OEM turbo (estimated)",
+        "compressor": {
+          "maxMassFlowKgMin": 7.46,
+          "flowBasis": "estimated: 138 hp per turbo x 1.25 headroom / 10.5 hp per lb/min"
+        }
+      }
+    }
+  ],
+  "fuelId": "super-plus-98",
+  "boostTargetBar": 0.5,
+  "drivelineLossPct": 15,
+  "ignitionMap": [
+    [
+      12.4,
+      22.5,
+      28.6,
+      32.6,
+      32.5,
+      30
+    ],
+    [
+      10.4,
+      19.5,
+      25.6,
+      29.3,
+      28.5,
+      26
+    ],
+    [
+      8.3,
+      16.4,
+      21.4,
+      24.3,
+      23.5,
+      21
+    ],
+    [
+      6.3,
+      13.3,
+      17.3,
+      19.0,
+      17.9,
+      16
+    ],
+    [
+      4.2,
+      10.2,
+      13.1,
+      14.0,
+      13.3,
+      12
+    ]
+  ],
+  "fuelMap": [
+    [
+      0.65,
+      0.88,
+      1.1,
+      1.26,
+      1.27,
+      1.24
+    ],
+    [
+      1.15,
+      1.59,
+      1.98,
+      2.24,
+      2.28,
+      2.21
+    ],
+    [
+      1.64,
+      2.36,
+      2.96,
+      3.33,
+      3.39,
+      3.29
+    ],
+    [
+      2.14,
+      3.14,
+      3.95,
+      4.48,
+      4.55,
+      4.42
+    ],
+    [
+      2.64,
+      3.91,
+      4.95,
+      5.63,
+      5.72,
+      5.55
+    ]
+  ],
+  "reference": {
+    "peakPowerHp": 138.1,
+    "peakPowerPs": 140,
+    "peakPowerRpm": 5450,
+    "peakTorqueNm": 200,
+    "peakTorqueRpm": 3400,
+    "basis": "crank",
+    "standard": "Rating in PS/kW as published, converted to mechanical hp with 1 hp = 1.01387 PS",
+    "market": "Europe/North America (as stated in the source)",
+    "variant": "Opel A14NET 1.4 Turbo (140 PS)",
+    "source": "mymotorlist.com Opel A14NET (72.5 x 82.6 mm, 1364 cc, 9.5:1, 140 hp, 200 N·m, cast iron block, aluminum head, 4.0 l oil, low-pressure turbo about 0.5 bar); Wikipedia 'GM Family 0 engine' (A14NET 103 kW/138 hp at 4900-6000 rpm, 200 N·m at 1850 rpm)",
+    "confidence": "press",
+    "notes": "Estimated, not in the sources: connecting rod length (136.3 mm = 1.65 x stroke); redline 6600 rpm and limiter 6900 rpm. Stock boost target and OEM turbo values are model settings chosen as the highest knock-free boost in this simulation, not manufacturer data. Stock fuel 'super-plus-98' and stock boost 0.50 bar is the lowest octane rating without knock in this simulation; it can differ from the real fuel requirement."
+  }
+}

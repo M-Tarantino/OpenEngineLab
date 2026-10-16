@@ -1,0 +1,111 @@
+{
+  "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+  "engineId": "audi_4_2_fsi",
+  "name": "Audi 4.2 FSI V8 (350 PS) - stock configuration",
+  "status": "generated, not yet calibrated",
+  "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder, ignition for a naturally aspirated engine (low-load row, 0.1 deg retard per % load)",
+  "chargers": [
+    "none-na"
+  ],
+  "fuelId": "ultimate-102",
+  "boostTargetBar": 0,
+  "drivelineLossPct": 15,
+  "ignitionMap": [
+    [
+      12.0,
+      20.9,
+      27.1,
+      31.1,
+      33.2,
+      31.9
+    ],
+    [
+      9.5,
+      18.4,
+      24.6,
+      28.6,
+      30.7,
+      29.4
+    ],
+    [
+      7.0,
+      15.9,
+      22.1,
+      26.1,
+      28.2,
+      26.9
+    ],
+    [
+      4.5,
+      13.4,
+      19.6,
+      23.6,
+      25.7,
+      24.4
+    ],
+    [
+      2.0,
+      10.9,
+      17.1,
+      21.1,
+      23.2,
+      21.9
+    ]
+  ],
+  "fuelMap": [
+    [
+      0.99,
+      1.28,
+      1.59,
+      1.84,
+      1.94,
+      1.93
+    ],
+    [
+      1.73,
+      2.31,
+      2.87,
+      3.28,
+      3.47,
+      3.45
+    ],
+    [
+      2.47,
+      3.42,
+      4.3,
+      4.89,
+      5.16,
+      5.13
+    ],
+    [
+      3.21,
+      4.52,
+      5.73,
+      6.56,
+      6.94,
+      6.89
+    ],
+    [
+      3.94,
+      5.63,
+      7.15,
+      8.23,
+      8.71,
+      8.66
+    ]
+  ],
+  "reference": {
+    "peakPowerHp": 345.2,
+    "peakPowerPs": 350,
+    "peakPowerRpm": 6800,
+    "peakTorqueNm": 440,
+    "peakTorqueRpm": 3500,
+    "basis": "crank",
+    "standard": "Rating in PS/kW as published, converted to mechanical hp with 1 hp = 1.01387 PS",
+    "market": "Europe/North America (as stated in the source)",
+    "variant": "Audi 4.2 FSI V8 (350 PS)",
+    "source": "Audi of America 2008 A6 4.2 FSI quattro specs (84.5 x 92.8 mm, 4163 cc, 12.5:1, 350 hp at 6800 rpm, aluminum block and head, firing order 1-5-4-8-6-3-7-2); Audi AG V8 FSI service training (257 kW/350 bhp at 6800 rpm, 440 N·m at about 3500 rpm, 90 degree V); encycarpedia.com A6 4.2 FSI quattro 350",
+    "confidence": "manufacturer",
+    "notes": "Estimated, not in the sources: connecting rod length (153.1 mm = 1.65 x stroke); redline 7500 rpm and limiter 7800 rpm; oil mass 7.1 kg (scaled from displacement). Stock fuel 'ultimate-102' is the lowest octane rating without knock in this simulation; it can differ from the real fuel requirement."
+  }
+}

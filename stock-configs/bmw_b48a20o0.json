@@ -1,0 +1,153 @@
+{
+  "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+  "engineId": "bmw_b48a20o0",
+  "name": "BMW B48 2.0 Turbo (B48A20O0, 170 kW) - stock configuration",
+  "status": "generated, not yet calibrated (OEM turbo values estimated)",
+  "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder",
+  "chargers": [
+    {
+      "count": 1,
+      "profile": {
+        "id": "bmw-b48a20o0-oem",
+        "type": "turbocharger",
+        "name": "BMW B48 2.0 Turbo (B48A20O0, 170 kW) OEM turbo (estimated)",
+        "series": "OEM",
+        "bearing_type": "Unknown",
+        "application": {
+          "hp_range": "0-285",
+          "displacement_range_l": "2.0-2.0",
+          "wastegate_type": "Internal",
+          "rotation": "Standard",
+          "description": "Estimated OEM turbo set (1 x) derived from the factory output, not manufacturer data."
+        },
+        "limits": {
+          "maxBoostBar": 1.3,
+          "maxRPM": 200000
+        },
+        "dynamics": {
+          "timeConstantS": 0.45,
+          "volumetricEfficiency": 0.78,
+          "heatRatioK": 1.4,
+          "beltSlipCoeff": 0.0
+        },
+        "cooler": {
+          "effectivenessPercent": 55,
+          "targetInletTempC": 35
+        },
+        "metadata": {
+          "source": "estimated",
+          "features": [
+            "OEM",
+            "estimated values"
+          ]
+        },
+        "description": "BMW B48 2.0 Turbo (B48A20O0, 170 kW) OEM turbo (estimated)",
+        "compressor": {
+          "maxMassFlowKgMin": 12.3,
+          "flowBasis": "estimated: 228 hp per turbo x 1.25 headroom / 10.5 hp per lb/min"
+        }
+      }
+    }
+  ],
+  "fuelId": "super-plus-98",
+  "boostTargetBar": 0.2,
+  "drivelineLossPct": 15,
+  "ignitionMap": [
+    [
+      12.4,
+      22.5,
+      28.6,
+      32.6,
+      32.5,
+      30
+    ],
+    [
+      10.4,
+      19.5,
+      25.6,
+      29.3,
+      28.5,
+      26
+    ],
+    [
+      8.3,
+      16.4,
+      21.4,
+      24.3,
+      23.5,
+      21
+    ],
+    [
+      6.3,
+      13.3,
+      17.3,
+      19.0,
+      17.9,
+      16
+    ],
+    [
+      4.2,
+      10.2,
+      13.1,
+      14.0,
+      13.3,
+      12
+    ]
+  ],
+  "fuelMap": [
+    [
+      0.96,
+      1.29,
+      1.61,
+      1.84,
+      1.86,
+      1.81
+    ],
+    [
+      1.68,
+      2.33,
+      2.9,
+      3.28,
+      3.33,
+      3.23
+    ],
+    [
+      2.41,
+      3.46,
+      4.34,
+      4.88,
+      4.96,
+      4.81
+    ],
+    [
+      3.13,
+      4.59,
+      5.79,
+      6.56,
+      6.67,
+      6.47
+    ],
+    [
+      3.86,
+      5.72,
+      7.25,
+      8.25,
+      8.38,
+      8.13
+    ]
+  ],
+  "reference": {
+    "peakPowerHp": 227.8,
+    "peakPowerPs": 231,
+    "peakPowerRpm": 5500,
+    "peakTorqueNm": 350,
+    "peakTorqueRpm": 3000,
+    "basis": "crank",
+    "standard": "Rating in PS/kW as published, converted to mechanical hp with 1 hp = 1.01387 PS",
+    "market": "Europe/North America (as stated in the source)",
+    "variant": "BMW B48 2.0 Turbo (B48A20O0, 170 kW)",
+    "source": "Wikipedia 'BMW B48' (82.0 x 94.6 mm, 1998 cc, B48 170 kW/228 hp at 5000-6000 rpm with 350 N·m at 1450-4500 rpm); australiancar.reviews BMW B48 (B48A20O0 11.0:1, aluminum block and head, twin-scroll turbo)",
+    "confidence": "press",
+    "notes": "Estimated, not in the sources: connecting rod length (156.1 mm = 1.65 x stroke); redline 6600 rpm and limiter 6900 rpm; oil mass 4.6 kg (scaled from displacement). Stock boost target and OEM turbo values are model settings chosen as the highest knock-free boost in this simulation, not manufacturer data. Stock fuel 'super-plus-98' and stock boost 0.20 bar is the lowest octane rating without knock in this simulation; it can differ from the real fuel requirement."
+  }
+}

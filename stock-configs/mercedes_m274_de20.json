@@ -1,0 +1,153 @@
+{
+  "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+  "engineId": "mercedes_m274_de20",
+  "name": "Mercedes-Benz M274 DE20 2.0 Turbo (211 PS) - stock configuration",
+  "status": "generated, not yet calibrated (OEM turbo values estimated)",
+  "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder",
+  "chargers": [
+    {
+      "count": 1,
+      "profile": {
+        "id": "mercedes-m274-de20-oem",
+        "type": "turbocharger",
+        "name": "Mercedes-Benz M274 DE20 2.0 Turbo (211 PS) OEM turbo (estimated)",
+        "series": "OEM",
+        "bearing_type": "Unknown",
+        "application": {
+          "hp_range": "0-260",
+          "displacement_range_l": "2.0-2.0",
+          "wastegate_type": "Internal",
+          "rotation": "Standard",
+          "description": "Estimated OEM turbo set (1 x) derived from the factory output, not manufacturer data."
+        },
+        "limits": {
+          "maxBoostBar": 1.3,
+          "maxRPM": 200000
+        },
+        "dynamics": {
+          "timeConstantS": 0.45,
+          "volumetricEfficiency": 0.78,
+          "heatRatioK": 1.4,
+          "beltSlipCoeff": 0.0
+        },
+        "cooler": {
+          "effectivenessPercent": 55,
+          "targetInletTempC": 35
+        },
+        "metadata": {
+          "source": "estimated",
+          "features": [
+            "OEM",
+            "estimated values"
+          ]
+        },
+        "description": "Mercedes-Benz M274 DE20 2.0 Turbo (211 PS) OEM turbo (estimated)",
+        "compressor": {
+          "maxMassFlowKgMin": 11.24,
+          "flowBasis": "estimated: 208 hp per turbo x 1.25 headroom / 10.5 hp per lb/min"
+        }
+      }
+    }
+  ],
+  "fuelId": "super-plus-98",
+  "boostTargetBar": 0.5,
+  "drivelineLossPct": 15,
+  "ignitionMap": [
+    [
+      13.0,
+      23.2,
+      29.4,
+      33.5,
+      30.5,
+      30
+    ],
+    [
+      10.9,
+      20.2,
+      26.4,
+      29.7,
+      26.5,
+      26
+    ],
+    [
+      8.8,
+      17.0,
+      22.0,
+      24.7,
+      21.5,
+      21
+    ],
+    [
+      6.7,
+      13.8,
+      17.7,
+      19.0,
+      16.3,
+      16
+    ],
+    [
+      4.6,
+      10.6,
+      13.3,
+      14.0,
+      12.2,
+      12
+    ]
+  ],
+  "fuelMap": [
+    [
+      0.97,
+      1.32,
+      1.65,
+      1.87,
+      1.82,
+      1.81
+    ],
+    [
+      1.71,
+      2.39,
+      2.97,
+      3.34,
+      3.24,
+      3.22
+    ],
+    [
+      2.46,
+      3.55,
+      4.43,
+      4.97,
+      4.82,
+      4.8
+    ],
+    [
+      3.21,
+      4.71,
+      5.93,
+      6.68,
+      6.48,
+      6.45
+    ],
+    [
+      3.95,
+      5.88,
+      7.43,
+      8.39,
+      8.14,
+      8.1
+    ]
+  ],
+  "reference": {
+    "peakPowerHp": 208.1,
+    "peakPowerPs": 211,
+    "peakPowerRpm": 5500,
+    "peakTorqueNm": 350,
+    "peakTorqueRpm": 2600,
+    "basis": "crank",
+    "standard": "Rating in PS/kW as published, converted to mechanical hp with 1 hp = 1.01387 PS",
+    "market": "Europe/North America (as stated in the source)",
+    "variant": "Mercedes-Benz M274 DE20 2.0 Turbo (211 PS)",
+    "source": "Wikipedia 'Mercedes-Benz M270/M274 engine' (83 mm bore, 92 mm stroke, 1991 cc, 9.8:1, 155 kW/211 PS at 5500 rpm, 350 N·m at 1200-4000 rpm, single turbo); WardsAuto (die-cast aluminum block, 83 x 92 mm, 9.8:1); mymotorlist.com (oil capacity 6.0-7.0 l)",
+    "confidence": "press",
+    "notes": "Estimated, not in the sources: connecting rod length (151.8 mm = 1.65 x stroke); redline 6100 rpm and limiter 6400 rpm. Stock boost target and OEM turbo values are model settings chosen as the highest knock-free boost in this simulation, not manufacturer data. Stock fuel 'super-plus-98' and stock boost 0.50 bar is the lowest octane rating without knock in this simulation; it can differ from the real fuel requirement."
+  }
+}

@@ -116,7 +116,11 @@
     const eg = state.engine.geometry;
     const th = state.engine.thermal;
     const mats = state.engine.materials;
-    const cyl = state.engine.cylinders;
+    // Rotary (Wankel) engines: every rotor fires once per eccentric-shaft revolution, i.e. like two four-stroke
+    // cylinders, and sweeps twice its chamber volume per revolution pair, so the four-stroke equivalent is x2.
+    const rotary = state.engine.rotary || null;
+    const cyl = rotary ? rotary.rotors * 2 : state.engine.cylinders;
+    const sweptCC = eg.displacementCC * (rotary ? (rotary.fourStrokeEquivalentFactor || 2) : 1);
     const redline = state.engine.redlineRPM;
 
     const rpm = state.rpm;
@@ -143,7 +147,7 @@
     const grp = state.turbo.group;
     const rated = !!(grp && grp.flowKgMin > 0 && rpm > 0);
     const flowPerPr = rated
-      ? airDensityKgM3(baro, ambientC) * volumetricEfficiency(throttle, rpm, redline) * (eg.displacementCC * 1e-6) * (rpm / 120) * 60 // kg/min per unit pressure ratio
+      ? airDensityKgM3(baro, ambientC) * volumetricEfficiency(throttle, rpm, redline) * (sweptCC * 1e-6) * (rpm / 120) * 60 // kg/min per unit pressure ratio
       : 0;
     const spoolAvailability = (commandBar) => {
       if (!rated || flowPerPr <= 0) return 1;
@@ -186,7 +190,7 @@
     const densityRatio = Math.min(1, rho / seaLevelRho);
 
     const ve = volumetricEfficiency(throttle, rpm, redline);
-    const displM3 = eg.displacementCC * 1e-6;
+    const displM3 = sweptCC * 1e-6;
     const mdotAirKgS = rho * ve * displM3 * (rpm / 120);
 
     const intakeAbsBar = state.boostBar + baro * (0.25 + 0.75 * throttle);

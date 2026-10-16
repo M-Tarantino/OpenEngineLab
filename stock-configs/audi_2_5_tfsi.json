@@ -1,0 +1,153 @@
+{
+  "_info": "Stock (standard) configuration of ONE engine, loaded automatically when this engine is selected and by the button 'Load stock configuration'. File name = engine id. 'chargers': a catalog id (string) or {\"profile\": {...}, \"count\": n} for a part that belongs to this engine only. Maps use the shared rpm axis [800,2000,3500,5000,6000,7000] and load axis [0,25,50,75,100] ([loadIdx][rpmIdx]). 'reference' holds a known factory power figure for later calibration.",
+  "engineId": "audi_2_5_tfsi",
+  "name": "Audi 2.5 TFSI I5 (TT RS, 340 PS) - stock configuration",
+  "status": "generated, not yet calibrated (OEM turbo values estimated)",
+  "generated": "ignition and fuel maps derived from the shared base maps: rpm axis stretched to this engine's redline, fuel scaled by displacement per cylinder",
+  "chargers": [
+    {
+      "count": 1,
+      "profile": {
+        "id": "audi-2-5-tfsi-oem",
+        "type": "turbocharger",
+        "name": "Audi 2.5 TFSI I5 (TT RS, 340 PS) OEM turbo (estimated)",
+        "series": "OEM",
+        "bearing_type": "Unknown",
+        "application": {
+          "hp_range": "0-419",
+          "displacement_range_l": "2.5-2.5",
+          "wastegate_type": "Internal",
+          "rotation": "Standard",
+          "description": "Estimated OEM turbo set (1 x) derived from the factory output, not manufacturer data."
+        },
+        "limits": {
+          "maxBoostBar": 1.7,
+          "maxRPM": 200000
+        },
+        "dynamics": {
+          "timeConstantS": 0.45,
+          "volumetricEfficiency": 0.78,
+          "heatRatioK": 1.4,
+          "beltSlipCoeff": 0.0
+        },
+        "cooler": {
+          "effectivenessPercent": 55,
+          "targetInletTempC": 35
+        },
+        "metadata": {
+          "source": "estimated",
+          "features": [
+            "OEM",
+            "estimated values"
+          ]
+        },
+        "description": "Audi 2.5 TFSI I5 (TT RS, 340 PS) OEM turbo (estimated)",
+        "compressor": {
+          "maxMassFlowKgMin": 18.11,
+          "flowBasis": "estimated: 335 hp per turbo x 1.25 headroom / 10.5 hp per lb/min"
+        }
+      }
+    }
+  ],
+  "fuelId": "ultimate-102",
+  "boostTargetBar": 0.7,
+  "drivelineLossPct": 15,
+  "ignitionMap": [
+    [
+      12,
+      21.5,
+      27.6,
+      31.6,
+      33.7,
+      30.8
+    ],
+    [
+      10,
+      18.6,
+      24.6,
+      28.6,
+      29.8,
+      26.8
+    ],
+    [
+      8,
+      15.6,
+      20.7,
+      23.7,
+      24.8,
+      21.8
+    ],
+    [
+      6,
+      12.7,
+      16.7,
+      18.8,
+      19.0,
+      16.6
+    ],
+    [
+      4,
+      9.7,
+      12.8,
+      13.9,
+      14.0,
+      12.4
+    ]
+  ],
+  "fuelMap": [
+    [
+      0.94,
+      1.24,
+      1.55,
+      1.78,
+      1.87,
+      1.82
+    ],
+    [
+      1.65,
+      2.24,
+      2.78,
+      3.18,
+      3.34,
+      3.24
+    ],
+    [
+      2.35,
+      3.32,
+      4.17,
+      4.73,
+      4.97,
+      4.82
+    ],
+    [
+      3.06,
+      4.4,
+      5.56,
+      6.35,
+      6.68,
+      6.48
+    ],
+    [
+      3.76,
+      5.48,
+      6.95,
+      7.97,
+      8.4,
+      8.14
+    ]
+  ],
+  "reference": {
+    "peakPowerHp": 335.3,
+    "peakPowerPs": 340,
+    "peakPowerRpm": 5950,
+    "peakTorqueNm": 450,
+    "peakTorqueRpm": 3450,
+    "basis": "crank",
+    "standard": "Rating in PS/kW as published, converted to mechanical hp with 1 hp = 1.01387 PS",
+    "market": "Europe/North America (as stated in the source)",
+    "variant": "Audi 2.5 TFSI I5 (TT RS, 340 PS)",
+    "source": "audi-mediacenter.com TT RS engine page (2480 cc, 82.5 x 92.8 mm, 10.0:1, 250 kW/340 hp at 5400-6500 rpm, 450 N·m at 1600-5300 rpm); km77.com (max absolute boost 2.2 bar, iron block, aluminum head); audi RS Q3 press release (ignition 1-2-4-5-3)",
+    "confidence": "manufacturer",
+    "notes": "Estimated, not in the sources: connecting rod length (153.1 mm = 1.65 x stroke); redline 7200 rpm and limiter 7500 rpm; oil mass 5.2 kg (scaled from displacement). Stock boost target and OEM turbo values are model settings chosen as the highest knock-free boost in this simulation, not manufacturer data. Stock fuel 'ultimate-102' and stock boost 0.70 bar is the lowest octane rating without knock in this simulation; it can differ from the real fuel requirement."
+  }
+}
