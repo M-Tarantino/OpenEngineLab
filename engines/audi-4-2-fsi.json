@@ -1,0 +1,97 @@
+{
+  "id": "audi_4_2_fsi",
+  "name": "Audi 4.2 FSI V8 (350 PS)",
+  "engineCodes": [
+    "4.2 FSI"
+  ],
+  "configuration": "V",
+  "vAngleDeg": 90,
+  "cylinders": 8,
+  "firingOrder": [
+    1,
+    5,
+    4,
+    8,
+    6,
+    3,
+    7,
+    2
+  ],
+  "baseStock": {
+    "boreMm": 84.5,
+    "strokeMm": 92.8,
+    "compressionRatio": 12.5,
+    "maxRpm": 7500,
+    "rotatingMassKg": 29.4,
+    "parasiticLossHp": 15.6
+  },
+  "geometry": {
+    "boreMM": 84.5,
+    "strokeMM": 92.8,
+    "rodLengthMM": 153.1,
+    "displacementCC": 4163,
+    "compressionRatio": 12.5
+  },
+  "materials": {
+    "connectingRod": {
+      "material": "Forged Steel",
+      "yieldStrengthMPa": 650,
+      "crossSectionAreaMM2": 170,
+      "snCurveExponentB": 5.7,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "headBolt": {
+      "material": "10.9 Alloy Steel",
+      "yieldStrengthMPa": 1000,
+      "crossSectionAreaMM2": 43,
+      "boltsPerCylinder": 2,
+      "snCurveExponentB": 6.8,
+      "snCurveRefCyclesN0": 1500000.0
+    },
+    "pistonPin": {
+      "material": "Case-Hardened Steel",
+      "yieldStrengthMPa": 640,
+      "crossSectionAreaMM2": 132,
+      "snCurveExponentB": 6.0,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "cylinderHead": {
+      "material": "Aluminum Alloy (Head)",
+      "yieldStrengthMPa": 260,
+      "crossSectionAreaMM2": 325,
+      "snCurveExponentB": 6.4,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "block": {
+      "material": "Aluminum Alloy (Block, Alusil)",
+      "yieldStrengthMPa": 290,
+      "crossSectionAreaMM2": 929,
+      "snCurveExponentB": 6.5,
+      "snCurveRefCyclesN0": 1200000.0
+    }
+  },
+  "thermal": {
+    "oilMassKG": 7.1,
+    "oilSpecificHeatJPerKgK": 2000,
+    "oilRefTempC": 90,
+    "oilViscosityEta0": 12.0,
+    "oilViscosityAlpha": -0.026,
+    "oilViscosityMinSafe": 3.0,
+    "frictionCoeff": 5e-05,
+    "combustionHeatFraction": 0.03,
+    "coolingCoeff": 306.8,
+    "ambientLossCoeff": 12.2,
+    "thermalDerationBaselineC": 148,
+    "thermalDerationRate": 0.0025
+  },
+  "dynamics": {
+    "rotatingInertiaKgM2": 0.251,
+    "frictionTorqueBaseNm": 20.1,
+    "frictionTorquePerRPM": 0.00402,
+    "dynoLoadCoeffNmPerRPM2": 2.63e-05
+  },
+  "idleRPM": 700,
+  "redlineRPM": 7500,
+  "revLimiterRPM": 7800,
+  "intercoolerEfficiency": 0
+}

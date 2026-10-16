@@ -1,0 +1,17 @@
+{
+  "modId": "AIR_TO_WATER_INTERCOOLER",
+  "name": "Air-to-Water Intercooler Core",
+  "category": "FORCED_INDUCTION",
+  "description": "Liquid-cooled charge air heat exchanger that lowers intake charge temperature with minimal pressure drop.",
+  "defaultEffects": {
+    "intercoolerEfficiencyDelta": 0.08
+  },
+  "manufacturerOverrides": {
+    "spec_heavy_duty": {
+      "intercoolerEfficiencyDelta": 0.11
+    },
+    "spec_lightweight": {
+      "intercoolerEfficiencyDelta": 0.06
+    }
+  }
+}

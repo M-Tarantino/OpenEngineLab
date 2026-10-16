@@ -1,0 +1,22 @@
+{
+  "modId": "TITANIUM_VALVETRAIN",
+  "name": "Titanium Valvetrain Kit",
+  "category": "VALVETRAIN",
+  "description": "Lightweight titanium valves and matched high-rate valve springs that suppress valve float at elevated engine speeds.",
+  "defaultEffects": {
+    "massDeltaKg": -0.1,
+    "parasiticLossDeltaHp": -0.8,
+    "rpmMultiplier": 1.06
+  },
+  "manufacturerOverrides": {
+    "spec_heavy_duty": {
+      "massDeltaKg": -0.05,
+      "rpmMultiplier": 1.04
+    },
+    "spec_lightweight": {
+      "massDeltaKg": -0.15,
+      "parasiticLossDeltaHp": -1.2,
+      "rpmMultiplier": 1.08
+    }
+  }
+}

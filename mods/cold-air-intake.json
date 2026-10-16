@@ -1,0 +1,20 @@
+{
+  "modId": "COLD_AIR_INTAKE",
+  "name": "Cold Air Intake",
+  "category": "INTAKE",
+  "description": "Larger-diameter intake tract and a cooler, less restrictive air path reduce intake pumping losses and slightly raise the safe RPM ceiling.",
+  "defaultEffects": {
+    "parasiticLossDeltaHp": -1.5,
+    "rpmMultiplier": 1.03
+  },
+  "manufacturerOverrides": {
+    "spec_short_ram": {
+      "parasiticLossDeltaHp": -1.0,
+      "rpmMultiplier": 1.02
+    },
+    "spec_open_element": {
+      "parasiticLossDeltaHp": -2.2,
+      "rpmMultiplier": 1.05
+    }
+  }
+}

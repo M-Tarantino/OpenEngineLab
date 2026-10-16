@@ -1,0 +1,20 @@
+{
+  "modId": "UNDERDRIVE_PULLEY_SET",
+  "name": "Underdrive Accessory Pulley Set",
+  "category": "DRIVETRAIN",
+  "description": "Lightweight aluminum pulleys that slow accessory drive speeds and reduce rotating inertia at the crank snout.",
+  "defaultEffects": {
+    "massDeltaKg": -0.3,
+    "parasiticLossDeltaHp": -2.2
+  },
+  "manufacturerOverrides": {
+    "spec_heavy_duty": {
+      "massDeltaKg": -0.18,
+      "parasiticLossDeltaHp": -1.5
+    },
+    "spec_lightweight": {
+      "massDeltaKg": -0.42,
+      "parasiticLossDeltaHp": -2.8
+    }
+  }
+}

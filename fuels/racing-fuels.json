@@ -1,0 +1,6 @@
+{
+  "fuels": [
+    { "id": "e85", "name": "E85 Ethanol-Blend", "ronOctane": 105, "monOctane": 95, "afrStoich": 9.8, "lhvMJPerKg": 29.2, "latentHeatKJPerKg": 840 },
+    { "id": "nitromethane", "name": "Nitromethan (Top Fuel)", "ronOctane": 114, "monOctane": 114, "afrStoich": 1.7, "lhvMJPerKg": 11.3, "latentHeatKJPerKg": 560 }
+  ]
+}

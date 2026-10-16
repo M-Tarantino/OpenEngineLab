@@ -1,0 +1,101 @@
+{
+  "id": "mazda_13b_msp",
+  "name": "Mazda 13B-MSP Renesis (2-rotor Wankel)",
+  "engineCodes": [
+    "13B-MSP",
+    "Renesis"
+  ],
+  "configuration": "R",
+  "vAngleDeg": 0,
+  "cylinders": 2,
+  "firingOrder": [
+    1,
+    2
+  ],
+  "baseStock": {
+    "boreMm": 90.0,
+    "strokeMm": 102.8,
+    "compressionRatio": 10.0,
+    "maxRpm": 9000,
+    "rotatingMassKg": 20.0,
+    "parasiticLossHp": 12.0
+  },
+  "geometry": {
+    "boreMM": 90.0,
+    "strokeMM": 102.8,
+    "rodLengthMM": 140.0,
+    "displacementCC": 1308,
+    "compressionRatio": 10.0
+  },
+  "materials": {
+    "connectingRod": {
+      "material": "Forged Steel (Eccentric Shaft)",
+      "yieldStrengthMPa": 700,
+      "crossSectionAreaMM2": 193,
+      "snCurveExponentB": 5.7,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "headBolt": {
+      "material": "10.9 Alloy Steel (Tie Rods)",
+      "yieldStrengthMPa": 1000,
+      "crossSectionAreaMM2": 49,
+      "boltsPerCylinder": 3,
+      "snCurveExponentB": 6.8,
+      "snCurveRefCyclesN0": 1500000.0
+    },
+    "pistonPin": {
+      "material": "Ductile Cast Iron (Rotor)",
+      "yieldStrengthMPa": 420,
+      "crossSectionAreaMM2": 150,
+      "snCurveExponentB": 6.0,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "cylinderHead": {
+      "material": "Aluminum Alloy (Side Housing)",
+      "yieldStrengthMPa": 260,
+      "crossSectionAreaMM2": 369,
+      "snCurveExponentB": 6.4,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "block": {
+      "material": "Aluminum Alloy (Rotor Housing, Chrome-Plated)",
+      "yieldStrengthMPa": 270,
+      "crossSectionAreaMM2": 1054,
+      "snCurveExponentB": 6.5,
+      "snCurveRefCyclesN0": 1200000.0
+    }
+  },
+  "thermal": {
+    "oilMassKG": 3.8,
+    "oilSpecificHeatJPerKgK": 2000,
+    "oilRefTempC": 90,
+    "oilViscosityEta0": 12.0,
+    "oilViscosityAlpha": -0.026,
+    "oilViscosityMinSafe": 3.0,
+    "frictionCoeff": 5e-05,
+    "combustionHeatFraction": 0.03,
+    "coolingCoeff": 206.7,
+    "ambientLossCoeff": 8.9,
+    "thermalDerationBaselineC": 148,
+    "thermalDerationRate": 0.0025
+  },
+  "dynamics": {
+    "rotatingInertiaKgM2": 0.11,
+    "frictionTorqueBaseNm": 15.5,
+    "frictionTorquePerRPM": 0.00309,
+    "dynoLoadCoeffNmPerRPM2": 1.148e-05
+  },
+  "idleRPM": 750,
+  "redlineRPM": 9000,
+  "revLimiterRPM": 9300,
+  "intercoolerEfficiency": 0,
+  "rotary": {
+    "rotors": 2,
+    "chamberVolumeCC": 654.0,
+    "generatingRadiusMM": 105.0,
+    "eccentricityMM": 15.0,
+    "rotorWidthMM": 80.0,
+    "fourStrokeEquivalentFactor": 2,
+    "note": "geometry.boreMM/strokeMM describe an equivalent piston with the swept volume of one chamber (654 cc); engine.js multiplies displacement by 2 and uses 2 firing events per rotor and revolution."
+  }
+}

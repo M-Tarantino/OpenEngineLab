@@ -1,0 +1,95 @@
+{
+  "id": "mercedes_m276_de30la",
+  "name": "Mercedes-Benz M276 DE30 LA 3.0 V6 Bi-Turbo (333 PS)",
+  "engineCodes": [
+    "M 276 DE 30 LA"
+  ],
+  "configuration": "V",
+  "vAngleDeg": 60,
+  "cylinders": 6,
+  "firingOrder": [
+    1,
+    4,
+    3,
+    6,
+    2,
+    5
+  ],
+  "baseStock": {
+    "boreMm": 88.0,
+    "strokeMm": 82.1,
+    "compressionRatio": 10.7,
+    "maxRpm": 6600,
+    "rotatingMassKg": 26.4,
+    "parasiticLossHp": 13.8
+  },
+  "geometry": {
+    "boreMM": 88.0,
+    "strokeMM": 82.1,
+    "rodLengthMM": 135.5,
+    "displacementCC": 2996,
+    "compressionRatio": 10.7
+  },
+  "materials": {
+    "connectingRod": {
+      "material": "Forged Steel",
+      "yieldStrengthMPa": 800,
+      "crossSectionAreaMM2": 356.6,
+      "snCurveExponentB": 5.7,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "headBolt": {
+      "material": "10.9 Alloy Steel",
+      "yieldStrengthMPa": 1000,
+      "crossSectionAreaMM2": 66.7,
+      "boltsPerCylinder": 2,
+      "snCurveExponentB": 6.8,
+      "snCurveRefCyclesN0": 1500000.0
+    },
+    "pistonPin": {
+      "material": "Case-Hardened Steel",
+      "yieldStrengthMPa": 750,
+      "crossSectionAreaMM2": 280.2,
+      "snCurveExponentB": 6.0,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "cylinderHead": {
+      "material": "Aluminum Alloy (Head)",
+      "yieldStrengthMPa": 260,
+      "crossSectionAreaMM2": 679.3,
+      "snCurveExponentB": 6.4,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "block": {
+      "material": "Aluminum Alloy (Block, Alusil)",
+      "yieldStrengthMPa": 290,
+      "crossSectionAreaMM2": 1868.0,
+      "snCurveExponentB": 6.5,
+      "snCurveRefCyclesN0": 1200000.0
+    }
+  },
+  "thermal": {
+    "oilMassKG": 5.8,
+    "oilSpecificHeatJPerKgK": 2000,
+    "oilRefTempC": 90,
+    "oilViscosityEta0": 12.0,
+    "oilViscosityAlpha": -0.026,
+    "oilViscosityMinSafe": 3.0,
+    "frictionCoeff": 5e-05,
+    "combustionHeatFraction": 0.03,
+    "coolingCoeff": 232.0,
+    "ambientLossCoeff": 9.8,
+    "thermalDerationBaselineC": 148,
+    "thermalDerationRate": 0.0025
+  },
+  "dynamics": {
+    "rotatingInertiaKgM2": 0.177,
+    "frictionTorqueBaseNm": 17.8,
+    "frictionTorquePerRPM": 0.00356,
+    "dynoLoadCoeffNmPerRPM2": 2.444e-05
+  },
+  "idleRPM": 750,
+  "redlineRPM": 6600,
+  "revLimiterRPM": 6900,
+  "intercoolerEfficiency": 0.6
+}

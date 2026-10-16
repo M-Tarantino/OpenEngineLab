@@ -1,0 +1,20 @@
+{
+  "modId": "UPGRADED_INTERCOOLER",
+  "name": "Upgraded Front-Mount Intercooler",
+  "category": "FORCED_INDUCTION",
+  "description": "Larger core and improved airflow reduce charge air temperature after compression, lowering the risk of knock under sustained boost. Only has an effect when a turbocharger or supercharger is fitted.",
+  "defaultEffects": {
+    "intercoolerEfficiencyDelta": 0.12,
+    "parasiticLossDeltaHp": 0.5
+  },
+  "manufacturerOverrides": {
+    "spec_street": {
+      "intercoolerEfficiencyDelta": 0.08,
+      "parasiticLossDeltaHp": 0.2
+    },
+    "spec_race_air_to_water": {
+      "intercoolerEfficiencyDelta": 0.18,
+      "parasiticLossDeltaHp": 1.0
+    }
+  }
+}

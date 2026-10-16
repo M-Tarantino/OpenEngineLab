@@ -1,0 +1,17 @@
+{
+  "modId": "LOW_FRICTION_BEARING_COATING",
+  "name": "Low-Friction Bearing Coating",
+  "category": "BOTTOM_END",
+  "description": "Solid-film coating on main and rod bearings that lowers hydrodynamic drag and frictional losses.",
+  "defaultEffects": {
+    "parasiticLossDeltaHp": -1.5
+  },
+  "manufacturerOverrides": {
+    "spec_heavy_duty": {
+      "parasiticLossDeltaHp": -1.0
+    },
+    "spec_lightweight": {
+      "parasiticLossDeltaHp": -2.1
+    }
+  }
+}

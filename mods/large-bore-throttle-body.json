@@ -1,0 +1,19 @@
+{
+  "modId": "LARGE_BORE_THROTTLE_BODY",
+  "name": "Large Bore Throttle Body",
+  "category": "INTAKE",
+  "description": "Enlarged-bore throttle body that reduces intake tract restriction and wide-open-throttle pumping losses.",
+  "defaultEffects": {
+    "parasiticLossDeltaHp": -1.2,
+    "rpmMultiplier": 1.02
+  },
+  "manufacturerOverrides": {
+    "spec_heavy_duty": {
+      "parasiticLossDeltaHp": -0.8
+    },
+    "spec_lightweight": {
+      "parasiticLossDeltaHp": -1.6,
+      "rpmMultiplier": 1.03
+    }
+  }
+}

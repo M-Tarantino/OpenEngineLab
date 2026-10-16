@@ -1,0 +1,20 @@
+{
+  "modId": "PERFORMANCE_HEADERS",
+  "name": "Performance Exhaust Headers",
+  "category": "EXHAUST",
+  "description": "Equal-length tubular headers reduce exhaust back pressure compared to the stock cast manifold, improving high-RPM breathing and reducing pumping losses.",
+  "defaultEffects": {
+    "parasiticLossDeltaHp": -2.5,
+    "rpmMultiplier": 1.04
+  },
+  "manufacturerOverrides": {
+    "spec_shorty": {
+      "parasiticLossDeltaHp": -1.2,
+      "rpmMultiplier": 1.02
+    },
+    "spec_long_tube": {
+      "parasiticLossDeltaHp": -4.0,
+      "rpmMultiplier": 1.07
+    }
+  }
+}

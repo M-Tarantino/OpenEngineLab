@@ -1,0 +1,58 @@
+{
+  "fuels": [
+    {
+      "id": "e10-95",
+      "name": "Super E10 (95 RON)",
+      "ronOctane": 95,
+      "monOctane": 85,
+      "afrStoich": 14.1,
+      "lhvMJPerKg": 41.2,
+      "latentHeatKJPerKg": 380
+    },
+    {
+      "id": "super-plus-98",
+      "name": "Super Plus (98 RON)",
+      "ronOctane": 98,
+      "monOctane": 88,
+      "afrStoich": 14.5,
+      "lhvMJPerKg": 42.7,
+      "latentHeatKJPerKg": 373
+    },
+    {
+      "id": "ultimate-102",
+      "name": "Aral Ultimate (102 RON)",
+      "ronOctane": 102,
+      "monOctane": 90,
+      "afrStoich": 14.6,
+      "lhvMJPerKg": 42.9,
+      "latentHeatKJPerKg": 370
+    },
+    {
+      "id": "us-87-aki",
+      "name": "US Regular (87 AKI)",
+      "ronOctane": 91,
+      "monOctane": 83,
+      "afrStoich": 14.7,
+      "lhvMJPerKg": 43.4,
+      "latentHeatKJPerKg": 350
+    },
+    {
+      "id": "us-91-aki",
+      "name": "US Plus (91 AKI)",
+      "ronOctane": 95,
+      "monOctane": 87,
+      "afrStoich": 14.7,
+      "lhvMJPerKg": 43.4,
+      "latentHeatKJPerKg": 350
+    },
+    {
+      "id": "us-93-aki",
+      "name": "US Premium (93 AKI)",
+      "ronOctane": 97,
+      "monOctane": 89,
+      "afrStoich": 14.7,
+      "lhvMJPerKg": 43.4,
+      "latentHeatKJPerKg": 350
+    }
+  ]
+}

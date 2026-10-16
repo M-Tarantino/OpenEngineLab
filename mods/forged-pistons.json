@@ -1,0 +1,26 @@
+{
+  "modId": "FORGED_PISTONS",
+  "name": "Forged Aluminum Pistons",
+  "category": "BOTTOM_END",
+  "description": "Forged pistons with thicker ring lands and pin bosses, tolerating higher cylinder pressure and detonation margin than cast factory pistons.",
+  "defaultEffects": {
+    "massDeltaKg": 0.15,
+    "rpmMultiplier": 1.10,
+    "strengthMultiplier": 1.6,
+    "parasiticLossDeltaHp": 1
+  },
+  "manufacturerOverrides": {
+    "spec_heavy_duty": {
+      "massDeltaKg": 0.30,
+      "rpmMultiplier": 1.08,
+      "strengthMultiplier": 2.0,
+      "parasiticLossDeltaHp": 2
+    },
+    "spec_lightweight": {
+      "massDeltaKg": -0.10,
+      "rpmMultiplier": 1.18,
+      "strengthMultiplier": 1.4,
+      "parasiticLossDeltaHp": 0
+    }
+  }
+}

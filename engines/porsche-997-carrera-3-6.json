@@ -1,0 +1,100 @@
+{
+  "id": "porsche_997_carrera_3_6",
+  "name": "Porsche 997 Carrera 3.6 Flat-Six (325 PS)",
+  "engineCodes": [
+    "M97 3.6"
+  ],
+  "configuration": "V",
+  "vAngleDeg": 180,
+  "cylinders": 6,
+  "firingOrder": [
+    1,
+    6,
+    2,
+    4,
+    3,
+    5
+  ],
+  "baseStock": {
+    "boreMm": 96.0,
+    "strokeMm": 82.8,
+    "compressionRatio": 11.3,
+    "maxRpm": 7200,
+    "rotatingMassKg": 28.0,
+    "parasiticLossHp": 14.7
+  },
+  "geometry": {
+    "boreMM": 96.0,
+    "strokeMM": 82.8,
+    "rodLengthMM": 136.6,
+    "displacementCC": 3596,
+    "compressionRatio": 11.3
+  },
+  "materials": {
+    "connectingRod": {
+      "material": "Forged Steel",
+      "yieldStrengthMPa": 650,
+      "crossSectionAreaMM2": 220,
+      "snCurveExponentB": 5.7,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "headBolt": {
+      "material": "10.9 Alloy Steel",
+      "yieldStrengthMPa": 1000,
+      "crossSectionAreaMM2": 56,
+      "boltsPerCylinder": 2,
+      "snCurveExponentB": 6.8,
+      "snCurveRefCyclesN0": 1500000.0
+    },
+    "pistonPin": {
+      "material": "Case-Hardened Steel",
+      "yieldStrengthMPa": 640,
+      "crossSectionAreaMM2": 170,
+      "snCurveExponentB": 6.0,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "cylinderHead": {
+      "material": "Aluminum Alloy (Head)",
+      "yieldStrengthMPa": 260,
+      "crossSectionAreaMM2": 419,
+      "snCurveExponentB": 6.4,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "block": {
+      "material": "Aluminum Alloy (Block, Alusil)",
+      "yieldStrengthMPa": 290,
+      "crossSectionAreaMM2": 1199,
+      "snCurveExponentB": 6.5,
+      "snCurveRefCyclesN0": 1200000.0
+    }
+  },
+  "thermal": {
+    "oilMassKG": 6.5,
+    "oilSpecificHeatJPerKgK": 2000,
+    "oilRefTempC": 90,
+    "oilViscosityEta0": 12.0,
+    "oilViscosityAlpha": -0.026,
+    "oilViscosityMinSafe": 3.0,
+    "frictionCoeff": 5e-05,
+    "combustionHeatFraction": 0.03,
+    "coolingCoeff": 270.9,
+    "ambientLossCoeff": 11.1,
+    "thermalDerationBaselineC": 148,
+    "thermalDerationRate": 0.0025
+  },
+  "dynamics": {
+    "rotatingInertiaKgM2": 0.19,
+    "frictionTorqueBaseNm": 18.9,
+    "frictionTorquePerRPM": 0.00379,
+    "dynoLoadCoeffNmPerRPM2": 2.465e-05
+  },
+  "idleRPM": 750,
+  "redlineRPM": 7200,
+  "revLimiterRPM": 7500,
+  "intercoolerEfficiency": 0,
+  "layout": {
+    "type": "boxer",
+    "bankAngleDeg": 180,
+    "note": "Horizontally opposed engine, modelled as a 180 degree V."
+  }
+}

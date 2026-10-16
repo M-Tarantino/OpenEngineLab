@@ -1,0 +1,93 @@
+{
+  "id": "opel_z16xep",
+  "name": "Opel Z16XEP 1.6",
+  "engineCodes": [
+    "Z16XEP"
+  ],
+  "configuration": "I",
+  "vAngleDeg": 0,
+  "cylinders": 4,
+  "firingOrder": [
+    1,
+    3,
+    4,
+    2
+  ],
+  "baseStock": {
+    "boreMm": 79.0,
+    "strokeMm": 81.5,
+    "compressionRatio": 10.5,
+    "maxRpm": 6500,
+    "rotatingMassKg": 21.3,
+    "parasiticLossHp": 10.9
+  },
+  "geometry": {
+    "boreMM": 79.0,
+    "strokeMM": 81.5,
+    "rodLengthMM": 134.5,
+    "displacementCC": 1598,
+    "compressionRatio": 10.5
+  },
+  "materials": {
+    "connectingRod": {
+      "material": "Forged Steel",
+      "yieldStrengthMPa": 650,
+      "crossSectionAreaMM2": 149,
+      "snCurveExponentB": 5.7,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "headBolt": {
+      "material": "10.9 Alloy Steel",
+      "yieldStrengthMPa": 1000,
+      "crossSectionAreaMM2": 38,
+      "boltsPerCylinder": 2,
+      "snCurveExponentB": 6.8,
+      "snCurveRefCyclesN0": 1500000.0
+    },
+    "pistonPin": {
+      "material": "Case-Hardened Steel",
+      "yieldStrengthMPa": 640,
+      "crossSectionAreaMM2": 115,
+      "snCurveExponentB": 6.0,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "cylinderHead": {
+      "material": "Aluminum Alloy (Head)",
+      "yieldStrengthMPa": 260,
+      "crossSectionAreaMM2": 284,
+      "snCurveExponentB": 6.4,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "block": {
+      "material": "Cast Iron (Block)",
+      "yieldStrengthMPa": 340,
+      "crossSectionAreaMM2": 812,
+      "snCurveExponentB": 6.3,
+      "snCurveRefCyclesN0": 1300000.0
+    }
+  },
+  "thermal": {
+    "oilMassKG": 4.5,
+    "oilSpecificHeatJPerKgK": 2000,
+    "oilRefTempC": 90,
+    "oilViscosityEta0": 12.0,
+    "oilViscosityAlpha": -0.026,
+    "oilViscosityMinSafe": 3.0,
+    "frictionCoeff": 5e-05,
+    "combustionHeatFraction": 0.03,
+    "coolingCoeff": 136.0,
+    "ambientLossCoeff": 6.4,
+    "thermalDerationBaselineC": 148,
+    "thermalDerationRate": 0.0025
+  },
+  "dynamics": {
+    "rotatingInertiaKgM2": 0.14,
+    "frictionTorqueBaseNm": 14.0,
+    "frictionTorquePerRPM": 0.00281,
+    "dynoLoadCoeffNmPerRPM2": 1.344e-05
+  },
+  "idleRPM": 750,
+  "redlineRPM": 6500,
+  "revLimiterRPM": 6800,
+  "intercoolerEfficiency": 0
+}

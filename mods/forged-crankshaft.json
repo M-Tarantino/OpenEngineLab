@@ -1,0 +1,22 @@
+{
+  "modId": "FORGED_CRANKSHAFT",
+  "name": "Forged Steel Crankshaft",
+  "category": "BOTTOM_END",
+  "description": "High-tensile forged steel crankshaft engineered to withstand high cylinder pressures and torsional stress.",
+  "defaultEffects": {
+    "massDeltaKg": 0.35,
+    "rpmMultiplier": 1.02,
+    "strengthMultiplier": 1.15
+  },
+  "manufacturerOverrides": {
+    "spec_heavy_duty": {
+      "massDeltaKg": 0.48,
+      "strengthMultiplier": 1.25
+    },
+    "spec_lightweight": {
+      "massDeltaKg": 0.15,
+      "rpmMultiplier": 1.04,
+      "strengthMultiplier": 1.1
+    }
+  }
+}

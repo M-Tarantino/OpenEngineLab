@@ -1,0 +1,95 @@
+{
+  "id": "audi_2_5_tfsi",
+  "name": "Audi 2.5 TFSI I5 (TT RS, 340 PS)",
+  "engineCodes": [
+    "CEPA",
+    "EA855"
+  ],
+  "configuration": "I",
+  "vAngleDeg": 0,
+  "cylinders": 5,
+  "firingOrder": [
+    1,
+    2,
+    4,
+    5,
+    3
+  ],
+  "baseStock": {
+    "boreMm": 82.5,
+    "strokeMm": 92.8,
+    "compressionRatio": 10.0,
+    "maxRpm": 7200,
+    "rotatingMassKg": 24.7,
+    "parasiticLossHp": 12.8
+  },
+  "geometry": {
+    "boreMM": 82.5,
+    "strokeMM": 92.8,
+    "rodLengthMM": 153.1,
+    "displacementCC": 2480,
+    "compressionRatio": 10.0
+  },
+  "materials": {
+    "connectingRod": {
+      "material": "Forged Steel",
+      "yieldStrengthMPa": 800,
+      "crossSectionAreaMM2": 313.4,
+      "snCurveExponentB": 5.7,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "headBolt": {
+      "material": "10.9 Alloy Steel",
+      "yieldStrengthMPa": 1000,
+      "crossSectionAreaMM2": 58.6,
+      "boltsPerCylinder": 2,
+      "snCurveExponentB": 6.8,
+      "snCurveRefCyclesN0": 1500000.0
+    },
+    "pistonPin": {
+      "material": "Case-Hardened Steel",
+      "yieldStrengthMPa": 750,
+      "crossSectionAreaMM2": 246.3,
+      "snCurveExponentB": 6.0,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "cylinderHead": {
+      "material": "Aluminum Alloy (Head)",
+      "yieldStrengthMPa": 260,
+      "crossSectionAreaMM2": 597.0,
+      "snCurveExponentB": 6.4,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "block": {
+      "material": "Aluminum Alloy (Block, Iron Sleeves)",
+      "yieldStrengthMPa": 290,
+      "crossSectionAreaMM2": 1641.8,
+      "snCurveExponentB": 6.5,
+      "snCurveRefCyclesN0": 1200000.0
+    }
+  },
+  "thermal": {
+    "oilMassKG": 5.2,
+    "oilSpecificHeatJPerKgK": 2000,
+    "oilRefTempC": 90,
+    "oilViscosityEta0": 12.0,
+    "oilViscosityAlpha": -0.026,
+    "oilViscosityMinSafe": 3.0,
+    "frictionCoeff": 5e-05,
+    "combustionHeatFraction": 0.03,
+    "coolingCoeff": 197.5,
+    "ambientLossCoeff": 8.6,
+    "thermalDerationBaselineC": 148,
+    "thermalDerationRate": 0.0025
+  },
+  "dynamics": {
+    "rotatingInertiaKgM2": 0.211,
+    "frictionTorqueBaseNm": 16.5,
+    "frictionTorquePerRPM": 0.0033,
+    "dynoLoadCoeffNmPerRPM2": 1.7e-05
+  },
+  "idleRPM": 750,
+  "redlineRPM": 7200,
+  "revLimiterRPM": 7500,
+  "intercoolerEfficiency": 0.6
+}

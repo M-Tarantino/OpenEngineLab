@@ -1,0 +1,98 @@
+{
+  "id": "ford_windsor_302",
+  "name": "Ford Windsor 302 (5.0 HO)",
+  "engineCodes": [
+    "302",
+    "5.0L"
+  ],
+  "configuration": "V",
+  "vAngleDeg": 90,
+  "cylinders": 8,
+  "firingOrder": [
+    1,
+    3,
+    7,
+    2,
+    6,
+    5,
+    4,
+    8
+  ],
+  "baseStock": {
+    "boreMm": 101.6,
+    "strokeMm": 76.2,
+    "compressionRatio": 9.0,
+    "maxRpm": 5500,
+    "rotatingMassKg": 31.2,
+    "parasiticLossHp": 16.6
+  },
+  "geometry": {
+    "boreMM": 101.6,
+    "strokeMM": 76.2,
+    "rodLengthMM": 129.3,
+    "displacementCC": 4942,
+    "compressionRatio": 9.0
+  },
+  "materials": {
+    "connectingRod": {
+      "material": "Forged Steel",
+      "yieldStrengthMPa": 620,
+      "crossSectionAreaMM2": 246,
+      "snCurveExponentB": 5.7,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "headBolt": {
+      "material": "8.8 Alloy Steel",
+      "yieldStrengthMPa": 800,
+      "crossSectionAreaMM2": 62,
+      "boltsPerCylinder": 2,
+      "snCurveExponentB": 6.8,
+      "snCurveRefCyclesN0": 1500000.0
+    },
+    "pistonPin": {
+      "material": "Case-Hardened Steel",
+      "yieldStrengthMPa": 620,
+      "crossSectionAreaMM2": 191,
+      "snCurveExponentB": 6.0,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "cylinderHead": {
+      "material": "Cast Iron (Head)",
+      "yieldStrengthMPa": 330,
+      "crossSectionAreaMM2": 470,
+      "snCurveExponentB": 5.9,
+      "snCurveRefCyclesN0": 1000000.0
+    },
+    "block": {
+      "material": "Cast Iron (Block)",
+      "yieldStrengthMPa": 340,
+      "crossSectionAreaMM2": 1343,
+      "snCurveExponentB": 6.3,
+      "snCurveRefCyclesN0": 1300000.0
+    }
+  },
+  "thermal": {
+    "oilMassKG": 4.7,
+    "oilSpecificHeatJPerKgK": 2000,
+    "oilRefTempC": 90,
+    "oilViscosityEta0": 12.0,
+    "oilViscosityAlpha": -0.026,
+    "oilViscosityMinSafe": 3.0,
+    "frictionCoeff": 5e-05,
+    "combustionHeatFraction": 0.03,
+    "coolingCoeff": 354.9,
+    "ambientLossCoeff": 13.7,
+    "thermalDerationBaselineC": 148,
+    "thermalDerationRate": 0.0025
+  },
+  "dynamics": {
+    "rotatingInertiaKgM2": 0.18,
+    "frictionTorqueBaseNm": 21.4,
+    "frictionTorquePerRPM": 0.00428,
+    "dynoLoadCoeffNmPerRPM2": 5.806e-05
+  },
+  "idleRPM": 700,
+  "redlineRPM": 5500,
+  "revLimiterRPM": 5800,
+  "intercoolerEfficiency": 0
+}
