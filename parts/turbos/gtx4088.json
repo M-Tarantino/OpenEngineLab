@@ -1,0 +1,47 @@
+{
+  "id": "gtx4088",
+  "type": "turbocharger",
+  "name": "GTX4088",
+  "series": "GTX",
+  "bearing_type": "Journal",
+  "application": {
+    "hp_range": "460-850",
+    "displacement_range_l": "2.5-5.5",
+    "wastegate_type": "External",
+    "rotation": "Standard"
+  },
+  "compressor": {
+    "inducer_mm": 64.0,
+    "exducer_mm": 78.0,
+    "trim": 78,
+    "area_ratio": 0.96,
+    "estimated_max_flow_cfm": 608.4
+  },
+  "turbine": {
+    "inducer_mm": 63.0,
+    "exducer_mm": 68.0,
+    "trim": 84,
+    "estimated_max_flow_cfm": 462.4
+  },
+  "limits": {
+    "maxBoostBar": 2.4,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.55,
+    "volumetricEfficiency": 0.79,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "Garrett Performance Catalog Vol 9",
+    "features": [
+      "Garrett Performance Turbo"
+    ]
+  },
+  "description": "GTX4088 - 460-850 HP, 2.5-5.5L"
+}

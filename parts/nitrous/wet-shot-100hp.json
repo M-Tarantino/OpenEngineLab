@@ -1,0 +1,9 @@
+{
+  "id": "wet-shot-100hp",
+  "name": "Nasssystem — 100-PS-Shot",
+  "shotEquivalentBar": 35,
+  "heatFractionBoost": 0.02,
+  "flowRateKgMin": 0.9,
+  "bottleCapacityKg": 2.3,
+  "hydrolockAfrThreshold": 6.5
+}

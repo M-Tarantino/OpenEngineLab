@@ -1,0 +1,47 @@
+{
+  "id": "g45_1500",
+  "type": "turbocharger",
+  "name": "G45-1500",
+  "series": "G-Series",
+  "bearing_type": "Journal",
+  "application": {
+    "hp_range": "750-1500",
+    "displacement_range_l": "4.0-8.0",
+    "wastegate_type": "External",
+    "rotation": "Standard"
+  },
+  "compressor": {
+    "inducer_mm": 73.0,
+    "exducer_mm": 89.0,
+    "trim": 69,
+    "area_ratio": 0.92,
+    "estimated_max_flow_cfm": 792.1
+  },
+  "turbine": {
+    "inducer_mm": 82.0,
+    "exducer_mm": 74.0,
+    "trim": 84,
+    "estimated_max_flow_cfm": 547.6
+  },
+  "limits": {
+    "maxBoostBar": 2.0,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.55,
+    "volumetricEfficiency": 0.79,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "Garrett Performance Catalog Vol 9",
+    "features": [
+      "Garrett Performance Turbo"
+    ]
+  },
+  "description": "G45-1500 - 750-1500 HP, 4.0-8.0L"
+}

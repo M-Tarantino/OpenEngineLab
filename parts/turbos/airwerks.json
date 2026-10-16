@@ -1,0 +1,34 @@
+{
+  "id": "airwerks",
+  "type": "turbocharger",
+  "name": "Airwerks",
+  "series": "AirWerks",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "10 Calculated Outputs 32 S1BG 54 TSG-1 Turbo Speed Gauge",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 2.0,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.45,
+    "volumetricEfficiency": 0.82,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 2,
+    "features": [
+      "AirWerks Series",
+      "Performance Boost"
+    ]
+  },
+  "description": "Airwerks - AirWerks - 10 Calculated Outputs 32 S1BG 54 TSG-1 Turbo Speed Gauge"
+}

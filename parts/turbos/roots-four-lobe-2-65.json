@@ -1,0 +1,24 @@
+{
+  "id": "roots-four-lobe-2-65",
+  "type": "supercharger",
+  "name": "Four-Lobe Roots 2.65L (Supercharger)",
+  "displacement_liters": 2.65,
+  "drive_type": "belt",
+  "pulley_ratio": 1.4,
+  "limits": {
+    "maxBoostBar": 1.0,
+    "maxRPM": 8200,
+    "peakEfficiencyRPM": 6600
+  },
+  "dynamics": {
+    "timeConstantS": 0.035,
+    "volumetricEfficiency": 0.83,
+    "heatRatioK": 1.22,
+    "beltSlipCoeff": 0.022
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 36
+  },
+  "description": "Four-lobe Roots blower with moderate boost for mid-size engines."
+}

@@ -1,0 +1,35 @@
+{
+  "id": "9174",
+  "type": "turbocharger",
+  "name": "9174",
+  "series": "EFR",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "Boosted by BorgWarner 26 EFR 9274 48 S400SX4",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 2.2,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.35,
+    "volumetricEfficiency": 0.85,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 2,
+    "features": [
+      "EFR Technology",
+      "Forged Milled Compressor Wheel",
+      "Gamma-Ti Turbine"
+    ]
+  },
+  "description": "9174 - EFR - Boosted by BorgWarner 26 EFR 9274 48 S400SX4"
+}

@@ -1,0 +1,35 @@
+{
+  "id": "7670",
+  "type": "turbocharger",
+  "name": "7670",
+  "series": "EFR",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "22 EFR 8370 44 S400SX-E 64 Innovation Starts Here",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 2.2,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.35,
+    "volumetricEfficiency": 0.85,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 2,
+    "features": [
+      "EFR Technology",
+      "Forged Milled Compressor Wheel",
+      "Gamma-Ti Turbine"
+    ]
+  },
+  "description": "7670 - EFR - 22 EFR 8370 44 S400SX-E 64 Innovation Starts Here"
+}

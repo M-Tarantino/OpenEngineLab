@@ -1,0 +1,33 @@
+{
+  "id": "k03_105",
+  "type": "turbocharger",
+  "name": "K03-105",
+  "series": "K-Series",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "Audi from 2004 2.0 TFSI 185-200 hp 245 hp 5304 988 0064 yes** 305 hp 1025\u00b0C 1050\u00b0C",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 1.5,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.6,
+    "volumetricEfficiency": 0.78,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 56,
+    "features": [
+      "OEM Upgrade Turbo"
+    ]
+  },
+  "description": "K03-105 - K-Series - Audi from 2004 2.0 TFSI 185-200 hp 245 hp 5304 988 0064 yes** 305 hp 1025\u00b0C 1050\u00b0C"
+}

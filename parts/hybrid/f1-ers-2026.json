@@ -1,0 +1,8 @@
+{
+  "id": "f1-ers-2026",
+  "name": "F1/WEC Hybrid-ERS",
+  "maxDeployKw": 120,
+  "maxHarvestKw": 120,
+  "batteryCapacityKWh": 4.0,
+  "hasMguH": true
+}

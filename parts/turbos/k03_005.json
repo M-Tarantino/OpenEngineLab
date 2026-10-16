@@ -1,0 +1,33 @@
+{
+  "id": "k03_005",
+  "type": "turbocharger",
+  "name": "K03-005",
+  "series": "K-Series",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "longitudinal engine",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 1.5,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.6,
+    "volumetricEfficiency": 0.78,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 56,
+    "features": [
+      "OEM Upgrade Turbo"
+    ]
+  },
+  "description": "K03-005 - K-Series - longitudinal engine"
+}

@@ -1,0 +1,35 @@
+{
+  "id": "8370",
+  "type": "turbocharger",
+  "name": "8370",
+  "series": "EFR",
+  "bearing_type": "Journal",
+  "application": {
+    "description": "2",
+    "manufacturer": "BorgWarner"
+  },
+  "limits": {
+    "maxBoostBar": 2.2,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.35,
+    "volumetricEfficiency": 0.85,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "BorgWarner Performance Catalog 2023",
+    "page": 2,
+    "features": [
+      "EFR Technology",
+      "Forged Milled Compressor Wheel",
+      "Gamma-Ti Turbine"
+    ]
+  },
+  "description": "8370 - EFR - 2"
+}

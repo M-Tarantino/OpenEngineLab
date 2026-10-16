@@ -1,0 +1,47 @@
+{
+  "id": "gtx3071",
+  "type": "turbocharger",
+  "name": "GTX3071",
+  "series": "GTX Gen II",
+  "bearing_type": "Ball Bearing",
+  "application": {
+    "hp_range": "340-675",
+    "displacement_range_l": "1.5-3.5",
+    "wastegate_type": "Internal",
+    "rotation": "Standard"
+  },
+  "compressor": {
+    "inducer_mm": 52.0,
+    "exducer_mm": 65.0,
+    "trim": 65,
+    "area_ratio": 0.7,
+    "estimated_max_flow_cfm": 422.5
+  },
+  "turbine": {
+    "inducer_mm": 48.0,
+    "exducer_mm": 52.0,
+    "trim": 76,
+    "estimated_max_flow_cfm": 270.4
+  },
+  "limits": {
+    "maxBoostBar": 2.0,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.35,
+    "volumetricEfficiency": 0.82,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "Garrett Performance Catalog Vol 9",
+    "features": [
+      "Garrett Performance Turbo"
+    ]
+  },
+  "description": "GTX3071 - 340-675 HP, 1.5-3.5L"
+}

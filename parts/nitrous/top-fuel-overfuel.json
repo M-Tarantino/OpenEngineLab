@@ -1,0 +1,9 @@
+{
+  "id": "top-fuel-overfuel",
+  "name": "Top-Fuel-Überfettungsmodell (vereinfacht)",
+  "shotEquivalentBar": 220,
+  "heatFractionBoost": 0.05,
+  "flowRateKgMin": 4.5,
+  "bottleCapacityKg": 15,
+  "hydrolockAfrThreshold": 9
+}

@@ -1,0 +1,47 @@
+{
+  "id": "g42_1450",
+  "type": "turbocharger",
+  "name": "G42-1450",
+  "series": "G-Series",
+  "bearing_type": "Journal",
+  "application": {
+    "hp_range": "525-1450",
+    "displacement_range_l": "3.5-7.5",
+    "wastegate_type": "External",
+    "rotation": "Standard"
+  },
+  "compressor": {
+    "inducer_mm": 70.0,
+    "exducer_mm": 85.0,
+    "trim": 65,
+    "area_ratio": 0.83,
+    "estimated_max_flow_cfm": 722.5
+  },
+  "turbine": {
+    "inducer_mm": 78.0,
+    "exducer_mm": 71.0,
+    "trim": 84,
+    "estimated_max_flow_cfm": 504.1
+  },
+  "limits": {
+    "maxBoostBar": 2.0,
+    "maxRPM": 200000
+  },
+  "dynamics": {
+    "timeConstantS": 0.55,
+    "volumetricEfficiency": 0.79,
+    "heatRatioK": 1.38,
+    "beltSlipCoeff": 0.0
+  },
+  "cooler": {
+    "effectivenessPercent": 45,
+    "targetInletTempC": 35
+  },
+  "metadata": {
+    "source": "Garrett Performance Catalog Vol 9",
+    "features": [
+      "Garrett Performance Turbo"
+    ]
+  },
+  "description": "G42-1450 - 525-1450 HP, 3.5-7.5L"
+}

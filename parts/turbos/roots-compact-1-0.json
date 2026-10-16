@@ -1,0 +1,24 @@
+{
+  "id": "roots-compact-1-0",
+  "type": "supercharger",
+  "name": "Compact Roots Blower 1.0L (Supercharger)",
+  "displacement_liters": 1.0,
+  "drive_type": "belt",
+  "pulley_ratio": 1.3,
+  "limits": {
+    "maxBoostBar": 0.8,
+    "maxRPM": 7000,
+    "peakEfficiencyRPM": 5000
+  },
+  "dynamics": {
+    "timeConstantS": 0.04,
+    "volumetricEfficiency": 0.8,
+    "heatRatioK": 1.25,
+    "beltSlipCoeff": 0.025
+  },
+  "cooler": {
+    "effectivenessPercent": 40,
+    "targetInletTempC": 38
+  },
+  "description": "Compact Roots blower sized for small-displacement engines."
+}
